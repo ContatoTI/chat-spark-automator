@@ -1,13 +1,13 @@
 
 import React from "react";
 import { 
-  MessageSquare, 
-  UserCheck, 
+  Users, 
+  CheckCircle, 
   Clock, 
-  CheckCircle,
-  AlertCircle
+  AlertTriangle
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useQuery } from "@tanstack/react-query";
 
 interface StatCardProps {
   title: string;
@@ -19,6 +19,7 @@ interface StatCardProps {
     positive: boolean;
   };
   className?: string;
+  isLoading?: boolean;
 }
 
 const StatCard: React.FC<StatCardProps> = ({ 
@@ -27,7 +28,8 @@ const StatCard: React.FC<StatCardProps> = ({
   icon: Icon, 
   description,
   trend,
-  className
+  className,
+  isLoading = false
 }) => {
   return (
     <div className={cn(
@@ -42,7 +44,13 @@ const StatCard: React.FC<StatCardProps> = ({
         </div>
       </div>
       <div className="flex flex-col gap-1">
-        <div className="text-3xl font-semibold">{value}</div>
+        <div className="text-3xl font-semibold">
+          {isLoading ? (
+            <div className="h-8 w-16 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+          ) : (
+            value
+          )}
+        </div>
         {description && (
           <p className="text-sm text-muted-foreground">{description}</p>
         )}
@@ -62,35 +70,56 @@ const StatCard: React.FC<StatCardProps> = ({
   );
 };
 
+// Mock function to simulate fetching contacts data
+// In a real application, this would be replaced with an actual API call
+const fetchContactsStats = async () => {
+  // Simulate API delay
+  await new Promise(resolve => setTimeout(resolve, 1000));
+  
+  // Mock data for the contacts statistics
+  return {
+    total: 2458,
+    sent: 1785,
+    remaining: 673,
+    invalid: 124
+  };
+};
+
 export const DashboardStats: React.FC = () => {
+  const { data: contactsStats, isLoading } = useQuery({
+    queryKey: ['contactsStats'],
+    queryFn: fetchContactsStats,
+  });
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
       <StatCard
-        title="Total Campanhas"
-        value={86}
-        icon={MessageSquare}
-        description="Todas as campanhas"
-        trend={{ value: 12, positive: true }}
+        title="Número de Contatos"
+        value={isLoading ? 0 : contactsStats?.total || 0}
+        icon={Users}
+        description="Total de contatos"
+        isLoading={isLoading}
       />
       <StatCard
-        title="Contatos Ativos"
-        value={2458}
-        icon={UserCheck}
-        description="Contatos sincronizados"
-        trend={{ value: 8, positive: true }}
-      />
-      <StatCard
-        title="Agendadas"
-        value={14}
-        icon={Clock}
-        description="Campanhas pendentes"
-      />
-      <StatCard
-        title="Taxa de Entrega"
-        value="98.2%"
+        title="Enviados"
+        value={isLoading ? 0 : contactsStats?.sent || 0}
         icon={CheckCircle}
-        description="Mensagens entregues"
-        trend={{ value: 2.5, positive: true }}
+        description="Contatos com envio completo"
+        isLoading={isLoading}
+      />
+      <StatCard
+        title="Restantes"
+        value={isLoading ? 0 : contactsStats?.remaining || 0}
+        icon={Clock}
+        description="Contatos pendentes de envio"
+        isLoading={isLoading}
+      />
+      <StatCard
+        title="Inválidos"
+        value={isLoading ? 0 : contactsStats?.invalid || 0}
+        icon={AlertTriangle}
+        description="Contatos com números inválidos"
+        isLoading={isLoading}
       />
     </div>
   );

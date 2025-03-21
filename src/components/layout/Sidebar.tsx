@@ -6,7 +6,6 @@ import {
   LayoutDashboard, 
   MessageSquare, 
   Calendar, 
-  Users, 
   History, 
   Settings,
   Phone
@@ -66,12 +65,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ open }) => {
               icon={LayoutDashboard}
               label="Dashboard"
               active={currentPath === "/"}
-            />
-            <SidebarLink
-              to="/contacts"
-              icon={Users}
-              label="Contatos"
-              active={currentPath === "/contacts"}
             />
             <SidebarLink
               to="/campaigns"
