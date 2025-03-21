@@ -249,14 +249,6 @@ const Campaigns = () => {
                               <span className="font-medium capitalize">{campaign.tipo_midia}</span>
                             </div>
                           )}
-                          {campaign.url_midia && (
-                            <div className="flex justify-between text-sm">
-                              <span className="text-muted-foreground">URL:</span>
-                              <span className="font-medium truncate max-w-[150px]">
-                                {campaign.url_midia}
-                              </span>
-                            </div>
-                          )}
                         </div>
                       )}
                     </CardContent>

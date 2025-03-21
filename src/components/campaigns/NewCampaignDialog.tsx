@@ -85,10 +85,7 @@ export const NewCampaignDialog: React.FC<NewCampaignDialogProps> = ({
       return;
     }
     
-    if (selectedTab === "media" && mediaType && !mediaUrl.trim()) {
-      toast.error("Por favor, adicione a URL da mídia.");
-      return;
-    }
+    // Media URL is no longer required, removing the validation
     
     setActiveTab("schedule");
   };
@@ -123,7 +120,7 @@ export const NewCampaignDialog: React.FC<NewCampaignDialogProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px]">
+      <DialogContent className="sm:max-w-[900px]">
         <DialogHeader>
           <DialogTitle>Nova Campanha</DialogTitle>
           <DialogDescription>
@@ -156,10 +153,6 @@ export const NewCampaignDialog: React.FC<NewCampaignDialogProps> = ({
               )}
               onClick={() => {
                 if (campaignName.trim() && message1.trim()) {
-                  if (selectedTab === "media" && mediaType && !mediaUrl.trim()) {
-                    toast.error("Por favor, adicione a URL da mídia.");
-                    return;
-                  }
                   setActiveTab("schedule");
                 } else {
                   toast.error("Por favor, preencha todos os campos obrigatórios.");
@@ -212,7 +205,7 @@ export const NewCampaignDialog: React.FC<NewCampaignDialogProps> = ({
                 </div>
                 
                 {selectedTab === "text" && (
-                  <div className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="message-text-1">Mensagem 1 (Principal)</Label>
                       <Textarea
@@ -220,7 +213,7 @@ export const NewCampaignDialog: React.FC<NewCampaignDialogProps> = ({
                         placeholder="Digite sua mensagem principal aqui..."
                         value={message1}
                         onChange={(e) => setMessage1(e.target.value)}
-                        className="min-h-[80px]"
+                        className="min-h-[120px]"
                       />
                     </div>
                     
@@ -231,7 +224,7 @@ export const NewCampaignDialog: React.FC<NewCampaignDialogProps> = ({
                         placeholder="Digite sua mensagem secundária aqui..."
                         value={message2}
                         onChange={(e) => setMessage2(e.target.value)}
-                        className="min-h-[80px]"
+                        className="min-h-[120px]"
                       />
                     </div>
                     
@@ -242,7 +235,7 @@ export const NewCampaignDialog: React.FC<NewCampaignDialogProps> = ({
                         placeholder="Digite sua mensagem adicional aqui..."
                         value={message3}
                         onChange={(e) => setMessage3(e.target.value)}
-                        className="min-h-[80px]"
+                        className="min-h-[120px]"
                       />
                     </div>
                     
@@ -253,7 +246,7 @@ export const NewCampaignDialog: React.FC<NewCampaignDialogProps> = ({
                         placeholder="Digite sua mensagem final aqui..."
                         value={message4}
                         onChange={(e) => setMessage4(e.target.value)}
-                        className="min-h-[80px]"
+                        className="min-h-[120px]"
                       />
                     </div>
                   </div>
@@ -307,7 +300,7 @@ export const NewCampaignDialog: React.FC<NewCampaignDialogProps> = ({
                     {mediaType && (
                       <>
                         <div className="space-y-2">
-                          <Label htmlFor="media-url">URL da Mídia</Label>
+                          <Label htmlFor="media-url">URL da Mídia (Opcional)</Label>
                           <Input
                             id="media-url"
                             placeholder={`Adicione a URL da ${mediaType === 'image' ? 'imagem' : mediaType === 'video' ? 'vídeo' : mediaType === 'document' ? 'documento' : 'link'}`}
@@ -316,48 +309,50 @@ export const NewCampaignDialog: React.FC<NewCampaignDialogProps> = ({
                           />
                         </div>
                         
-                        <div className="space-y-2">
-                          <Label htmlFor="message-text-1">Mensagem 1 (Principal)</Label>
-                          <Textarea
-                            id="message-text-1"
-                            placeholder="Digite sua mensagem principal aqui..."
-                            value={message1}
-                            onChange={(e) => setMessage1(e.target.value)}
-                            className="min-h-[80px]"
-                          />
-                        </div>
-                        
-                        <div className="space-y-2">
-                          <Label htmlFor="message-text-2">Mensagem 2 (Opcional)</Label>
-                          <Textarea
-                            id="message-text-2"
-                            placeholder="Digite sua mensagem secundária aqui..."
-                            value={message2}
-                            onChange={(e) => setMessage2(e.target.value)}
-                            className="min-h-[80px]"
-                          />
-                        </div>
-                        
-                        <div className="space-y-2">
-                          <Label htmlFor="message-text-3">Mensagem 3 (Opcional)</Label>
-                          <Textarea
-                            id="message-text-3"
-                            placeholder="Digite sua mensagem adicional aqui..."
-                            value={message3}
-                            onChange={(e) => setMessage3(e.target.value)}
-                            className="min-h-[80px]"
-                          />
-                        </div>
-                        
-                        <div className="space-y-2">
-                          <Label htmlFor="message-text-4">Mensagem 4 (Opcional)</Label>
-                          <Textarea
-                            id="message-text-4"
-                            placeholder="Digite sua mensagem final aqui..."
-                            value={message4}
-                            onChange={(e) => setMessage4(e.target.value)}
-                            className="min-h-[80px]"
-                          />
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="message-text-1">Mensagem 1 (Principal)</Label>
+                            <Textarea
+                              id="message-text-1"
+                              placeholder="Digite sua mensagem principal aqui..."
+                              value={message1}
+                              onChange={(e) => setMessage1(e.target.value)}
+                              className="min-h-[120px]"
+                            />
+                          </div>
+                          
+                          <div className="space-y-2">
+                            <Label htmlFor="message-text-2">Mensagem 2 (Opcional)</Label>
+                            <Textarea
+                              id="message-text-2"
+                              placeholder="Digite sua mensagem secundária aqui..."
+                              value={message2}
+                              onChange={(e) => setMessage2(e.target.value)}
+                              className="min-h-[120px]"
+                            />
+                          </div>
+                          
+                          <div className="space-y-2">
+                            <Label htmlFor="message-text-3">Mensagem 3 (Opcional)</Label>
+                            <Textarea
+                              id="message-text-3"
+                              placeholder="Digite sua mensagem adicional aqui..."
+                              value={message3}
+                              onChange={(e) => setMessage3(e.target.value)}
+                              className="min-h-[120px]"
+                            />
+                          </div>
+                          
+                          <div className="space-y-2">
+                            <Label htmlFor="message-text-4">Mensagem 4 (Opcional)</Label>
+                            <Textarea
+                              id="message-text-4"
+                              placeholder="Digite sua mensagem final aqui..."
+                              value={message4}
+                              onChange={(e) => setMessage4(e.target.value)}
+                              className="min-h-[120px]"
+                            />
+                          </div>
                         </div>
                       </>
                     )}
