@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { 
@@ -28,18 +28,11 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { toast } from "sonner";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { Campaign, fetchCampaigns, deleteCampaign, insertSampleCampaigns } from "@/lib/api/campaigns";
 
 type CampaignStatus = "draft" | "scheduled" | "sending" | "completed" | "failed";
-
-interface Campaign {
-  id: string;
-  name: string;
-  description: string;
-  status: CampaignStatus;
-  date: string;
-  contacts: number;
-  delivered: number;
-}
 
 const statusConfig = {
   draft: {
@@ -69,8 +62,8 @@ const statusConfig = {
   },
 };
 
-const CampaignStatusBadge: React.FC<{ status: CampaignStatus }> = ({ status }) => {
-  const config = statusConfig[status];
+const CampaignStatusBadge: React.FC<{ status: string }> = ({ status }) => {
+  const config = statusConfig[status as CampaignStatus] || statusConfig.draft;
   const Icon = config.icon;
   
   return (
@@ -84,75 +77,68 @@ const CampaignStatusBadge: React.FC<{ status: CampaignStatus }> = ({ status }) =
   );
 };
 
-// Mock data for campaigns
-const mockCampaigns: Campaign[] = [
-  {
-    id: "1",
-    name: "Promoção de Verão",
-    description: "20% de desconto em todos os produtos durante o verão",
-    status: "completed",
-    date: "2023-07-15",
-    contacts: 578,
-    delivered: 562,
-  },
-  {
-    id: "2",
-    name: "Lançamento Produto X",
-    description: "Anúncio do novo produto X com condições especiais",
-    status: "scheduled",
-    date: "2023-08-01",
-    contacts: 1024,
-    delivered: 0,
-  },
-  {
-    id: "3",
-    name: "Pesquisa de Satisfação",
-    description: "Pesquisa para avaliar a satisfação dos clientes",
-    status: "failed",
-    date: "2023-06-25",
-    contacts: 245,
-    delivered: 132,
-  },
-  {
-    id: "4",
-    name: "Atualização do Sistema",
-    description: "Informações sobre a atualização do sistema",
-    status: "completed",
-    date: "2023-07-10",
-    contacts: 1890,
-    delivered: 1852,
-  },
-  {
-    id: "5",
-    name: "Convite para Evento",
-    description: "Convite para o evento anual da empresa",
-    status: "draft",
-    date: "",
-    contacts: 0,
-    delivered: 0,
-  },
-  {
-    id: "6",
-    name: "Confirmação de Pedido",
-    description: "Mensagem automática de confirmação de pedidos",
-    status: "sending",
-    date: "2023-07-20",
-    contacts: 125,
-    delivered: 58,
-  },
-];
-
 const Campaigns = () => {
   const [newCampaignDialogOpen, setNewCampaignDialogOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTab, setSelectedTab] = useState<string>("all");
+  const queryClient = useQueryClient();
   
-  const filteredCampaigns = mockCampaigns
+  // Fetch campaigns with React Query
+  const { data: campaigns = [], isLoading, error } = useQuery({
+    queryKey: ['campaigns'],
+    queryFn: fetchCampaigns,
+  });
+
+  // Initialize sample data if needed
+  useEffect(() => {
+    insertSampleCampaigns().catch(console.error);
+  }, []);
+  
+  // Delete campaign mutation
+  const deleteMutation = useMutation({
+    mutationFn: (id: number) => deleteCampaign(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['campaigns'] });
+      toast.success('Campanha excluída com sucesso');
+    },
+    onError: (error) => {
+      toast.error(`Erro ao excluir campanha: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
+    },
+  });
+
+  const handleDeleteCampaign = (id: number) => {
+    if (window.confirm('Tem certeza que deseja excluir esta campanha?')) {
+      deleteMutation.mutate(id);
+    }
+  };
+  
+  const formatDate = (dateString: string | null) => {
+    if (!dateString) return '-';
+    return new Date(dateString).toLocaleDateString("pt-BR");
+  };
+  
+  const filteredCampaigns = campaigns
     .filter((campaign) => {
-      const matchesSearch = campaign.name.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesSearch = campaign.nome.toLowerCase().includes(searchQuery.toLowerCase());
       const matchesTab = selectedTab === "all" || campaign.status === selectedTab;
       return matchesSearch && matchesTab;
     });
+    
+  if (error) {
+    return (
+      <Layout>
+        <div className="flex flex-col gap-8">
+          <div className="flex justify-between items-center">
+            <h1 className="text-3xl font-semibold tracking-tight">Campanhas</h1>
+          </div>
+          <div className="p-8 text-center">
+            <h2 className="text-xl font-medium text-red-600 mb-2">Erro ao carregar campanhas</h2>
+            <p className="text-muted-foreground">{error instanceof Error ? error.message : 'Erro desconhecido'}</p>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout>
@@ -186,7 +172,9 @@ const Campaigns = () => {
             </div>
             <div className="flex-1 hidden md:flex justify-end">
               <p className="text-sm text-muted-foreground">
-                Mostrando {filteredCampaigns.length} de {mockCampaigns.length} campanhas
+                {isLoading 
+                  ? "Carregando campanhas..." 
+                  : `Mostrando ${filteredCampaigns.length} de ${campaigns.length} campanhas`}
               </p>
             </div>
           </div>
@@ -202,82 +190,109 @@ const Campaigns = () => {
           </TabsList>
           
           <TabsContent value={selectedTab} className="mt-0">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredCampaigns.map((campaign) => (
-                <Card key={campaign.id} className="card-hover">
-                  <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
-                    <div className="space-y-1">
-                      <CardTitle>{campaign.name}</CardTitle>
-                    </div>
-                    <CampaignStatusBadge status={campaign.status} />
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-sm text-muted-foreground mb-4">
-                      {campaign.description}
-                    </p>
-                    
-                    {campaign.status !== "draft" && (
-                      <div className="flex flex-col gap-2 mt-4">
-                        <div className="flex justify-between text-sm">
-                          <span className="text-muted-foreground">Data:</span>
-                          <span className="font-medium">
-                            {campaign.date ? new Date(campaign.date).toLocaleDateString("pt-BR") : "-"}
-                          </span>
-                        </div>
-                        <div className="flex justify-between text-sm">
-                          <span className="text-muted-foreground">Contatos:</span>
-                          <span className="font-medium">{campaign.contacts}</span>
-                        </div>
-                        {campaign.status !== "scheduled" && (
+            {isLoading ? (
+              <div className="flex justify-center items-center py-12">
+                <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div>
+              </div>
+            ) : filteredCampaigns.length === 0 ? (
+              <div className="text-center py-12">
+                <h3 className="font-medium text-lg">Nenhuma campanha encontrada</h3>
+                <p className="text-muted-foreground mt-1">Crie uma nova campanha para começar</p>
+                <Button 
+                  className="mt-4 bg-primary"
+                  onClick={() => setNewCampaignDialogOpen(true)}
+                >
+                  <PlusCircle className="mr-2 h-4 w-4" />
+                  Nova Campanha
+                </Button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {filteredCampaigns.map((campaign) => (
+                  <Card key={campaign.id} className="card-hover">
+                    <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
+                      <div className="space-y-1">
+                        <CardTitle>{campaign.nome}</CardTitle>
+                      </div>
+                      <CampaignStatusBadge status={campaign.status} />
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-sm text-muted-foreground mb-4">
+                        {campaign.mensagem01}
+                      </p>
+                      
+                      {campaign.status !== "draft" && (
+                        <div className="flex flex-col gap-2 mt-4">
                           <div className="flex justify-between text-sm">
-                            <span className="text-muted-foreground">Entregues:</span>
+                            <span className="text-muted-foreground">Data:</span>
                             <span className="font-medium">
-                              {campaign.delivered} 
-                              {campaign.contacts > 0 && (
-                                <span className="text-xs text-muted-foreground ml-1">
-                                  ({Math.round((campaign.delivered / campaign.contacts) * 100)}%)
-                                </span>
-                              )}
+                              {formatDate(campaign.data_disparo)}
                             </span>
                           </div>
-                        )}
-                      </div>
-                    )}
-                  </CardContent>
-                  <CardFooter className="justify-between gap-2">
-                    <Button variant="outline" className="w-1/2">
-                      <Edit className="mr-2 h-4 w-4" />
-                      Editar
-                    </Button>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="outline" className="w-1/2">
-                          <MoreHorizontal className="mr-2 h-4 w-4" />
-                          Ações
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="w-40">
-                        <DropdownMenuLabel>Opções</DropdownMenuLabel>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem>
-                          <Copy className="mr-2 h-4 w-4" />
-                          Duplicar
-                        </DropdownMenuItem>
-                        <DropdownMenuItem>
-                          <MessageSquare className="mr-2 h-4 w-4" />
-                          Enviar Agora
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem className="text-red-600">
-                          <Trash2 className="mr-2 h-4 w-4" />
-                          Excluir
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </CardFooter>
-                </Card>
-              ))}
-            </div>
+                          {campaign.tipo_midia && (
+                            <div className="flex justify-between text-sm">
+                              <span className="text-muted-foreground">Tipo de mídia:</span>
+                              <span className="font-medium capitalize">{campaign.tipo_midia}</span>
+                            </div>
+                          )}
+                          <div className="flex justify-between text-sm">
+                            <span className="text-muted-foreground">Contatos:</span>
+                            <span className="font-medium">{campaign.contacts}</span>
+                          </div>
+                          {campaign.status !== "scheduled" && campaign.status !== "draft" && (
+                            <div className="flex justify-between text-sm">
+                              <span className="text-muted-foreground">Entregues:</span>
+                              <span className="font-medium">
+                                {campaign.delivered} 
+                                {campaign.contacts && campaign.contacts > 0 && (
+                                  <span className="text-xs text-muted-foreground ml-1">
+                                    ({Math.round((campaign.delivered || 0) / campaign.contacts * 100)}%)
+                                  </span>
+                                )}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </CardContent>
+                    <CardFooter className="justify-between gap-2">
+                      <Button variant="outline" className="w-1/2">
+                        <Edit className="mr-2 h-4 w-4" />
+                        Editar
+                      </Button>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="outline" className="w-1/2">
+                            <MoreHorizontal className="mr-2 h-4 w-4" />
+                            Ações
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-40">
+                          <DropdownMenuLabel>Opções</DropdownMenuLabel>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem>
+                            <Copy className="mr-2 h-4 w-4" />
+                            Duplicar
+                          </DropdownMenuItem>
+                          <DropdownMenuItem>
+                            <MessageSquare className="mr-2 h-4 w-4" />
+                            Enviar Agora
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem 
+                            className="text-red-600"
+                            onClick={() => campaign.id && handleDeleteCampaign(campaign.id)}
+                          >
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            Excluir
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </CardFooter>
+                  </Card>
+                ))}
+              </div>
+            )}
           </TabsContent>
         </Tabs>
       </div>
