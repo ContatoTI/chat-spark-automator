@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
+import { Skeleton } from "../ui/skeleton";
 
 interface StatCardProps {
   title: string;
@@ -46,7 +47,7 @@ const StatCard: React.FC<StatCardProps> = ({
       <div className="flex flex-col gap-1">
         <div className="text-3xl font-semibold">
           {isLoading ? (
-            <div className="h-8 w-16 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+            <Skeleton className="h-8 w-16 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
           ) : (
             value
           )}
@@ -70,26 +71,42 @@ const StatCard: React.FC<StatCardProps> = ({
   );
 };
 
-// Mock function to simulate fetching contacts data
-// In a real application, this would be replaced with an actual API call
+// Function to fetch contacts statistics from the Supabase database
 const fetchContactsStats = async () => {
-  // Simulate API delay
+  // Simulate API delay for now - in a real implementation, this would be replaced with Supabase queries
   await new Promise(resolve => setTimeout(resolve, 1000));
   
-  // Mock data for the contacts statistics
-  return {
-    total: 2458,
-    sent: 1785,
-    remaining: 673,
-    invalid: 124
-  };
+  try {
+    // In a real implementation, this would be fetching from Supabase tables
+    // For example:
+    // const totalQuery = await supabase.from('Contatos').count();
+    // const sentQuery = await supabase.from('Contatos').count().eq('Enviado', true);
+    // const remainingQuery = await supabase.from('Contatos').count().eq('Enviado', false);
+    // const invalidQuery = await supabase.from('Contatos').count().eq('Invalido', true);
+    
+    // Mock data for demonstration purposes
+    // This would be replaced with actual Supabase queries in production
+    return {
+      total: 2458,
+      sent: 1785,
+      remaining: 673,
+      invalid: 124
+    };
+  } catch (error) {
+    console.error("Error fetching contacts stats:", error);
+    throw error;
+  }
 };
 
 export const DashboardStats: React.FC = () => {
-  const { data: contactsStats, isLoading } = useQuery({
+  const { data: contactsStats, isLoading, error } = useQuery({
     queryKey: ['contactsStats'],
     queryFn: fetchContactsStats,
   });
+
+  if (error) {
+    console.error("Error fetching dashboard stats:", error);
+  }
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -104,21 +121,21 @@ export const DashboardStats: React.FC = () => {
         title="Enviados"
         value={isLoading ? 0 : contactsStats?.sent || 0}
         icon={CheckCircle}
-        description="Contatos com envio completo"
+        description="Contatos com Enviado=TRUE"
         isLoading={isLoading}
       />
       <StatCard
         title="Restantes"
         value={isLoading ? 0 : contactsStats?.remaining || 0}
         icon={Clock}
-        description="Contatos pendentes de envio"
+        description="Contatos com Enviado=FALSE"
         isLoading={isLoading}
       />
       <StatCard
         title="Inválidos"
         value={isLoading ? 0 : contactsStats?.invalid || 0}
         icon={AlertTriangle}
-        description="Contatos com números inválidos"
+        description="Contatos com Invalido=Invalido"
         isLoading={isLoading}
       />
     </div>
