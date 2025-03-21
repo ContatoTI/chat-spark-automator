@@ -100,12 +100,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ open }) => {
           </h2>
           <nav className="flex flex-col gap-1">
             <SidebarLink
-              to="/connections"
-              icon={Phone}
-              label="Conexões"
-              active={currentPath === "/connections"}
-            />
-            <SidebarLink
               to="/settings"
               icon={Settings}
               label="Configurações"
