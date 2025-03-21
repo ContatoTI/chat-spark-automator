@@ -47,7 +47,7 @@ export const NewCampaignDialog: React.FC<NewCampaignDialogProps> = ({
   const [message4, setMessage4] = useState("");
   const [selectedTab, setSelectedTab] = useState<"text" | "media">("text");
   const [mediaType, setMediaType] = useState<string | null>(null);
-  const [mediaUrl, setMediaUrl] = useState<string | null>(null);
+  const [mediaUrl, setMediaUrl] = useState<string>("");
   const [scheduleDate, setScheduleDate] = useState<string>("");
   
   // Reset form when dialog closes
@@ -60,7 +60,7 @@ export const NewCampaignDialog: React.FC<NewCampaignDialogProps> = ({
       setMessage4("");
       setSelectedTab("text");
       setMediaType(null);
-      setMediaUrl(null);
+      setMediaUrl("");
       setScheduleDate("");
       setActiveTab("message");
     }
@@ -84,6 +84,12 @@ export const NewCampaignDialog: React.FC<NewCampaignDialogProps> = ({
       toast.error("Por favor, preencha todos os campos obrigatórios.");
       return;
     }
+    
+    if (selectedTab === "media" && mediaType && !mediaUrl.trim()) {
+      toast.error("Por favor, adicione a URL da mídia.");
+      return;
+    }
+    
     setActiveTab("schedule");
   };
   
@@ -98,7 +104,7 @@ export const NewCampaignDialog: React.FC<NewCampaignDialogProps> = ({
       mensagem03: message3 || null,
       mensagem04: message4 || null,
       tipo_midia: mediaType,
-      url_midia: mediaUrl,
+      url_midia: mediaUrl || null,
       data_disparo: scheduleDate 
         ? new Date(scheduleDate).toISOString() 
         : null,
@@ -110,9 +116,9 @@ export const NewCampaignDialog: React.FC<NewCampaignDialogProps> = ({
   
   const handleMediaSelection = (type: string) => {
     setMediaType(type);
-    // For demo purposes, set a placeholder URL
-    setMediaUrl(`https://example.com/placeholder-${type}.${type === 'image' ? 'jpg' : type === 'video' ? 'mp4' : type === 'document' ? 'pdf' : 'txt'}`);
-    toast.success(`Mídia do tipo ${type} selecionada`);
+    if (!mediaUrl) {
+      setMediaUrl("");
+    }
   };
 
   return (
@@ -150,6 +156,10 @@ export const NewCampaignDialog: React.FC<NewCampaignDialogProps> = ({
               )}
               onClick={() => {
                 if (campaignName.trim() && message1.trim()) {
+                  if (selectedTab === "media" && mediaType && !mediaUrl.trim()) {
+                    toast.error("Por favor, adicione a URL da mídia.");
+                    return;
+                  }
                   setActiveTab("schedule");
                 } else {
                   toast.error("Por favor, preencha todos os campos obrigatórios.");
@@ -296,6 +306,16 @@ export const NewCampaignDialog: React.FC<NewCampaignDialogProps> = ({
                     
                     {mediaType && (
                       <>
+                        <div className="space-y-2">
+                          <Label htmlFor="media-url">URL da Mídia</Label>
+                          <Input
+                            id="media-url"
+                            placeholder={`Adicione a URL da ${mediaType === 'image' ? 'imagem' : mediaType === 'video' ? 'vídeo' : mediaType === 'document' ? 'documento' : 'link'}`}
+                            value={mediaUrl}
+                            onChange={(e) => setMediaUrl(e.target.value)}
+                          />
+                        </div>
+                        
                         <div className="space-y-2">
                           <Label htmlFor="message-text-1">Mensagem 1 (Principal)</Label>
                           <Textarea

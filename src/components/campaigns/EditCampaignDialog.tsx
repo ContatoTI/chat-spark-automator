@@ -45,7 +45,7 @@ export const EditCampaignDialog: React.FC<EditCampaignDialogProps> = ({
   const [message4, setMessage4] = useState("");
   const [selectedTab, setSelectedTab] = useState<"text" | "media">("text");
   const [mediaType, setMediaType] = useState<string | null>(null);
-  const [mediaUrl, setMediaUrl] = useState<string | null>(null);
+  const [mediaUrl, setMediaUrl] = useState<string>("");
   const [scheduleDate, setScheduleDate] = useState<string>("");
   
   // Initialize form with campaign data when dialog opens
@@ -58,7 +58,7 @@ export const EditCampaignDialog: React.FC<EditCampaignDialogProps> = ({
       setMessage4(campaign.mensagem04 || "");
       setSelectedTab(campaign.tipo_midia ? "media" : "text");
       setMediaType(campaign.tipo_midia);
-      setMediaUrl(campaign.url_midia);
+      setMediaUrl(campaign.url_midia || "");
       setScheduleDate(campaign.data_disparo ? new Date(campaign.data_disparo).toISOString().slice(0, 16) : "");
       setActiveTab("message");
     }
@@ -74,7 +74,7 @@ export const EditCampaignDialog: React.FC<EditCampaignDialogProps> = ({
       setMessage4("");
       setSelectedTab("text");
       setMediaType(null);
-      setMediaUrl(null);
+      setMediaUrl("");
       setScheduleDate("");
       setActiveTab("message");
     }
@@ -99,6 +99,12 @@ export const EditCampaignDialog: React.FC<EditCampaignDialogProps> = ({
       toast.error("Por favor, preencha todos os campos obrigatórios.");
       return;
     }
+    
+    if (selectedTab === "media" && mediaType && !mediaUrl.trim()) {
+      toast.error("Por favor, adicione a URL da mídia.");
+      return;
+    }
+    
     setActiveTab("schedule");
   };
   
@@ -115,7 +121,7 @@ export const EditCampaignDialog: React.FC<EditCampaignDialogProps> = ({
       mensagem03: message3 || null,
       mensagem04: message4 || null,
       tipo_midia: mediaType,
-      url_midia: mediaUrl,
+      url_midia: mediaUrl || null,
       data_disparo: scheduleDate ? new Date(scheduleDate).toISOString() : null,
       status: scheduleDate ? "scheduled" : campaign.status === "draft" ? "draft" : "sending",
     };
@@ -125,9 +131,9 @@ export const EditCampaignDialog: React.FC<EditCampaignDialogProps> = ({
   
   const handleMediaSelection = (type: string) => {
     setMediaType(type);
-    // For demo purposes, set a placeholder URL
-    setMediaUrl(`https://example.com/placeholder-${type}.${type === 'image' ? 'jpg' : type === 'video' ? 'mp4' : type === 'document' ? 'pdf' : 'txt'}`);
-    toast.success(`Mídia do tipo ${type} selecionada`);
+    if (!mediaUrl) {
+      setMediaUrl("");
+    }
   };
 
   if (!campaign) return null;
@@ -167,6 +173,10 @@ export const EditCampaignDialog: React.FC<EditCampaignDialogProps> = ({
               )}
               onClick={() => {
                 if (campaignName.trim() && message1.trim()) {
+                  if (selectedTab === "media" && mediaType && !mediaUrl.trim()) {
+                    toast.error("Por favor, adicione a URL da mídia.");
+                    return;
+                  }
                   setActiveTab("schedule");
                 } else {
                   toast.error("Por favor, preencha todos os campos obrigatórios.");
@@ -313,6 +323,16 @@ export const EditCampaignDialog: React.FC<EditCampaignDialogProps> = ({
                     
                     {mediaType && (
                       <>
+                        <div className="space-y-2">
+                          <Label htmlFor="media-url">URL da Mídia</Label>
+                          <Input
+                            id="media-url"
+                            placeholder={`Adicione a URL da ${mediaType === 'image' ? 'imagem' : mediaType === 'video' ? 'vídeo' : mediaType === 'document' ? 'documento' : 'link'}`}
+                            value={mediaUrl}
+                            onChange={(e) => setMediaUrl(e.target.value)}
+                          />
+                        </div>
+                        
                         <div className="space-y-2">
                           <Label htmlFor="message-text-1">Mensagem 1 (Principal)</Label>
                           <Textarea

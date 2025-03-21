@@ -249,20 +249,11 @@ const Campaigns = () => {
                               <span className="font-medium capitalize">{campaign.tipo_midia}</span>
                             </div>
                           )}
-                          <div className="flex justify-between text-sm">
-                            <span className="text-muted-foreground">Contatos:</span>
-                            <span className="font-medium">{campaign.contacts}</span>
-                          </div>
-                          {campaign.status !== "scheduled" && campaign.status !== "draft" && (
+                          {campaign.url_midia && (
                             <div className="flex justify-between text-sm">
-                              <span className="text-muted-foreground">Entregues:</span>
-                              <span className="font-medium">
-                                {campaign.delivered} 
-                                {campaign.contacts && campaign.contacts > 0 && (
-                                  <span className="text-xs text-muted-foreground ml-1">
-                                    ({Math.round((campaign.delivered || 0) / campaign.contacts * 100)}%)
-                                  </span>
-                                )}
+                              <span className="text-muted-foreground">URL:</span>
+                              <span className="font-medium truncate max-w-[150px]">
+                                {campaign.url_midia}
                               </span>
                             </div>
                           )}

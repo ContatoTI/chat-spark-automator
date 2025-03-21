@@ -5,7 +5,6 @@ import {
   Clock, 
   AlertCircle,
   Calendar,
-  Users,
   ArrowUpRight,
   Edit,
   MessageSquare
@@ -123,8 +122,7 @@ export const RecentCampaigns: React.FC = () => {
                 <th className="text-left text-xs font-medium text-muted-foreground px-6 py-3">MENSAGEM</th>
                 <th className="text-left text-xs font-medium text-muted-foreground px-6 py-3">DATA</th>
                 <th className="text-left text-xs font-medium text-muted-foreground px-6 py-3">TIPO</th>
-                <th className="text-left text-xs font-medium text-muted-foreground px-6 py-3">CONTATOS</th>
-                <th className="text-left text-xs font-medium text-muted-foreground px-6 py-3">ENTREGUES</th>
+                <th className="text-left text-xs font-medium text-muted-foreground px-6 py-3">URL</th>
                 <th className="text-left text-xs font-medium text-muted-foreground px-6 py-3">STATUS</th>
               </tr>
             </thead>
@@ -148,23 +146,8 @@ export const RecentCampaigns: React.FC = () => {
                   <td className="px-6 py-4 capitalize">
                     {campaign.tipo_midia || "Texto"}
                   </td>
-                  <td className="px-6 py-4 flex items-center gap-2">
-                    <Users className="h-4 w-4 text-muted-foreground" />
-                    {campaign.contacts}
-                  </td>
-                  <td className="px-6 py-4">
-                    {campaign.status === "scheduled" || campaign.status === "draft" ? (
-                      <span className="text-muted-foreground">Pendente</span>
-                    ) : (
-                      <span>
-                        {campaign.delivered} 
-                        {campaign.contacts && campaign.contacts > 0 && (
-                          <span className="text-muted-foreground">
-                            ({Math.round((campaign.delivered || 0) / campaign.contacts * 100)}%)
-                          </span>
-                        )}
-                      </span>
-                    )}
+                  <td className="px-6 py-4 truncate max-w-[150px]">
+                    {campaign.url_midia || "-"}
                   </td>
                   <td className="px-6 py-4">
                     <CampaignStatusBadge status={campaign.status} />
