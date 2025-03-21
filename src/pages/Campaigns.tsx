@@ -18,6 +18,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { NewCampaignDialog } from "@/components/campaigns/NewCampaignDialog";
+import { EditCampaignDialog } from "@/components/campaigns/EditCampaignDialog";
 import { 
   DropdownMenu,
   DropdownMenuContent,
@@ -79,6 +80,8 @@ const CampaignStatusBadge: React.FC<{ status: string }> = ({ status }) => {
 
 const Campaigns = () => {
   const [newCampaignDialogOpen, setNewCampaignDialogOpen] = useState(false);
+  const [editCampaignDialogOpen, setEditCampaignDialogOpen] = useState(false);
+  const [selectedCampaign, setSelectedCampaign] = useState<Campaign | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTab, setSelectedTab] = useState<string>("all");
   const queryClient = useQueryClient();
@@ -110,6 +113,11 @@ const Campaigns = () => {
     if (window.confirm('Tem certeza que deseja excluir esta campanha?')) {
       deleteMutation.mutate(id);
     }
+  };
+
+  const handleEditCampaign = (campaign: Campaign) => {
+    setSelectedCampaign(campaign);
+    setEditCampaignDialogOpen(true);
   };
   
   const formatDate = (dateString: string | null) => {
@@ -221,6 +229,12 @@ const Campaigns = () => {
                         {campaign.mensagem01}
                       </p>
                       
+                      {campaign.mensagem02 && (
+                        <p className="text-sm text-muted-foreground mb-2">
+                          {campaign.mensagem02}
+                        </p>
+                      )}
+                      
                       {campaign.status !== "draft" && (
                         <div className="flex flex-col gap-2 mt-4">
                           <div className="flex justify-between text-sm">
@@ -256,7 +270,11 @@ const Campaigns = () => {
                       )}
                     </CardContent>
                     <CardFooter className="justify-between gap-2">
-                      <Button variant="outline" className="w-1/2">
+                      <Button 
+                        variant="outline" 
+                        className="w-1/2"
+                        onClick={() => handleEditCampaign(campaign)}
+                      >
                         <Edit className="mr-2 h-4 w-4" />
                         Editar
                       </Button>
@@ -300,6 +318,12 @@ const Campaigns = () => {
       <NewCampaignDialog 
         open={newCampaignDialogOpen} 
         onOpenChange={setNewCampaignDialogOpen} 
+      />
+      
+      <EditCampaignDialog 
+        open={editCampaignDialogOpen} 
+        onOpenChange={setEditCampaignDialogOpen}
+        campaign={selectedCampaign}
       />
     </Layout>
   );

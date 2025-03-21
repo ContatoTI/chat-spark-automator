@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { 
   Dialog, 
   DialogContent, 
@@ -15,29 +15,27 @@ import { Textarea } from "@/components/ui/textarea";
 import { 
   Image as ImageIcon, 
   File, 
-  Link,
+  Link, 
   Video,
   Send,
-  Calendar,
-  User,
-  Users
+  Calendar
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-import { useNavigate } from "react-router-dom";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { createCampaign, Campaign } from "@/lib/api/campaigns";
+import { updateCampaign, Campaign } from "@/lib/api/campaigns";
 
-interface NewCampaignDialogProps {
+interface EditCampaignDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  campaign: Campaign | null;
 }
 
-export const NewCampaignDialog: React.FC<NewCampaignDialogProps> = ({ 
+export const EditCampaignDialog: React.FC<EditCampaignDialogProps> = ({ 
   open, 
-  onOpenChange 
+  onOpenChange,
+  campaign
 }) => {
-  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState<"message" | "schedule">("message");
   const [campaignName, setCampaignName] = useState("");
@@ -50,8 +48,24 @@ export const NewCampaignDialog: React.FC<NewCampaignDialogProps> = ({
   const [mediaUrl, setMediaUrl] = useState<string | null>(null);
   const [scheduleDate, setScheduleDate] = useState<string>("");
   
+  // Initialize form with campaign data when dialog opens
+  useEffect(() => {
+    if (campaign && open) {
+      setCampaignName(campaign.nome);
+      setMessage1(campaign.mensagem01);
+      setMessage2(campaign.mensagem02 || "");
+      setMessage3(campaign.mensagem03 || "");
+      setMessage4(campaign.mensagem04 || "");
+      setSelectedTab(campaign.tipo_midia ? "media" : "text");
+      setMediaType(campaign.tipo_midia);
+      setMediaUrl(campaign.url_midia);
+      setScheduleDate(campaign.data_disparo ? new Date(campaign.data_disparo).toISOString().slice(0, 16) : "");
+      setActiveTab("message");
+    }
+  }, [campaign, open]);
+  
   // Reset form when dialog closes
-  React.useEffect(() => {
+  useEffect(() => {
     if (!open) {
       setCampaignName("");
       setMessage1("");
@@ -66,16 +80,17 @@ export const NewCampaignDialog: React.FC<NewCampaignDialogProps> = ({
     }
   }, [open]);
   
-  // Create campaign mutation
-  const createMutation = useMutation({
-    mutationFn: (newCampaign: Campaign) => createCampaign(newCampaign),
+  // Update campaign mutation
+  const updateMutation = useMutation({
+    mutationFn: ({ id, updatedCampaign }: { id: number, updatedCampaign: Partial<Campaign> }) => 
+      updateCampaign(id, updatedCampaign),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['campaigns'] });
-      toast.success("Campanha criada com sucesso!");
+      toast.success("Campanha atualizada com sucesso!");
       onOpenChange(false);
     },
     onError: (error) => {
-      toast.error(`Erro ao criar campanha: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
+      toast.error(`Erro ao atualizar campanha: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
     },
   });
   
@@ -88,24 +103,24 @@ export const NewCampaignDialog: React.FC<NewCampaignDialogProps> = ({
   };
   
   const handleSubmit = () => {
-    const today = new Date();
+    if (!campaign?.id) {
+      toast.error("ID da campanha não encontrado");
+      return;
+    }
     
-    const newCampaign: Campaign = {
+    const updatedCampaign: Partial<Campaign> = {
       nome: campaignName,
-      data: today.toISOString(),
       mensagem01: message1,
       mensagem02: message2 || null,
       mensagem03: message3 || null,
       mensagem04: message4 || null,
       tipo_midia: mediaType,
       url_midia: mediaUrl,
-      data_disparo: scheduleDate 
-        ? new Date(scheduleDate).toISOString() 
-        : null,
-      status: scheduleDate ? "scheduled" : "draft",
+      data_disparo: scheduleDate ? new Date(scheduleDate).toISOString() : null,
+      status: scheduleDate ? "scheduled" : campaign.status === "draft" ? "draft" : "sending",
     };
     
-    createMutation.mutate(newCampaign);
+    updateMutation.mutate({ id: campaign.id, updatedCampaign });
   };
   
   const handleMediaSelection = (type: string) => {
@@ -115,13 +130,15 @@ export const NewCampaignDialog: React.FC<NewCampaignDialogProps> = ({
     toast.success(`Mídia do tipo ${type} selecionada`);
   };
 
+  if (!campaign) return null;
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
-          <DialogTitle>Nova Campanha</DialogTitle>
+          <DialogTitle>Editar Campanha</DialogTitle>
           <DialogDescription>
-            Crie uma nova campanha para enviar mensagens para seus contatos.
+            Atualize os detalhes da campanha "{campaign.nome}".
           </DialogDescription>
         </DialogHeader>
         
@@ -349,38 +366,26 @@ export const NewCampaignDialog: React.FC<NewCampaignDialogProps> = ({
           
           {activeTab === "schedule" && (
             <div className="space-y-6">
-              <div className="space-y-4">
-                <div className="flex items-center gap-4 p-4 border rounded-md bg-muted/30">
-                  <Users className="h-5 w-5 text-muted-foreground" />
-                  <div className="flex-1">
-                    <h4 className="font-medium">Selecionar Contatos</h4>
-                    <p className="text-sm text-muted-foreground">Escolha os contatos que receberão esta mensagem</p>
-                  </div>
-                  <Button variant="outline" size="sm">
-                    Selecionar
-                  </Button>
+              <div className="flex items-center gap-4 p-4 border rounded-md bg-muted/30">
+                <Calendar className="h-5 w-5 text-muted-foreground" />
+                <div className="flex-1">
+                  <h4 className="font-medium">Agendar Envio</h4>
+                  <p className="text-sm text-muted-foreground">Defina uma data e horário para envio automático</p>
                 </div>
-                
-                <div className="flex items-center gap-4 p-4 border rounded-md bg-muted/30">
-                  <Calendar className="h-5 w-5 text-muted-foreground" />
-                  <div className="flex-1">
-                    <h4 className="font-medium">Agendar Envio</h4>
-                    <p className="text-sm text-muted-foreground">Defina uma data e horário para envio automático</p>
-                  </div>
-                  <Input
-                    type="datetime-local"
-                    className="w-auto"
-                    value={scheduleDate}
-                    onChange={(e) => setScheduleDate(e.target.value)}
-                  />
-                </div>
+                <Input
+                  type="datetime-local"
+                  className="w-auto"
+                  value={scheduleDate}
+                  onChange={(e) => setScheduleDate(e.target.value)}
+                />
               </div>
               
               <div className="p-4 border rounded-md bg-amber-50 dark:bg-amber-900/20 text-amber-800 dark:text-amber-300">
                 <h4 className="font-medium">Resumo da Campanha</h4>
                 <p className="text-sm mt-1">Nome: {campaignName}</p>
                 <p className="text-sm mt-1">Tipo: {mediaType ? `Mídia (${mediaType})` : "Texto"}</p>
-                <p className="text-sm mt-1">Status: {scheduleDate ? "Agendada" : "Rascunho"}</p>
+                <p className="text-sm mt-1">Status: {scheduleDate ? "Agendada" : 
+                  campaign.status === "draft" ? "Rascunho" : "Envio imediato"}</p>
                 {scheduleDate && (
                   <p className="text-sm mt-1">
                     Data de envio: {new Date(scheduleDate).toLocaleString("pt-BR")}
@@ -410,9 +415,9 @@ export const NewCampaignDialog: React.FC<NewCampaignDialogProps> = ({
               <Button 
                 onClick={handleSubmit} 
                 className="bg-primary"
-                disabled={createMutation.isPending}
+                disabled={updateMutation.isPending}
               >
-                {createMutation.isPending ? "Criando..." : "Criar Campanha"}
+                {updateMutation.isPending ? "Atualizando..." : "Atualizar Campanha"}
               </Button>
             </>
           )}
