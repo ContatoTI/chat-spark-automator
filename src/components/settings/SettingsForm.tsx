@@ -37,6 +37,7 @@ export function SettingsForm({ initialSettings }: SettingsFormProps) {
       BatchSizeMim: 5,
       BatchSizeMax: 10,
       urlAPI: "",
+      apikey: "",
     },
   });
 

@@ -57,6 +57,23 @@ export function GeneralSettings({ form }: GeneralSettingsProps) {
           />
         </div>
         
+        <FormField
+          control={form.control}
+          name="apikey"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>API Key</FormLabel>
+              <FormControl>
+                <Input {...field} type="password" />
+              </FormControl>
+              <FormDescription>
+                Chave de API para autenticação
+              </FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
           <FormField
             control={form.control}

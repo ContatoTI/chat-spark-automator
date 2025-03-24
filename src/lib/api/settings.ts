@@ -1,10 +1,12 @@
 
-import { createClient } from '@supabase/supabase-js';
+import { supabase } from '@/lib/supabase';
 
-// Create a Supabase client
-const supabaseUrl = 'https://supa.automaik.com.br/';
-const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyAgCiAgICAicm9sZSI6ICJzZXJ2aWNlX3JvbGUiLAogICAgImlzcyI6ICJzdXBhYmFzZS1kZW1vIiwKICAgICJpYXQiOiAxNjQxNzY5MjAwLAogICAgImV4cCI6IDE3OTk1MzU2MDAKfQ.DaYlNEoUrrEn2Ig7tqibS-PHK5vgusbcbo7X36XVt4Q';
-const supabase = createClient(supabaseUrl, supabaseKey);
+export interface OptionRow {
+  option: string;
+  text: string | null;
+  numeric: number | null;
+  boolean: boolean | null;
+}
 
 export interface DisparoOptions {
   instancia: string;
@@ -17,31 +19,108 @@ export interface DisparoOptions {
   long_wait_max: number;
   ShortWaitMin: number;
   ShortWaitMax: number;
-  BatchSizeMim: number; // Fixed typo: BatchSizeM -> BatchSizeMim
+  BatchSizeMim: number;
   BatchSizeMax: number;
   urlAPI: string;
+  apikey: string;
+}
+
+// Mapeamento entre nomes de opções na tabela e propriedades no objeto DisparoOptions
+const optionMapping = {
+  instancia: { field: 'text', key: 'instancia' },
+  ativo: { field: 'boolean', key: 'Ativo' },
+  producao: { field: 'boolean', key: 'Producao' },
+  limite_disparos: { field: 'numeric', key: 'Limite_disparos' },
+  enviados: { field: 'numeric', key: 'Enviados' },
+  horario_limite: { field: 'numeric', key: 'horario_limite' },
+  long_wait_min: { field: 'numeric', key: 'long_wait_min' },
+  long_wait_max: { field: 'numeric', key: 'long_wait_max' },
+  shor_wait_min: { field: 'numeric', key: 'ShortWaitMin' },
+  short_wait_max: { field: 'numeric', key: 'ShortWaitMax' },
+  batch_size_min: { field: 'numeric', key: 'BatchSizeMim' },
+  batch_size_max: { field: 'numeric', key: 'BatchSizeMax' },
+  url_api: { field: 'text', key: 'urlAPI' },
+  apikey: { field: 'text', key: 'apikey' },
+};
+
+/**
+ * Converte os dados da tabela vertical AppW_Options para o formato DisparoOptions
+ */
+function convertRowsToDisparoOptions(rows: OptionRow[]): DisparoOptions {
+  const options: Partial<DisparoOptions> = {
+    instancia: '',
+    Ativo: true,
+    Producao: false,
+    Limite_disparos: 1000,
+    Enviados: 0,
+    horario_limite: 17,
+    long_wait_min: 50,
+    long_wait_max: 240,
+    ShortWaitMin: 5,
+    ShortWaitMax: 10,
+    BatchSizeMim: 5,
+    BatchSizeMax: 10,
+    urlAPI: '',
+    apikey: '',
+  };
+
+  // Para cada linha, aplica o valor ao campo correspondente
+  rows.forEach(row => {
+    const mapping = Object.entries(optionMapping).find(([key]) => key === row.option);
+    if (mapping) {
+      const [_, { field, key }] = mapping;
+      if (field === 'text' && row.text !== null) {
+        options[key as keyof DisparoOptions] = row.text as any;
+      } else if (field === 'numeric' && row.numeric !== null) {
+        options[key as keyof DisparoOptions] = row.numeric as any;
+      } else if (field === 'boolean' && row.boolean !== null) {
+        options[key as keyof DisparoOptions] = row.boolean as any;
+      }
+    }
+  });
+
+  return options as DisparoOptions;
 }
 
 /**
- * Fetches the disparo options from Supabase
+ * Converte um objeto DisparoOptions em um array de atualizações para a tabela AppW_Options
+ */
+function convertDisparoOptionsToUpdates(options: DisparoOptions): { option: string; updates: Partial<OptionRow> }[] {
+  return Object.entries(optionMapping).map(([optionName, { field, key }]) => {
+    const value = options[key as keyof DisparoOptions];
+    const updates: Partial<OptionRow> = { option: optionName };
+    
+    if (field === 'text') {
+      updates.text = value as string;
+    } else if (field === 'numeric') {
+      updates.numeric = value as number;
+    } else if (field === 'boolean') {
+      updates.boolean = value as boolean;
+    }
+    
+    return { option: optionName, updates };
+  });
+}
+
+/**
+ * Busca as opções de configuração da nova tabela AppW_Options
  */
 export const fetchDisparoOptions = async (): Promise<DisparoOptions> => {
   try {
     const { data, error } = await supabase
-      .from('Disparo_Options')
-      .select('*')
-      .limit(1)
-      .single();
+      .from('AppW_Options')
+      .select('*');
 
     if (error) {
       throw new Error(`Erro ao buscar configurações: ${error.message}`);
     }
 
-    if (!data) {
+    if (!data || data.length === 0) {
       throw new Error('Nenhuma configuração encontrada');
     }
 
-    return data as DisparoOptions;
+    // Converte as linhas da tabela para o formato DisparoOptions
+    return convertRowsToDisparoOptions(data as OptionRow[]);
   } catch (error) {
     console.error('Erro ao buscar configurações:', error);
     throw error;
@@ -49,37 +128,22 @@ export const fetchDisparoOptions = async (): Promise<DisparoOptions> => {
 };
 
 /**
- * Updates the disparo options in Supabase
+ * Atualiza as opções de configuração na nova tabela AppW_Options
  */
 export const updateDisparoOptions = async (options: DisparoOptions): Promise<void> => {
   try {
-    // First check if there's an existing record
-    const { data: existingData, error: checkError } = await supabase
-      .from('Disparo_Options')
-      .select('*')
-      .limit(1);
-
-    if (checkError) {
-      throw new Error(`Erro ao verificar configurações existentes: ${checkError.message}`);
-    }
-
-    // If there's an existing record, update it, otherwise insert a new one
-    if (existingData && existingData.length > 0) {
+    // Converte o objeto para atualizações individuais
+    const updates = convertDisparoOptionsToUpdates(options);
+    
+    // Realiza uma atualização para cada opção
+    for (const { option, updates } of updates) {
       const { error } = await supabase
-        .from('Disparo_Options')
-        .update(options)
-        .eq('instancia', existingData[0].instancia);
+        .from('AppW_Options')
+        .update(updates)
+        .eq('option', option);
 
       if (error) {
-        throw new Error(`Erro ao atualizar configurações: ${error.message}`);
-      }
-    } else {
-      const { error } = await supabase
-        .from('Disparo_Options')
-        .insert([options]);
-
-      if (error) {
-        throw new Error(`Erro ao inserir configurações: ${error.message}`);
+        throw new Error(`Erro ao atualizar configuração ${option}: ${error.message}`);
       }
     }
   } catch (error) {

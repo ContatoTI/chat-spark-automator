@@ -12,16 +12,17 @@ export const settingsSchema = z.object({
   long_wait_max: z.number().int().min(1, { message: 'O valor mínimo é 1' }),
   ShortWaitMin: z.number().int().min(1, { message: 'O valor mínimo é 1' }),
   ShortWaitMax: z.number().int().min(1, { message: 'O valor mínimo é 1' }),
-  BatchSizeMim: z.number().int().min(1, { message: 'O valor mínimo é 1' }), // Fixed typo: BatchSizeM -> BatchSizeMim
+  BatchSizeMim: z.number().int().min(1, { message: 'O valor mínimo é 1' }),
   BatchSizeMax: z.number().int().min(1, { message: 'O valor mínimo é 1' }),
   urlAPI: z.string().url({ message: 'URL inválida' }).min(1, { message: 'A URL é obrigatória' }),
+  apikey: z.string().min(1, { message: 'A chave de API é obrigatória' }),
 }).refine(data => data.long_wait_min <= data.long_wait_max, {
   message: "O valor mínimo deve ser menor ou igual ao valor máximo",
   path: ["long_wait_min"],
 }).refine(data => data.ShortWaitMin <= data.ShortWaitMax, {
   message: "O valor mínimo deve ser menor ou igual ao valor máximo",
   path: ["ShortWaitMin"],
-}).refine(data => data.BatchSizeMim <= data.BatchSizeMax, { // Fixed typo: BatchSizeM -> BatchSizeMim
+}).refine(data => data.BatchSizeMim <= data.BatchSizeMax, {
   message: "O valor mínimo deve ser menor ou igual ao valor máximo",
-  path: ["BatchSizeMim"], // Fixed typo: BatchSizeM -> BatchSizeMim
+  path: ["BatchSizeMim"],
 });
