@@ -8,7 +8,7 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 
 export interface DisparoOptions {
   instancia: string;
-  ativo: boolean;
+  Ativo: boolean;  // Changed from lowercase 'ativo' to match DB schema 'Ativo'
   producao: boolean;
   limite_disparos: number;
   enviados: number;

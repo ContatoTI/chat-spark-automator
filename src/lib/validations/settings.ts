@@ -3,7 +3,7 @@ import { z } from 'zod';
 
 export const settingsSchema = z.object({
   instancia: z.string().min(1, { message: 'A instância é obrigatória' }),
-  ativo: z.boolean(),
+  Ativo: z.boolean(), // Changed from lowercase 'ativo' to match DB schema 'Ativo'
   producao: z.boolean(),
   limite_disparos: z.number().int().min(1, { message: 'O limite mínimo é 1' }),
   enviados: z.number().int().min(0, { message: 'O valor mínimo é 0' }),
