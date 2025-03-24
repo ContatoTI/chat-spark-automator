@@ -98,11 +98,11 @@ const fetchContactsStats = async () => {
 
     if (remainingError) throw remainingError;
 
-    // Buscar número de contatos inválidos
+    // Buscar número de contatos inválidos - corrigido para buscar pelo texto "Invalido"
     const { count: invalid, error: invalidError } = await supabase
       .from('Contatos')
       .select('*', { count: 'exact', head: true })
-      .eq('Invalido', true);
+      .eq('Invalido', 'Invalido');
 
     if (invalidError) throw invalidError;
 
@@ -157,7 +157,7 @@ export const DashboardStats: React.FC = () => {
         title="Inválidos"
         value={isLoading ? 0 : contactsStats?.invalid || 0}
         icon={AlertTriangle}
-        description="Contatos com Invalido=TRUE"
+        description="Contatos com Invalido='Invalido'"
         isLoading={isLoading}
       />
     </div>
