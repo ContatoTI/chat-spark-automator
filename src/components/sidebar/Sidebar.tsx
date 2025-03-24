@@ -5,7 +5,6 @@ import { cn } from "@/lib/utils";
 import { 
   LayoutDashboard, 
   MessageSquare, 
-  Calendar, 
   History, 
   Settings,
 } from "lucide-react";
@@ -72,25 +71,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ open }) => {
               active={currentPath === "/campaigns"}
             />
             <SidebarLink
-              to="/schedule"
-              icon={Calendar}
-              label="Agendamentos"
-              active={currentPath === "/schedule"}
-            />
-            <SidebarLink
               to="/history"
               icon={History}
               label="Histórico"
               active={currentPath === "/history"}
             />
-          </nav>
-        </div>
-        
-        <div className="mt-6 py-2">
-          <h2 className="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-4 px-3">
-            CONFIGURAÇÕES
-          </h2>
-          <nav className="flex flex-col gap-1">
             <SidebarLink
               to="/settings"
               icon={Settings}
