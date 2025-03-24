@@ -9,16 +9,16 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 export interface DisparoOptions {
   instancia: string;
   Ativo: boolean;
-  Producao: boolean; // Changed from lowercase 'producao' to match DB schema 'Producao'
-  Limite_disparos: number; // Changed from lowercase
-  Enviados: number; // Changed from lowercase
+  Producao: boolean;
+  Limite_disparos: number;
+  Enviados: number;
   horario_limite: number;
   long_wait_min: number;
   long_wait_max: number;
-  ShortWaitMin: number; // Changed to match DB 'ShortWaitMin'
-  ShortWaitMax: number; // Changed to match DB 'ShortWaitMax'
-  BatchSizeM: number; // Changed to match DB 'BatchSizeM'
-  BatchSizeMax: number; // Changed to match DB 'BatchSizeMax'
+  ShortWaitMin: number;
+  ShortWaitMax: number;
+  BatchSizeMim: number; // Fixed typo: BatchSizeM -> BatchSizeMim
+  BatchSizeMax: number;
   urlAPI: string;
 }
 

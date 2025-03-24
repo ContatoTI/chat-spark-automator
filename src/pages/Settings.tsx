@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Loader2, Save, AlertCircle } from "lucide-react";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { DisparoOptions, fetchDisparoOptions, updateDisparoOptions } from "@/lib/api/settings";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -33,16 +33,16 @@ const Settings = () => {
     defaultValues: {
       instancia: "",
       Ativo: true,
-      Producao: true, // Changed from lowercase 'producao' to match DB schema 'Producao'
-      Limite_disparos: 1000, // Changed from lowercase
-      Enviados: 0, // Changed from lowercase
+      Producao: true,
+      Limite_disparos: 1000,
+      Enviados: 0,
       horario_limite: 17,
       long_wait_min: 50,
       long_wait_max: 240,
-      ShortWaitMin: 5, // Changed to match DB 'ShortWaitMin'
-      ShortWaitMax: 10, // Changed to match DB 'ShortWaitMax'
-      BatchSizeM: 5, // Changed to match DB 'BatchSizeM'
-      BatchSizeMax: 10, // Changed to match DB 'BatchSizeMax'
+      ShortWaitMin: 5,
+      ShortWaitMax: 10,
+      BatchSizeMim: 5, // Fixed typo: BatchSizeM -> BatchSizeMim
+      BatchSizeMax: 10,
       urlAPI: "",
     },
   });
@@ -186,7 +186,7 @@ const Settings = () => {
                   
                   <FormField
                     control={form.control}
-                    name="Producao" // Changed from lowercase 'producao' to match DB schema 'Producao'
+                    name="Producao"
                     render={({ field }) => (
                       <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
                         <div className="space-y-0.5">
@@ -219,7 +219,7 @@ const Settings = () => {
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
                   <FormField
                     control={form.control}
-                    name="Limite_disparos" // Changed from lowercase
+                    name="Limite_disparos"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Limite de Disparos</FormLabel>
@@ -236,7 +236,7 @@ const Settings = () => {
                   
                   <FormField
                     control={form.control}
-                    name="Enviados" // Changed from lowercase
+                    name="Enviados"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Enviados</FormLabel>
@@ -316,7 +316,7 @@ const Settings = () => {
                   
                   <FormField
                     control={form.control}
-                    name="ShortWaitMin" // Changed to match DB 'ShortWaitMin'
+                    name="ShortWaitMin"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Espera curta (mín)</FormLabel>
@@ -333,7 +333,7 @@ const Settings = () => {
                   
                   <FormField
                     control={form.control}
-                    name="ShortWaitMax" // Changed to match DB 'ShortWaitMax'
+                    name="ShortWaitMax"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Espera curta (máx)</FormLabel>
@@ -362,7 +362,7 @@ const Settings = () => {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                   <FormField
                     control={form.control}
-                    name="BatchSizeM" // Changed to match DB 'BatchSizeM'
+                    name="BatchSizeMim" // Fixed typo: BatchSizeM -> BatchSizeMim
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Tamanho do lote (mín)</FormLabel>
@@ -379,7 +379,7 @@ const Settings = () => {
                   
                   <FormField
                     control={form.control}
-                    name="BatchSizeMax" // Changed to match DB 'BatchSizeMax'
+                    name="BatchSizeMax"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Tamanho do lote (máx)</FormLabel>
