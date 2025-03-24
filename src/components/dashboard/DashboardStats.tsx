@@ -1,3 +1,4 @@
+
 import React from "react";
 import { 
   Users, 
@@ -106,15 +107,23 @@ const fetchContactsStats = async () => {
 
     if (invalidError) throw invalidError;
 
-    // Buscar o valor 'enviados' da tabela de configurações
-    const settings = await fetchDisparoOptions();
-    const settingsEnviados = settings.Enviados;
+    // Buscar o valor 'enviados' diretamente da tabela AppW_Options
+    const { data: optionsData, error: optionsError } = await supabase
+      .from('AppW_Options')
+      .select('*')
+      .eq('option', 'enviados')
+      .single();
+
+    if (optionsError) throw optionsError;
+    
+    // Obter o valor numeric da opção 'enviados'
+    const settingsEnviados = optionsData?.numeric || 0;
 
     console.log("Estatísticas de contatos:", { total, sent, remaining, invalid, settingsEnviados });
     
     return {
       total: total || 0,
-      sent: settingsEnviados || 0, // Usar o valor da tabela de configurações
+      sent: settingsEnviados || 0, // Usar o valor diretamente da opção 'enviados'
       remaining: remaining || 0,
       invalid: invalid || 0
     };
