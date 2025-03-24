@@ -26,7 +26,7 @@ export interface DisparoOptions {
 }
 
 // Mapeamento entre nomes de opções na tabela e propriedades no objeto DisparoOptions
-const optionMapping = {
+const optionMapping: Record<string, { field: 'text' | 'numeric' | 'boolean', key: keyof DisparoOptions }> = {
   instancia: { field: 'text', key: 'instancia' },
   ativo: { field: 'boolean', key: 'Ativo' },
   producao: { field: 'boolean', key: 'Producao' },
@@ -47,7 +47,7 @@ const optionMapping = {
  * Converte os dados da tabela vertical AppW_Options para o formato DisparoOptions
  */
 function convertRowsToDisparoOptions(rows: OptionRow[]): DisparoOptions {
-  const options: Partial<DisparoOptions> = {
+  const options: DisparoOptions = {
     instancia: '',
     Ativo: true,
     Producao: false,
@@ -70,36 +70,40 @@ function convertRowsToDisparoOptions(rows: OptionRow[]): DisparoOptions {
     if (mapping) {
       const [_, { field, key }] = mapping;
       if (field === 'text' && row.text !== null) {
-        options[key as keyof DisparoOptions] = row.text as any;
+        options[key] = row.text as any;
       } else if (field === 'numeric' && row.numeric !== null) {
-        options[key as keyof DisparoOptions] = row.numeric as any;
+        options[key] = row.numeric as any;
       } else if (field === 'boolean' && row.boolean !== null) {
-        options[key as keyof DisparoOptions] = row.boolean as any;
+        options[key] = row.boolean as any;
       }
     }
   });
 
-  return options as DisparoOptions;
+  return options;
 }
 
 /**
  * Converte um objeto DisparoOptions em um array de atualizações para a tabela AppW_Options
  */
 function convertDisparoOptionsToUpdates(options: DisparoOptions): { option: string; updates: Partial<OptionRow> }[] {
-  return Object.entries(optionMapping).map(([optionName, { field, key }]) => {
-    const value = options[key as keyof DisparoOptions];
-    const updates: Partial<OptionRow> = { option: optionName };
+  const results: { option: string; updates: Partial<OptionRow> }[] = [];
+  
+  Object.entries(optionMapping).forEach(([optionName, { field, key }]) => {
+    const value = options[key];
+    const updateObj: Partial<OptionRow> = { option: optionName };
     
     if (field === 'text') {
-      updates.text = value as string;
+      updateObj.text = value as string;
     } else if (field === 'numeric') {
-      updates.numeric = value as number;
+      updateObj.numeric = value as number;
     } else if (field === 'boolean') {
-      updates.boolean = value as boolean;
+      updateObj.boolean = value as boolean;
     }
     
-    return { option: optionName, updates };
+    results.push({ option: optionName, updates: updateObj });
   });
+  
+  return results;
 }
 
 /**
