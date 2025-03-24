@@ -1,12 +1,10 @@
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { Layout } from "@/components/layout/Layout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
 import { Loader2, Save, AlertCircle } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -34,17 +32,17 @@ const Settings = () => {
     resolver: zodResolver(settingsSchema),
     defaultValues: {
       instancia: "",
-      Ativo: true, // Changed from lowercase 'ativo' to match DB schema 'Ativo'
-      producao: true,
-      limite_disparos: 1000,
-      enviados: 0,
+      Ativo: true,
+      Producao: true, // Changed from lowercase 'producao' to match DB schema 'Producao'
+      Limite_disparos: 1000, // Changed from lowercase
+      Enviados: 0, // Changed from lowercase
       horario_limite: 17,
       long_wait_min: 50,
       long_wait_max: 240,
-      shortWaitMin: 5,
-      shortWaitMax: 10,
-      batchSizeMin: 5,
-      batchSizeMax: 10,
+      ShortWaitMin: 5, // Changed to match DB 'ShortWaitMin'
+      ShortWaitMax: 10, // Changed to match DB 'ShortWaitMax'
+      BatchSizeM: 5, // Changed to match DB 'BatchSizeM'
+      BatchSizeMax: 10, // Changed to match DB 'BatchSizeMax'
       urlAPI: "",
     },
   });
@@ -167,7 +165,7 @@ const Settings = () => {
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
                   <FormField
                     control={form.control}
-                    name="Ativo" // Changed from lowercase 'ativo' to match DB schema 'Ativo'
+                    name="Ativo"
                     render={({ field }) => (
                       <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
                         <div className="space-y-0.5">
@@ -188,7 +186,7 @@ const Settings = () => {
                   
                   <FormField
                     control={form.control}
-                    name="producao"
+                    name="Producao" // Changed from lowercase 'producao' to match DB schema 'Producao'
                     render={({ field }) => (
                       <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
                         <div className="space-y-0.5">
@@ -221,7 +219,7 @@ const Settings = () => {
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
                   <FormField
                     control={form.control}
-                    name="limite_disparos"
+                    name="Limite_disparos" // Changed from lowercase
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Limite de Disparos</FormLabel>
@@ -238,7 +236,7 @@ const Settings = () => {
                   
                   <FormField
                     control={form.control}
-                    name="enviados"
+                    name="Enviados" // Changed from lowercase
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Enviados</FormLabel>
@@ -318,7 +316,7 @@ const Settings = () => {
                   
                   <FormField
                     control={form.control}
-                    name="shortWaitMin"
+                    name="ShortWaitMin" // Changed to match DB 'ShortWaitMin'
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Espera curta (mín)</FormLabel>
@@ -335,7 +333,7 @@ const Settings = () => {
                   
                   <FormField
                     control={form.control}
-                    name="shortWaitMax"
+                    name="ShortWaitMax" // Changed to match DB 'ShortWaitMax'
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Espera curta (máx)</FormLabel>
@@ -364,7 +362,7 @@ const Settings = () => {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                   <FormField
                     control={form.control}
-                    name="batchSizeMin"
+                    name="BatchSizeM" // Changed to match DB 'BatchSizeM'
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Tamanho do lote (mín)</FormLabel>
@@ -381,7 +379,7 @@ const Settings = () => {
                   
                   <FormField
                     control={form.control}
-                    name="batchSizeMax"
+                    name="BatchSizeMax" // Changed to match DB 'BatchSizeMax'
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Tamanho do lote (máx)</FormLabel>
