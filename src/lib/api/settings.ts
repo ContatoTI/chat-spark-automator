@@ -70,11 +70,11 @@ function convertRowsToDisparoOptions(rows: OptionRow[]): DisparoOptions {
     if (mapping) {
       const [_, { field, key }] = mapping;
       if (field === 'text' && row.text !== null) {
-        options[key] = row.text as any;
+        (options[key] as string) = row.text;
       } else if (field === 'numeric' && row.numeric !== null) {
-        options[key] = row.numeric as any;
+        (options[key] as number) = row.numeric;
       } else if (field === 'boolean' && row.boolean !== null) {
-        options[key] = row.boolean as any;
+        (options[key] as boolean) = row.boolean;
       }
     }
   });
@@ -137,10 +137,10 @@ export const fetchDisparoOptions = async (): Promise<DisparoOptions> => {
 export const updateDisparoOptions = async (options: DisparoOptions): Promise<void> => {
   try {
     // Converte o objeto para atualizações individuais
-    const updates = convertDisparoOptionsToUpdates(options);
+    const updateList = convertDisparoOptionsToUpdates(options);
     
     // Realiza uma atualização para cada opção
-    for (const { option, updates } of updates) {
+    for (const { option, updates } of updateList) {
       const { error } = await supabase
         .from('AppW_Options')
         .update(updates)
