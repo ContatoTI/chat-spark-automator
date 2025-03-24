@@ -9,6 +9,7 @@ import {
 import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import { Skeleton } from "../ui/skeleton";
+import { supabase } from "@/lib/supabase";
 
 interface StatCardProps {
   title: string;
@@ -71,29 +72,50 @@ const StatCard: React.FC<StatCardProps> = ({
   );
 };
 
-// Function to fetch contacts statistics from the Supabase database
+// Função para buscar estatísticas de contatos do Supabase
 const fetchContactsStats = async () => {
-  // Simulate API delay for now - in a real implementation, this would be replaced with Supabase queries
-  await new Promise(resolve => setTimeout(resolve, 1000));
-  
   try {
-    // In a real implementation, this would be fetching from Supabase tables
-    // For example:
-    // const totalQuery = await supabase.from('Contatos').count();
-    // const sentQuery = await supabase.from('Contatos').count().eq('Enviado', true);
-    // const remainingQuery = await supabase.from('Contatos').count().eq('Enviado', false);
-    // const invalidQuery = await supabase.from('Contatos').count().eq('Invalido', true);
+    // Buscar número total de contatos
+    const { count: total, error: totalError } = await supabase
+      .from('Contatos')
+      .select('*', { count: 'exact', head: true });
+
+    if (totalError) throw totalError;
+
+    // Buscar número de contatos enviados
+    const { count: sent, error: sentError } = await supabase
+      .from('Contatos')
+      .select('*', { count: 'exact', head: true })
+      .eq('Enviado', true);
+
+    if (sentError) throw sentError;
+
+    // Buscar número de contatos restantes
+    const { count: remaining, error: remainingError } = await supabase
+      .from('Contatos')
+      .select('*', { count: 'exact', head: true })
+      .eq('Enviado', false);
+
+    if (remainingError) throw remainingError;
+
+    // Buscar número de contatos inválidos
+    const { count: invalid, error: invalidError } = await supabase
+      .from('Contatos')
+      .select('*', { count: 'exact', head: true })
+      .eq('Invalido', true);
+
+    if (invalidError) throw invalidError;
+
+    console.log("Estatísticas de contatos:", { total, sent, remaining, invalid });
     
-    // Mock data for demonstration purposes
-    // This would be replaced with actual Supabase queries in production
     return {
-      total: 2458,
-      sent: 1785,
-      remaining: 673,
-      invalid: 124
+      total: total || 0,
+      sent: sent || 0,
+      remaining: remaining || 0,
+      invalid: invalid || 0
     };
   } catch (error) {
-    console.error("Error fetching contacts stats:", error);
+    console.error("Erro ao buscar estatísticas de contatos:", error);
     throw error;
   }
 };
@@ -105,7 +127,7 @@ export const DashboardStats: React.FC = () => {
   });
 
   if (error) {
-    console.error("Error fetching dashboard stats:", error);
+    console.error("Erro ao buscar estatísticas do dashboard:", error);
   }
 
   return (
@@ -135,7 +157,7 @@ export const DashboardStats: React.FC = () => {
         title="Inválidos"
         value={isLoading ? 0 : contactsStats?.invalid || 0}
         icon={AlertTriangle}
-        description="Contatos com Invalido=Invalido"
+        description="Contatos com Invalido=TRUE"
         isLoading={isLoading}
       />
     </div>
