@@ -17,10 +17,7 @@ export const TopBar: React.FC<TopBarProps> = ({ setSidebarOpen, sidebarOpen }) =
           className="h-10" // aproximadamente 40px de altura
         />
       </div>
-      <div className="ml-auto flex items-center gap-2">
-        {/* Profile section - would contain user profile/settings */}
-        <div className="h-8 w-8 rounded-full bg-muted" />
-      </div>
+      {/* Removed the gray circle that was here */}
     </header>
   );
 };

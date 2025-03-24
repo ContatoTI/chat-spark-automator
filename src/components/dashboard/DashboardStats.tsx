@@ -1,4 +1,3 @@
-
 import React from "react";
 import { 
   Users, 
@@ -10,6 +9,7 @@ import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import { Skeleton } from "../ui/skeleton";
 import { supabase } from "@/lib/supabase";
+import { fetchDisparoOptions } from "@/lib/api/settings";
 
 interface StatCardProps {
   title: string;
@@ -106,11 +106,15 @@ const fetchContactsStats = async () => {
 
     if (invalidError) throw invalidError;
 
-    console.log("Estatísticas de contatos:", { total, sent, remaining, invalid });
+    // Buscar o valor 'enviados' da tabela de configurações
+    const settings = await fetchDisparoOptions();
+    const settingsEnviados = settings.Enviados;
+
+    console.log("Estatísticas de contatos:", { total, sent, remaining, invalid, settingsEnviados });
     
     return {
       total: total || 0,
-      sent: sent || 0,
+      sent: settingsEnviados || 0, // Usar o valor da tabela de configurações
       remaining: remaining || 0,
       invalid: invalid || 0
     };
