@@ -67,6 +67,13 @@ export default {
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
 				},
+				falcon: {
+					blue: '#1B4B8A',
+					yellow: '#FFCC00',
+					lightgray: '#F6F6F7',
+					gray: '#C8C8C9',
+					darkgray: '#222222',
+				},
 				whatsapp: {
 					light: '#25D366',
 					DEFAULT: '#25D366',
