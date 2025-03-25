@@ -1,4 +1,3 @@
-
 import { User } from "@supabase/supabase-js";
 import { supabase } from "./supabase";
 
@@ -48,55 +47,44 @@ export async function signIn(email: string, password: string) {
   return supabase.auth.signInWithPassword({ email, password });
 }
 
-export async function signUp(email: string, password: string, full_name: string) {
-  // Usamos signUp sem a necessidade de confirmação de email
-  const { data, error } = await supabase.auth.signUp({
+export async function createUserByAdmin(email: string, password: string, full_name: string, role: "admin" | "client" = "client", permissions = {
+  can_manage_users: false,
+  can_manage_settings: false,
+  can_view_campaigns: true
+}) {
+  const { data, error } = await supabase.auth.admin.createUser({
     email,
     password,
-    options: {
-      data: { full_name },
-      // Sem redirecionamento, vamos tratar o fluxo no frontend
-    }
+    email_confirm: true,
+    user_metadata: { full_name }
   });
 
-  // Se o usuário foi criado com sucesso, podemos inserir manualmente o perfil e permissões
-  // Isso é necessário apenas se o trigger on_auth_user_created não estiver funcionando no Supabase local
-  if (data?.user && !error) {
-    try {
-      // Verificar se o perfil já existe
-      const { data: existingProfile } = await supabase
-        .from("profiles")
-        .select("id")
-        .eq("id", data.user.id)
-        .single();
-
-      // Se o perfil não existir, criamos manualmente
-      if (!existingProfile) {
-        await supabase
-          .from("profiles")
-          .insert({
-            id: data.user.id,
-            full_name,
-            role: "client"
-          });
-
-        // Também criamos as permissões básicas
-        await supabase
-          .from("permissions")
-          .insert({
-            profile_id: data.user.id,
-            can_manage_users: false,
-            can_manage_settings: false,
-            can_view_campaigns: true
-          });
-      }
-    } catch (profileError) {
-      console.error("Erro ao criar perfil/permissões:", profileError);
-      // Não propagamos este erro, pois o usuário já foi criado
-    }
+  if (error || !data.user) {
+    console.error("Erro ao criar usuário:", error);
+    return { data, error };
   }
 
-  return { data, error };
+  try {
+    await supabase
+      .from("profiles")
+      .insert({
+        id: data.user.id,
+        full_name,
+        role
+      });
+
+    await supabase
+      .from("permissions")
+      .insert({
+        profile_id: data.user.id,
+        ...permissions
+      });
+
+    return { data, error: null };
+  } catch (profileError) {
+    console.error("Erro ao criar perfil/permissões:", profileError);
+    return { data, error: profileError };
+  }
 }
 
 export async function signOut() {
@@ -127,4 +115,31 @@ export async function getAllUsers() {
 
   if (error) throw error;
   return data;
+}
+
+export async function initializeDefaultUsers() {
+  try {
+    const { data: existingUsers } = await supabase
+      .from("profiles")
+      .select("id")
+      .limit(1);
+
+    if (!existingUsers || existingUsers.length === 0) {
+      await createUserByAdmin("admin@falcontruck.com.br", "123456", "Admin", "admin", {
+        can_manage_users: true,
+        can_manage_settings: true,
+        can_view_campaigns: true
+      });
+
+      await createUserByAdmin("user@falcontruck.com.br", "123456", "User", "client", {
+        can_manage_users: false,
+        can_manage_settings: false,
+        can_view_campaigns: true
+      });
+
+      console.log("Usuários padrão criados com sucesso");
+    }
+  } catch (error) {
+    console.error("Erro ao inicializar usuários padrão:", error);
+  }
 }
