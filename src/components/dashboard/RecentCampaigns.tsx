@@ -75,10 +75,10 @@ export const RecentCampaigns: React.FC = () => {
   // Show only the most recent 5 campaigns
   const recentCampaigns = campaigns.slice(0, 5);
   
-  // Function to get message preview (first 30 chars)
+  // Function to get message preview (limited to 80 characters)
   const getMessagePreview = (message: string) => {
     if (!message) return "";
-    return message.length > 30 ? `${message.substring(0, 30)}...` : message;
+    return message.length > 80 ? `${message.substring(0, 80)}...` : message;
   };
 
   return (

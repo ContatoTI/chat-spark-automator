@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { 
@@ -13,7 +13,8 @@ import {
   Copy,
   CheckCircle,
   Clock,
-  AlertCircle
+  AlertCircle,
+  Send
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -27,6 +28,17 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
@@ -93,7 +105,7 @@ const Campaigns = () => {
   });
 
   // Initialize sample data if needed
-  useEffect(() => {
+  React.useEffect(() => {
     insertSampleCampaigns().catch(console.error);
   }, []);
   
@@ -109,10 +121,30 @@ const Campaigns = () => {
     },
   });
 
+  // Enviar agora mutation (mock implementation)
+  const sendNowMutation = useMutation({
+    mutationFn: async (campaign: Campaign) => {
+      // Simulação de envio - em produção isso chamaria uma API
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      return campaign;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['campaigns'] });
+      toast.success('Campanha enviada com sucesso');
+    },
+    onError: (error) => {
+      toast.error(`Erro ao enviar campanha: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
+    },
+  });
+
   const handleDeleteCampaign = (id: number) => {
     if (window.confirm('Tem certeza que deseja excluir esta campanha?')) {
       deleteMutation.mutate(id);
     }
+  };
+
+  const handleSendCampaignNow = (campaign: Campaign) => {
+    sendNowMutation.mutate(campaign);
   };
 
   const handleEditCampaign = (campaign: Campaign) => {
@@ -123,6 +155,12 @@ const Campaigns = () => {
   const formatDate = (dateString: string | null) => {
     if (!dateString) return '-';
     return new Date(dateString).toLocaleDateString("pt-BR");
+  };
+  
+  // Função para obter uma prévia da mensagem (limitada a 80 caracteres)
+  const getMessagePreview = (message: string) => {
+    if (!message) return "";
+    return message.length > 80 ? `${message.substring(0, 80)}...` : message;
   };
   
   const filteredCampaigns = campaigns
@@ -215,81 +253,111 @@ const Campaigns = () => {
                 </Button>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="flex flex-col gap-4">
                 {filteredCampaigns.map((campaign) => (
                   <Card key={campaign.id} className="card-hover">
-                    <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
-                      <div className="space-y-1">
-                        <CardTitle>{campaign.nome}</CardTitle>
-                      </div>
-                      <CampaignStatusBadge status={campaign.status} />
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-sm text-muted-foreground mb-4">
-                        {campaign.mensagem01}
-                      </p>
-                      
-                      {campaign.mensagem02 && (
-                        <p className="text-sm text-muted-foreground mb-2">
-                          {campaign.mensagem02}
-                        </p>
-                      )}
-                      
-                      {campaign.status !== "draft" && (
-                        <div className="flex flex-col gap-2 mt-4">
-                          <div className="flex justify-between text-sm">
-                            <span className="text-muted-foreground">Data:</span>
-                            <span className="font-medium">
-                              {formatDate(campaign.data_disparo)}
-                            </span>
-                          </div>
-                          {campaign.tipo_midia && (
-                            <div className="flex justify-between text-sm">
-                              <span className="text-muted-foreground">Tipo de mídia:</span>
-                              <span className="font-medium capitalize">{campaign.tipo_midia}</span>
+                    <div className="flex flex-col md:flex-row">
+                      <div className="flex-1">
+                        <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
+                          <div>
+                            <CardTitle className="text-xl">{campaign.nome}</CardTitle>
+                            <div className="mt-2">
+                              <CampaignStatusBadge status={campaign.status} />
                             </div>
-                          )}
-                        </div>
-                      )}
-                    </CardContent>
-                    <CardFooter className="justify-between gap-2">
-                      <Button 
-                        variant="outline" 
-                        className="w-1/2"
-                        onClick={() => handleEditCampaign(campaign)}
-                      >
-                        <Edit className="mr-2 h-4 w-4" />
-                        Editar
-                      </Button>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="outline" className="w-1/2">
-                            <MoreHorizontal className="mr-2 h-4 w-4" />
-                            Ações
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-40">
-                          <DropdownMenuLabel>Opções</DropdownMenuLabel>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem>
-                            <Copy className="mr-2 h-4 w-4" />
-                            Duplicar
-                          </DropdownMenuItem>
-                          <DropdownMenuItem>
-                            <MessageSquare className="mr-2 h-4 w-4" />
-                            Enviar Agora
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem 
-                            className="text-red-600"
-                            onClick={() => campaign.id && handleDeleteCampaign(campaign.id)}
-                          >
-                            <Trash2 className="mr-2 h-4 w-4" />
-                            Excluir
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </CardFooter>
+                          </div>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="space-y-4">
+                            <div>
+                              <h4 className="text-sm font-medium text-muted-foreground mb-1">Mensagem:</h4>
+                              <p className="text-base">
+                                {getMessagePreview(campaign.mensagem01)}
+                              </p>
+                            </div>
+                            
+                            <div className="grid grid-cols-2 gap-4 pt-2">
+                              <div>
+                                <h4 className="text-sm font-medium text-muted-foreground mb-1">Data:</h4>
+                                <p className="flex items-center gap-2">
+                                  <Calendar className="h-4 w-4" />
+                                  {formatDate(campaign.data_disparo)}
+                                </p>
+                              </div>
+                              
+                              {campaign.tipo_midia && (
+                                <div>
+                                  <h4 className="text-sm font-medium text-muted-foreground mb-1">Tipo de mídia:</h4>
+                                  <p className="capitalize">{campaign.tipo_midia}</p>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </CardContent>
+                      </div>
+                      
+                      <CardFooter className="flex-col gap-3 justify-center p-6 border-t md:border-t-0 md:border-l">
+                        <Button 
+                          variant="outline" 
+                          className="w-full"
+                          onClick={() => handleEditCampaign(campaign)}
+                        >
+                          <Edit className="mr-2 h-4 w-4" />
+                          Editar
+                        </Button>
+                        
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button
+                              variant="outline"
+                              className="w-full border-green-500 hover:bg-green-50 text-green-600"
+                            >
+                              <Send className="mr-2 h-4 w-4" />
+                              Enviar Agora
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Confirmar envio</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Deseja realmente disparar a campanha "{campaign.nome}" agora?
+                                Esta ação não pode ser desfeita.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                              <AlertDialogAction onClick={() => handleSendCampaignNow(campaign)}>
+                                Enviar
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                        
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="outline" className="w-full">
+                              <MoreHorizontal className="mr-2 h-4 w-4" />
+                              Ações
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="w-40">
+                            <DropdownMenuLabel>Opções</DropdownMenuLabel>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem>
+                              <Copy className="mr-2 h-4 w-4" />
+                              Duplicar
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem 
+                              className="text-red-600"
+                              onClick={() => campaign.id && handleDeleteCampaign(campaign.id)}
+                            >
+                              <Trash2 className="mr-2 h-4 w-4" />
+                              Excluir
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </CardFooter>
+                    </div>
                   </Card>
                 ))}
               </div>

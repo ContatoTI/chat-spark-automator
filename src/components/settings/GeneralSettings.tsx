@@ -57,22 +57,41 @@ export function GeneralSettings({ form }: GeneralSettingsProps) {
           />
         </div>
         
-        <FormField
-          control={form.control}
-          name="apikey"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>API Key</FormLabel>
-              <FormControl>
-                <Input {...field} type="password" />
-              </FormControl>
-              <FormDescription>
-                Chave de API para autenticação
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <FormField
+            control={form.control}
+            name="apikey"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>API Key</FormLabel>
+                <FormControl>
+                  <Input {...field} type="password" />
+                </FormControl>
+                <FormDescription>
+                  Chave de API para autenticação
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          
+          <FormField
+            control={form.control}
+            name="webhook"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Webhook</FormLabel>
+                <FormControl>
+                  <Input {...field} />
+                </FormControl>
+                <FormDescription>
+                  URL do webhook para notificações
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
         
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
           <FormField

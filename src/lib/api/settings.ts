@@ -23,6 +23,7 @@ export interface DisparoOptions {
   BatchSizeMax: number;
   urlAPI: string;
   apikey: string;
+  webhook: string;
 }
 
 // Mapeamento entre nomes de opções na tabela e propriedades no objeto DisparoOptions
@@ -41,6 +42,7 @@ const optionMapping: Record<string, { field: 'text' | 'numeric' | 'boolean', key
   batch_size_max: { field: 'numeric', key: 'BatchSizeMax' },
   url_api: { field: 'text', key: 'urlAPI' },
   apikey: { field: 'text', key: 'apikey' },
+  webhook: { field: 'text', key: 'webhook' },
 };
 
 /**
@@ -62,6 +64,7 @@ function convertRowsToDisparoOptions(rows: OptionRow[]): DisparoOptions {
     BatchSizeMax: 10,
     urlAPI: '',
     apikey: '',
+    webhook: '',
   };
 
   // Para cada linha, aplica o valor ao campo correspondente
@@ -86,7 +89,7 @@ function convertRowsToDisparoOptions(rows: OptionRow[]): DisparoOptions {
  * Converte um objeto DisparoOptions em um array de atualizações para a tabela AppW_Options
  */
 function convertDisparoOptionsToUpdates(options: DisparoOptions): { option: string; updates: Partial<OptionRow> }[] {
-  const results: { option: string; updates: Partial<OptionRow> }[] = [];
+  const updateList: { option: string; updates: Partial<OptionRow> }[] = [];
   
   Object.entries(optionMapping).forEach(([optionName, { field, key }]) => {
     const value = options[key];
@@ -100,10 +103,10 @@ function convertDisparoOptionsToUpdates(options: DisparoOptions): { option: stri
       updateObj.boolean = value as boolean;
     }
     
-    results.push({ option: optionName, updates: updateObj });
+    updateList.push({ option: optionName, updates: updateObj });
   });
   
-  return results;
+  return updateList;
 }
 
 /**
