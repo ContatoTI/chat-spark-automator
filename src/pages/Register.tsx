@@ -62,12 +62,19 @@ const Register = () => {
 
       if (authData?.user) {
         setRegistrationStatus("success");
-        setStatusMessage("Conta criada com sucesso! Verifique seu email para confirmação.");
+        setStatusMessage("Conta criada com sucesso! Você já pode fazer login.");
         toast({
           title: "Registro bem-sucedido",
-          description: "Verifique seu email para confirmar sua conta.",
+          description: "Sua conta foi criada com sucesso. Você já pode fazer login.",
         });
+        
+        // Resetamos o formulário
         form.reset();
+        
+        // Redirecionamos para a página de login após 2 segundos
+        setTimeout(() => {
+          navigate("/login");
+        }, 2000);
       } else {
         setRegistrationStatus("error");
         setStatusMessage("Ocorreu um erro desconhecido. Por favor, tente novamente.");
