@@ -53,7 +53,8 @@ export async function signUp(email: string, password: string, full_name: string)
     email,
     password,
     options: {
-      data: { full_name }
+      data: { full_name },
+      emailRedirectTo: `${window.location.origin}/login`
     }
   });
 }

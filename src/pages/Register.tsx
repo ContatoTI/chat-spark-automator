@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -8,8 +8,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { signUp } from "@/lib/auth";
 import { useToast } from "@/hooks/use-toast";
+import { AlertCircle, CheckCircle2 } from "lucide-react";
 
 const registerSchema = z.object({
   fullName: z.string().min(3, { message: "Nome completo é obrigatório" }),
@@ -26,6 +28,8 @@ type RegisterFormValues = z.infer<typeof registerSchema>;
 const Register = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [registrationStatus, setRegistrationStatus] = useState<"idle" | "success" | "error">("idle");
+  const [statusMessage, setStatusMessage] = useState("");
 
   const form = useForm<RegisterFormValues>({
     resolver: zodResolver(registerSchema),
@@ -41,9 +45,13 @@ const Register = () => {
 
   const onSubmit = async (data: RegisterFormValues) => {
     try {
-      const { error } = await signUp(data.email, data.password, data.fullName);
+      setRegistrationStatus("idle");
+      const { error, data: authData } = await signUp(data.email, data.password, data.fullName);
       
       if (error) {
+        console.error("Registration error:", error);
+        setRegistrationStatus("error");
+        setStatusMessage(error.message || "Ocorreu um erro ao criar sua conta.");
         toast({
           variant: "destructive",
           title: "Falha ao registrar",
@@ -52,12 +60,22 @@ const Register = () => {
         return;
       }
 
-      toast({
-        title: "Registro bem-sucedido",
-        description: "Verifique seu email para confirmar sua conta.",
-      });
-      navigate("/login");
+      if (authData?.user) {
+        setRegistrationStatus("success");
+        setStatusMessage("Conta criada com sucesso! Verifique seu email para confirmação.");
+        toast({
+          title: "Registro bem-sucedido",
+          description: "Verifique seu email para confirmar sua conta.",
+        });
+        form.reset();
+      } else {
+        setRegistrationStatus("error");
+        setStatusMessage("Ocorreu um erro desconhecido. Por favor, tente novamente.");
+      }
     } catch (error) {
+      console.error("Unexpected error:", error);
+      setRegistrationStatus("error");
+      setStatusMessage("Ocorreu um erro ao processar seu registro. Tente novamente.");
       toast({
         variant: "destructive",
         title: "Erro",
@@ -84,6 +102,24 @@ const Register = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
+          {registrationStatus === "success" && (
+            <Alert className="mb-4 bg-green-50 text-green-800 border-green-200">
+              <CheckCircle2 className="h-4 w-4 text-green-600" />
+              <AlertDescription>
+                {statusMessage}
+              </AlertDescription>
+            </Alert>
+          )}
+          
+          {registrationStatus === "error" && (
+            <Alert className="mb-4 bg-red-50 border-red-200 text-red-800">
+              <AlertCircle className="h-4 w-4 text-red-600" />
+              <AlertDescription>
+                {statusMessage}
+              </AlertDescription>
+            </Alert>
+          )}
+          
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <FormField
@@ -138,7 +174,7 @@ const Register = () => {
                   </FormItem>
                 )}
               />
-              <Button type="submit" className="w-full" disabled={isSubmitting}>
+              <Button type="submit" className="w-full" disabled={isSubmitting || registrationStatus === "success"}>
                 {isSubmitting ? "Registrando..." : "Registrar"}
               </Button>
             </form>
