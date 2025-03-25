@@ -7,7 +7,11 @@ import {
   MessageSquare, 
   History, 
   Settings,
+  Users,
+  LogOut
 } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { Button } from "@/components/ui/button";
 
 interface SidebarProps {
   open: boolean;
@@ -18,9 +22,28 @@ interface SidebarLinkProps {
   icon: React.ElementType;
   label: string;
   active?: boolean;
+  onClick?: () => void;
 }
 
-const SidebarLink: React.FC<SidebarLinkProps> = ({ to, icon: Icon, label, active }) => {
+const SidebarLink: React.FC<SidebarLinkProps> = ({ to, icon: Icon, label, active, onClick }) => {
+  if (onClick) {
+    return (
+      <button
+        onClick={onClick}
+        className={cn(
+          "flex items-center gap-3 px-3 py-2 rounded-md transition-all duration-200 w-full text-left",
+          "hover:bg-slate-100 dark:hover:bg-slate-800",
+          active 
+            ? "bg-primary/10 text-primary font-medium" 
+            : "text-slate-600 dark:text-slate-400"
+        )}
+      >
+        <Icon className="h-5 w-5" />
+        <span>{label}</span>
+      </button>
+    );
+  }
+  
   return (
     <Link
       to={to}
@@ -41,6 +64,7 @@ const SidebarLink: React.FC<SidebarLinkProps> = ({ to, icon: Icon, label, active
 export const Sidebar: React.FC<SidebarProps> = ({ open }) => {
   const location = useLocation();
   const currentPath = location.pathname;
+  const { user, isAdmin, signOut } = useAuth();
 
   return (
     <aside
@@ -76,14 +100,36 @@ export const Sidebar: React.FC<SidebarProps> = ({ open }) => {
               label="Histórico"
               active={currentPath === "/history"}
             />
-            <SidebarLink
-              to="/settings"
-              icon={Settings}
-              label="Configurações"
-              active={currentPath === "/settings"}
-            />
+            
+            {isAdmin && (
+              <>
+                <SidebarLink
+                  to="/settings"
+                  icon={Settings}
+                  label="Configurações"
+                  active={currentPath === "/settings"}
+                />
+                <SidebarLink
+                  to="/users"
+                  icon={Users}
+                  label="Usuários"
+                  active={currentPath === "/users"}
+                />
+              </>
+            )}
           </nav>
         </div>
+
+        {user && (
+          <div className="mt-auto pt-4 border-t">
+            <SidebarLink
+              to="#"
+              icon={LogOut}
+              label="Sair"
+              onClick={signOut}
+            />
+          </div>
+        )}
       </div>
     </aside>
   );
