@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { 
@@ -44,6 +44,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Campaign, fetchCampaigns, deleteCampaign, insertSampleCampaigns } from "@/lib/api/campaigns";
+import { supabase } from "@/lib/supabase";
 
 type CampaignStatus = "draft" | "scheduled" | "sending" | "completed" | "failed";
 
@@ -96,6 +97,7 @@ const Campaigns = () => {
   const [selectedCampaign, setSelectedCampaign] = useState<Campaign | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTab, setSelectedTab] = useState<string>("all");
+  const [webhookUrl, setWebhookUrl] = useState<string>("");
   const queryClient = useQueryClient();
   
   // Fetch campaigns with React Query
@@ -103,6 +105,32 @@ const Campaigns = () => {
     queryKey: ['campaigns'],
     queryFn: fetchCampaigns,
   });
+
+  // Fetch webhook URL from AppW_Options
+  useEffect(() => {
+    const fetchWebhookUrl = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('AppW_Options')
+          .select('text')
+          .eq('option', 'webhook')
+          .single();
+        
+        if (error) {
+          console.error('Error fetching webhook URL:', error);
+          return;
+        }
+        
+        if (data && data.text) {
+          setWebhookUrl(data.text);
+        }
+      } catch (err) {
+        console.error('Error in webhook URL fetch:', err);
+      }
+    };
+    
+    fetchWebhookUrl();
+  }, []);
 
   // Initialize sample data if needed
   React.useEffect(() => {
@@ -121,16 +149,36 @@ const Campaigns = () => {
     },
   });
 
-  // Enviar agora mutation (mock implementation)
+  // Send campaign now mutation - calls the webhook URL
   const sendNowMutation = useMutation({
     mutationFn: async (campaign: Campaign) => {
-      // Simulação de envio - em produção isso chamaria uma API
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      if (!webhookUrl) {
+        throw new Error("URL do webhook não encontrada nas configurações");
+      }
+      
+      // Call the webhook with campaign data
+      const response = await fetch(webhookUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          campaign_id: campaign.id,
+          campaign_name: campaign.nome,
+          action: 'send_now',
+          timestamp: new Date().toISOString()
+        }),
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Erro ao chamar webhook: ${response.status}`);
+      }
+      
       return campaign;
     },
-    onSuccess: () => {
+    onSuccess: (campaign) => {
       queryClient.invalidateQueries({ queryKey: ['campaigns'] });
-      toast.success('Campanha enviada com sucesso');
+      toast.success(`Campanha "${campaign.nome}" enviada com sucesso`);
     },
     onError: (error) => {
       toast.error(`Erro ao enviar campanha: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
@@ -310,9 +358,19 @@ const Campaigns = () => {
                             <Button
                               variant="outline"
                               className="w-full border-green-500 hover:bg-green-50 text-green-600"
+                              disabled={sendNowMutation.isPending}
                             >
-                              <Send className="mr-2 h-4 w-4" />
-                              Enviar Agora
+                              {sendNowMutation.isPending ? (
+                                <div className="flex items-center">
+                                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-green-600 mr-2"></div>
+                                  Enviando...
+                                </div>
+                              ) : (
+                                <>
+                                  <Send className="mr-2 h-4 w-4" />
+                                  Enviar Agora
+                                </>
+                              )}
                             </Button>
                           </AlertDialogTrigger>
                           <AlertDialogContent>
