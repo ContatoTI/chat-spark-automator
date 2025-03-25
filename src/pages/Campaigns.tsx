@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
@@ -156,31 +157,65 @@ const Campaigns = () => {
         throw new Error("URL do webhook não encontrada nas configurações");
       }
       
-      console.log('Sending request to webhook URL:', webhookUrl);
+      console.log('Attempting to call webhook URL:', webhookUrl);
       
+      // Prepare the payload
+      const payload = {
+        campaign_id: campaign.id,
+        campaign_name: campaign.nome,
+        action: 'send_now',
+        timestamp: new Date().toISOString()
+      };
+      
+      // Try POST request first
       try {
-        const response = await fetch(webhookUrl, {
+        console.log('Attempting POST request to webhook');
+        const postResponse = await fetch(webhookUrl, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({
-            campaign_id: campaign.id,
-            campaign_name: campaign.nome,
-            action: 'send_now',
-            timestamp: new Date().toISOString()
-          }),
+          body: JSON.stringify(payload),
         });
         
-        console.log('Webhook response status:', response.status);
+        console.log('POST response status:', postResponse.status);
         
-        if (!response.ok) {
-          throw new Error(`Erro ao chamar webhook: ${response.status}`);
+        // If POST works, return success
+        if (postResponse.ok) {
+          console.log('POST request successful');
+          return campaign;
         }
         
-        return campaign;
+        // If it's specifically a 404 "not registered for POST" error, try GET
+        if (postResponse.status === 404) {
+          console.log('POST request failed with 404, trying GET request');
+          
+          // Build URL with query parameters
+          const queryParams = new URLSearchParams();
+          Object.entries(payload).forEach(([key, value]) => {
+            queryParams.append(key, String(value));
+          });
+          
+          const getUrl = `${webhookUrl}?${queryParams.toString()}`;
+          console.log('Attempting GET request to:', getUrl);
+          
+          const getResponse = await fetch(getUrl, {
+            method: 'GET',
+          });
+          
+          console.log('GET response status:', getResponse.status);
+          
+          if (getResponse.ok) {
+            console.log('GET request successful');
+            return campaign;
+          } else {
+            throw new Error(`Erro ao chamar webhook via GET: ${getResponse.status}`);
+          }
+        } else {
+          throw new Error(`Erro ao chamar webhook via POST: ${postResponse.status}`);
+        }
       } catch (err) {
-        console.error('Fetch error when calling webhook:', err);
+        console.error('Error calling webhook:', err);
         throw err;
       }
     },
