@@ -2,259 +2,43 @@
 import React, { useState, useEffect } from "react";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
-import { 
-  PlusCircle, 
-  Search, 
-  MessageSquare, 
-  Calendar, 
-  MoreHorizontal,
-  Edit,
-  Trash2,
-  Copy,
-  CheckCircle,
-  Clock,
-  AlertCircle,
-  Send
-} from "lucide-react";
+import { PlusCircle, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { NewCampaignDialog } from "@/components/campaigns/NewCampaignDialog";
 import { EditCampaignDialog } from "@/components/campaigns/EditCampaignDialog";
-import { 
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { toast } from "sonner";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Campaign, fetchCampaigns, deleteCampaign, insertSampleCampaigns } from "@/lib/api/campaigns";
-import { supabase } from "@/lib/supabase";
-
-type CampaignStatus = "draft" | "scheduled" | "sending" | "completed" | "failed";
-
-const statusConfig = {
-  draft: {
-    label: "Rascunho",
-    icon: Edit,
-    className: "text-slate-500 bg-slate-100 dark:bg-slate-800",
-  },
-  scheduled: {
-    label: "Agendada",
-    icon: Calendar,
-    className: "text-blue-500 bg-blue-100 dark:bg-blue-900/20",
-  },
-  sending: {
-    label: "Enviando",
-    icon: Clock,
-    className: "text-amber-500 bg-amber-100 dark:bg-amber-900/20",
-  },
-  completed: {
-    label: "Concluída",
-    icon: CheckCircle,
-    className: "text-green-500 bg-green-100 dark:bg-green-900/20",
-  },
-  failed: {
-    label: "Falhou",
-    icon: AlertCircle,
-    className: "text-red-500 bg-red-100 dark:bg-red-900/20",
-  },
-};
-
-const CampaignStatusBadge: React.FC<{ status: string }> = ({ status }) => {
-  const config = statusConfig[status as CampaignStatus] || statusConfig.draft;
-  const Icon = config.icon;
-  
-  return (
-    <div className={cn(
-      "flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full",
-      config.className
-    )}>
-      <Icon className="h-3.5 w-3.5" />
-      <span>{config.label}</span>
-    </div>
-  );
-};
+import { insertSampleCampaigns } from "@/lib/api/campaigns";
+import { CampaignList } from "@/components/campaigns/CampaignList";
+import { useCampaignOperations } from "@/hooks/useCampaignOperations";
 
 const Campaigns = () => {
   const [newCampaignDialogOpen, setNewCampaignDialogOpen] = useState(false);
   const [editCampaignDialogOpen, setEditCampaignDialogOpen] = useState(false);
-  const [selectedCampaign, setSelectedCampaign] = useState<Campaign | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTab, setSelectedTab] = useState<string>("all");
-  const [webhookUrl, setWebhookUrl] = useState<string>("");
-  const queryClient = useQueryClient();
   
-  const { data: campaigns = [], isLoading, error } = useQuery({
-    queryKey: ['campaigns'],
-    queryFn: fetchCampaigns,
-  });
-
-  useEffect(() => {
-    const fetchWebhookUrl = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('AppW_Options')
-          .select('text')
-          .eq('option', 'webhook')
-          .single();
-        
-        if (error) {
-          console.error('Error fetching webhook URL:', error);
-          return;
-        }
-        
-        if (data && data.text) {
-          setWebhookUrl(data.text);
-          console.log('Webhook URL loaded:', data.text);
-        } else {
-          console.warn('Webhook URL is empty or null');
-        }
-      } catch (err) {
-        console.error('Error in webhook URL fetch:', err);
-      }
-    };
-    
-    fetchWebhookUrl();
-  }, []);
+  const {
+    campaigns,
+    isLoading,
+    error,
+    selectedCampaign,
+    setSelectedCampaign,
+    handleDeleteCampaign,
+    handleSendCampaignNow,
+    handleEditCampaign,
+    sendNowMutation
+  } = useCampaignOperations();
 
   React.useEffect(() => {
     insertSampleCampaigns().catch(console.error);
   }, []);
-  
-  const deleteMutation = useMutation({
-    mutationFn: (id: number) => deleteCampaign(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['campaigns'] });
-      toast.success('Campanha excluída com sucesso');
-    },
-    onError: (error) => {
-      toast.error(`Erro ao excluir campanha: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
-    },
-  });
 
-  const sendNowMutation = useMutation({
-    mutationFn: async (campaign: Campaign) => {
-      console.log('Starting send now mutation for campaign:', campaign);
-      
-      if (!webhookUrl) {
-        console.error('Webhook URL is empty');
-        throw new Error("URL do webhook não encontrada nas configurações");
-      }
-      
-      console.log('Attempting to call webhook URL:', webhookUrl);
-      
-      // Prepare the payload
-      const payload = {
-        campaign_id: campaign.id,
-        campaign_name: campaign.nome,
-        action: 'send_now',
-        timestamp: new Date().toISOString()
-      };
-      
-      // Try POST request first
-      try {
-        console.log('Attempting POST request to webhook');
-        const postResponse = await fetch(webhookUrl, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(payload),
-        });
-        
-        console.log('POST response status:', postResponse.status);
-        
-        // If POST works, return success
-        if (postResponse.ok) {
-          console.log('POST request successful');
-          return campaign;
-        }
-        
-        // If it's specifically a 404 "not registered for POST" error, try GET
-        if (postResponse.status === 404) {
-          console.log('POST request failed with 404, trying GET request');
-          
-          // Build URL with query parameters
-          const queryParams = new URLSearchParams();
-          Object.entries(payload).forEach(([key, value]) => {
-            queryParams.append(key, String(value));
-          });
-          
-          const getUrl = `${webhookUrl}?${queryParams.toString()}`;
-          console.log('Attempting GET request to:', getUrl);
-          
-          const getResponse = await fetch(getUrl, {
-            method: 'GET',
-          });
-          
-          console.log('GET response status:', getResponse.status);
-          
-          if (getResponse.ok) {
-            console.log('GET request successful');
-            return campaign;
-          } else {
-            throw new Error(`Erro ao chamar webhook via GET: ${getResponse.status}`);
-          }
-        } else {
-          throw new Error(`Erro ao chamar webhook via POST: ${postResponse.status}`);
-        }
-      } catch (err) {
-        console.error('Error calling webhook:', err);
-        throw err;
-      }
-    },
-    onSuccess: (campaign) => {
-      console.log('Campaign sent successfully:', campaign);
-      queryClient.invalidateQueries({ queryKey: ['campaigns'] });
-      toast.success(`Campanha "${campaign.nome}" enviada com sucesso`);
-    },
-    onError: (error) => {
-      console.error('Error in send mutation:', error);
-      toast.error(`Erro ao enviar campanha: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
-    },
-  });
-
-  const handleDeleteCampaign = (id: number) => {
-    if (window.confirm('Tem certeza que deseja excluir esta campanha?')) {
-      deleteMutation.mutate(id);
-    }
-  };
-
-  const handleSendCampaignNow = (campaign: Campaign) => {
-    sendNowMutation.mutate(campaign);
-  };
-
-  const handleEditCampaign = (campaign: Campaign) => {
+  const openEditDialog = (campaign: React.SetStateAction<import("@/lib/api/campaigns").Campaign | null>) => {
     setSelectedCampaign(campaign);
     setEditCampaignDialogOpen(true);
   };
-  
-  const formatDate = (dateString: string | null) => {
-    if (!dateString) return '-';
-    return new Date(dateString).toLocaleDateString("pt-BR");
-  };
-  
-  const getMessagePreview = (message: string) => {
-    if (!message) return "";
-    return message.length > 80 ? `${message.substring(0, 80)}...` : message;
-  };
-  
+
   const filteredCampaigns = campaigns
     .filter((campaign) => {
       const matchesSearch = campaign.nome.toLowerCase().includes(searchQuery.toLowerCase());
@@ -328,142 +112,15 @@ const Campaigns = () => {
           </TabsList>
           
           <TabsContent value={selectedTab} className="mt-0">
-            {isLoading ? (
-              <div className="flex justify-center items-center py-12">
-                <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div>
-              </div>
-            ) : filteredCampaigns.length === 0 ? (
-              <div className="text-center py-12">
-                <h3 className="font-medium text-lg">Nenhuma campanha encontrada</h3>
-                <p className="text-muted-foreground mt-1">Crie uma nova campanha para começar</p>
-                <Button 
-                  className="mt-4 bg-primary"
-                  onClick={() => setNewCampaignDialogOpen(true)}
-                >
-                  <PlusCircle className="mr-2 h-4 w-4" />
-                  Nova Campanha
-                </Button>
-              </div>
-            ) : (
-              <div className="flex flex-col gap-4">
-                {filteredCampaigns.map((campaign) => (
-                  <Card key={campaign.id} className="card-hover">
-                    <div className="flex flex-col md:flex-row">
-                      <div className="flex-1">
-                        <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
-                          <div>
-                            <CardTitle className="text-xl">{campaign.nome}</CardTitle>
-                            <div className="mt-2">
-                              <CampaignStatusBadge status={campaign.status} />
-                            </div>
-                          </div>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="space-y-4">
-                            <div>
-                              <h4 className="text-sm font-medium text-muted-foreground mb-1">Mensagem:</h4>
-                              <p className="text-base">
-                                {getMessagePreview(campaign.mensagem01)}
-                              </p>
-                            </div>
-                            
-                            <div className="grid grid-cols-2 gap-4 pt-2">
-                              <div>
-                                <h4 className="text-sm font-medium text-muted-foreground mb-1">Data:</h4>
-                                <p className="flex items-center gap-2">
-                                  <Calendar className="h-4 w-4" />
-                                  {formatDate(campaign.data_disparo)}
-                                </p>
-                              </div>
-                              
-                              {campaign.tipo_midia && (
-                                <div>
-                                  <h4 className="text-sm font-medium text-muted-foreground mb-1">Tipo de mídia:</h4>
-                                  <p className="capitalize">{campaign.tipo_midia}</p>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        </CardContent>
-                      </div>
-                      
-                      <CardFooter className="flex-col gap-3 justify-center p-6 border-t md:border-t-0 md:border-l">
-                        <Button 
-                          variant="outline" 
-                          className="w-full"
-                          onClick={() => handleEditCampaign(campaign)}
-                        >
-                          <Edit className="mr-2 h-4 w-4" />
-                          Editar
-                        </Button>
-                        
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button
-                              variant="outline"
-                              className="w-full border-green-500 hover:bg-green-50 text-green-600"
-                              disabled={sendNowMutation.isPending}
-                            >
-                              {sendNowMutation.isPending ? (
-                                <div className="flex items-center">
-                                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-green-600 mr-2"></div>
-                                  Enviando...
-                                </div>
-                              ) : (
-                                <>
-                                  <Send className="mr-2 h-4 w-4" />
-                                  Enviar Agora
-                                </>
-                              )}
-                            </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>Confirmar envio</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                Deseja realmente disparar a campanha "{campaign.nome}" agora?
-                                Esta ação não pode ser desfeita.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                              <AlertDialogAction onClick={() => handleSendCampaignNow(campaign)}>
-                                Enviar
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
-                        
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="outline" className="w-full">
-                              <MoreHorizontal className="mr-2 h-4 w-4" />
-                              Ações
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" className="w-40">
-                            <DropdownMenuLabel>Opções</DropdownMenuLabel>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem>
-                              <Copy className="mr-2 h-4 w-4" />
-                              Duplicar
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem 
-                              className="text-red-600"
-                              onClick={() => campaign.id && handleDeleteCampaign(campaign.id)}
-                            >
-                              <Trash2 className="mr-2 h-4 w-4" />
-                              Excluir
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </CardFooter>
-                    </div>
-                  </Card>
-                ))}
-              </div>
-            )}
+            <CampaignList
+              campaigns={filteredCampaigns}
+              isLoading={isLoading}
+              onEdit={openEditDialog}
+              onDelete={handleDeleteCampaign}
+              onSendNow={handleSendCampaignNow}
+              onNewCampaign={() => setNewCampaignDialogOpen(true)}
+              isSending={sendNowMutation.isPending}
+            />
           </TabsContent>
         </Tabs>
       </div>
