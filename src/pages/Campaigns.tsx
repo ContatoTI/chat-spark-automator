@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
@@ -100,13 +99,11 @@ const Campaigns = () => {
   const [webhookUrl, setWebhookUrl] = useState<string>("");
   const queryClient = useQueryClient();
   
-  // Fetch campaigns with React Query
   const { data: campaigns = [], isLoading, error } = useQuery({
     queryKey: ['campaigns'],
     queryFn: fetchCampaigns,
   });
 
-  // Fetch webhook URL from AppW_Options
   useEffect(() => {
     const fetchWebhookUrl = async () => {
       try {
@@ -123,6 +120,9 @@ const Campaigns = () => {
         
         if (data && data.text) {
           setWebhookUrl(data.text);
+          console.log('Webhook URL loaded:', data.text);
+        } else {
+          console.warn('Webhook URL is empty or null');
         }
       } catch (err) {
         console.error('Error in webhook URL fetch:', err);
@@ -132,12 +132,10 @@ const Campaigns = () => {
     fetchWebhookUrl();
   }, []);
 
-  // Initialize sample data if needed
   React.useEffect(() => {
     insertSampleCampaigns().catch(console.error);
   }, []);
   
-  // Delete campaign mutation
   const deleteMutation = useMutation({
     mutationFn: (id: number) => deleteCampaign(id),
     onSuccess: () => {
@@ -149,38 +147,50 @@ const Campaigns = () => {
     },
   });
 
-  // Send campaign now mutation - calls the webhook URL
   const sendNowMutation = useMutation({
     mutationFn: async (campaign: Campaign) => {
+      console.log('Starting send now mutation for campaign:', campaign);
+      
       if (!webhookUrl) {
+        console.error('Webhook URL is empty');
         throw new Error("URL do webhook não encontrada nas configurações");
       }
       
-      // Call the webhook with campaign data
-      const response = await fetch(webhookUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          campaign_id: campaign.id,
-          campaign_name: campaign.nome,
-          action: 'send_now',
-          timestamp: new Date().toISOString()
-        }),
-      });
+      console.log('Sending request to webhook URL:', webhookUrl);
       
-      if (!response.ok) {
-        throw new Error(`Erro ao chamar webhook: ${response.status}`);
+      try {
+        const response = await fetch(webhookUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            campaign_id: campaign.id,
+            campaign_name: campaign.nome,
+            action: 'send_now',
+            timestamp: new Date().toISOString()
+          }),
+        });
+        
+        console.log('Webhook response status:', response.status);
+        
+        if (!response.ok) {
+          throw new Error(`Erro ao chamar webhook: ${response.status}`);
+        }
+        
+        return campaign;
+      } catch (err) {
+        console.error('Fetch error when calling webhook:', err);
+        throw err;
       }
-      
-      return campaign;
     },
     onSuccess: (campaign) => {
+      console.log('Campaign sent successfully:', campaign);
       queryClient.invalidateQueries({ queryKey: ['campaigns'] });
       toast.success(`Campanha "${campaign.nome}" enviada com sucesso`);
     },
     onError: (error) => {
+      console.error('Error in send mutation:', error);
       toast.error(`Erro ao enviar campanha: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
     },
   });
@@ -205,7 +215,6 @@ const Campaigns = () => {
     return new Date(dateString).toLocaleDateString("pt-BR");
   };
   
-  // Função para obter uma prévia da mensagem (limitada a 80 caracteres)
   const getMessagePreview = (message: string) => {
     if (!message) return "";
     return message.length > 80 ? `${message.substring(0, 80)}...` : message;
