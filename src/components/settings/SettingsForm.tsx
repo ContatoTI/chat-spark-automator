@@ -38,7 +38,8 @@ export function SettingsForm({ initialSettings }: SettingsFormProps) {
       BatchSizeMax: 10,
       urlAPI: "",
       apikey: "",
-      webhook: "",
+      webhook_disparo: "",
+      webhook_contatos: "",
     },
   });
 

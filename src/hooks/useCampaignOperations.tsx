@@ -27,7 +27,7 @@ export const useCampaignOperations = () => {
         const { data, error } = await supabase
           .from('AppW_Options')
           .select('text')
-          .eq('option', 'webhook')
+          .eq('option', 'webhook_disparo')
           .single();
         
         if (error) {
@@ -68,7 +68,7 @@ export const useCampaignOperations = () => {
       
       if (!webhookUrl) {
         console.error('Webhook URL is empty');
-        throw new Error("URL do webhook não encontrada nas configurações");
+        throw new Error("URL do webhook de disparo não encontrada nas configurações");
       }
       
       console.log('Attempting to call webhook URL:', webhookUrl);

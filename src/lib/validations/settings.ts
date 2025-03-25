@@ -16,6 +16,8 @@ export const settingsSchema = z.object({
   BatchSizeMax: z.number().int().min(1, { message: 'O valor mínimo é 1' }),
   urlAPI: z.string().url({ message: 'URL inválida' }).min(1, { message: 'A URL é obrigatória' }),
   apikey: z.string().min(1, { message: 'A chave de API é obrigatória' }),
+  webhook_disparo: z.string().url({ message: 'URL inválida' }).or(z.string().length(0)),
+  webhook_contatos: z.string().url({ message: 'URL inválida' }).or(z.string().length(0)),
 }).refine(data => data.long_wait_min <= data.long_wait_max, {
   message: "O valor mínimo deve ser menor ou igual ao valor máximo",
   path: ["long_wait_min"],

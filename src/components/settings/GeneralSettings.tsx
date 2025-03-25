@@ -74,18 +74,37 @@ export function GeneralSettings({ form }: GeneralSettingsProps) {
               </FormItem>
             )}
           />
-          
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <FormField
             control={form.control}
-            name="webhook"
+            name="webhook_disparo"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Webhook</FormLabel>
+                <FormLabel>Webhook Disparo</FormLabel>
                 <FormControl>
                   <Input {...field} />
                 </FormControl>
                 <FormDescription>
-                  URL do webhook para notificações
+                  URL do webhook para campanhas de disparo
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          
+          <FormField
+            control={form.control}
+            name="webhook_contatos"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Webhook Contatos</FormLabel>
+                <FormControl>
+                  <Input {...field} />
+                </FormControl>
+                <FormDescription>
+                  URL do webhook para sincronização de contatos
                 </FormDescription>
                 <FormMessage />
               </FormItem>

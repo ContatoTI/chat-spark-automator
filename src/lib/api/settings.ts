@@ -1,4 +1,3 @@
-
 import { supabase } from '@/lib/supabase';
 
 export interface OptionRow {
@@ -23,7 +22,8 @@ export interface DisparoOptions {
   BatchSizeMax: number;
   urlAPI: string;
   apikey: string;
-  webhook: string;
+  webhook_disparo: string;
+  webhook_contatos: string;
 }
 
 // Mapeamento entre nomes de opções na tabela e propriedades no objeto DisparoOptions
@@ -42,7 +42,8 @@ const optionMapping: Record<string, { field: 'text' | 'numeric' | 'boolean', key
   batch_size_max: { field: 'numeric', key: 'BatchSizeMax' },
   url_api: { field: 'text', key: 'urlAPI' },
   apikey: { field: 'text', key: 'apikey' },
-  webhook: { field: 'text', key: 'webhook' },
+  webhook_disparo: { field: 'text', key: 'webhook_disparo' },
+  webhook_contatos: { field: 'text', key: 'webhook_contatos' },
 };
 
 /**
@@ -64,7 +65,8 @@ function convertRowsToDisparoOptions(rows: OptionRow[]): DisparoOptions {
     BatchSizeMax: 10,
     urlAPI: '',
     apikey: '',
-    webhook: '',
+    webhook_disparo: '',
+    webhook_contatos: '',
   };
 
   // Para cada linha, aplica o valor ao campo correspondente
