@@ -26,24 +26,7 @@ export function SettingsForm({ initialSettings }: SettingsFormProps) {
 
   const form = useForm<DisparoOptions>({
     resolver: zodResolver(settingsSchema),
-    defaultValues: {
-      instancia: "",
-      Ativo: true,
-      Producao: true,
-      Limite_disparos: 1000,
-      Enviados: 0,
-      horario_limite: 17,
-      long_wait_min: 50,
-      long_wait_max: 240,
-      ShortWaitMin: 5,
-      ShortWaitMax: 10,
-      BatchSizeMim: 5,
-      BatchSizeMax: 10,
-      urlAPI: "",
-      apikey: "",
-      webhook_disparo: "",
-      webhook_contatos: ""
-    },
+    defaultValues: initialSettings,
   });
 
   // Update form when settings are loaded

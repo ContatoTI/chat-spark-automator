@@ -29,22 +29,22 @@ export interface DisparoOptions {
 
 // Mapeamento entre nomes de opções na tabela e propriedades no objeto DisparoOptions
 const optionMapping: Record<string, { field: 'text' | 'numeric' | 'boolean', key: keyof DisparoOptions }> = {
-  instancia: { field: 'text', key: 'instancia' },
-  ativo: { field: 'boolean', key: 'Ativo' },
-  producao: { field: 'boolean', key: 'Producao' },
-  limite_disparos: { field: 'numeric', key: 'Limite_disparos' },
-  enviados: { field: 'numeric', key: 'Enviados' },
-  horario_limite: { field: 'numeric', key: 'horario_limite' },
-  long_wait_min: { field: 'numeric', key: 'long_wait_min' },
-  long_wait_max: { field: 'numeric', key: 'long_wait_max' },
-  shor_wait_min: { field: 'numeric', key: 'ShortWaitMin' }, // Observação: Tem um typo no nome da coluna no banco
-  short_wait_max: { field: 'numeric', key: 'ShortWaitMax' },
-  batch_size_min: { field: 'numeric', key: 'BatchSizeMim' }, // Atenção ao erro de digitação "Mim" ao invés de "Min"
-  batch_size_max: { field: 'numeric', key: 'BatchSizeMax' },
-  url_api: { field: 'text', key: 'urlAPI' },
-  apikey: { field: 'text', key: 'apikey' },
-  webhook_disparo: { field: 'text', key: 'webhook_disparo' },
-  webhook_contatos: { field: 'text', key: 'webhook_contatos' },
+  'instancia': { field: 'text', key: 'instancia' },
+  'ativo': { field: 'boolean', key: 'Ativo' },
+  'producao': { field: 'boolean', key: 'Producao' },
+  'limite_disparos': { field: 'numeric', key: 'Limite_disparos' },
+  'enviados': { field: 'numeric', key: 'Enviados' },
+  'horario_limite': { field: 'numeric', key: 'horario_limite' },
+  'long_wait_min': { field: 'numeric', key: 'long_wait_min' },
+  'long_wait_max': { field: 'numeric', key: 'long_wait_max' },
+  'shor_wait_min': { field: 'numeric', key: 'ShortWaitMin' }, // Correção do nome da coluna com typo
+  'short_wait_max': { field: 'numeric', key: 'ShortWaitMax' },
+  'batch_size_min': { field: 'numeric', key: 'BatchSizeMim' }, // Atenção ao erro de digitação "Mim" ao invés de "Min"
+  'batch_size_max': { field: 'numeric', key: 'BatchSizeMax' },
+  'url_api': { field: 'text', key: 'urlAPI' },
+  'apikey': { field: 'text', key: 'apikey' },
+  'webhook_disparo': { field: 'text', key: 'webhook_disparo' },
+  'webhook_contatos': { field: 'text', key: 'webhook_contatos' },
 };
 
 // Valores padrão para inicializar a tabela
@@ -147,10 +147,16 @@ function convertRowsToDisparoOptions(rows: OptionRow[]): DisparoOptions {
 
   // Para cada linha, aplica o valor ao campo correspondente
   rows.forEach(row => {
-    console.log(`Processando opção: ${row.option} com valores:`, row);
-    const mapping = Object.entries(optionMapping).find(([key]) => key === row.option);
-    if (mapping) {
-      const [_, { field, key }] = mapping;
+    // Normalizamos a opção para minúsculas para garantir correspondência
+    const optionKey = row.option.toLowerCase();
+    console.log(`Processando opção: ${optionKey} com valores:`, row);
+    
+    // Encontra o mapeamento correspondente
+    const mappingEntry = Object.entries(optionMapping).find(([key]) => key.toLowerCase() === optionKey);
+    
+    if (mappingEntry) {
+      const [_, { field, key }] = mappingEntry;
+      
       if (field === 'text' && row.text !== null) {
         (options[key] as string) = row.text;
       } else if (field === 'numeric' && row.numeric !== null) {
@@ -159,7 +165,7 @@ function convertRowsToDisparoOptions(rows: OptionRow[]): DisparoOptions {
         (options[key] as boolean) = row.boolean;
       }
     } else {
-      console.warn(`Opção não mapeada: ${row.option}`);
+      console.warn(`Opção não mapeada: ${optionKey}`);
     }
   });
 
