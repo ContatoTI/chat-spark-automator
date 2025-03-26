@@ -35,6 +35,13 @@ export const UsersTable: React.FC<UsersTableProps> = ({
   const [passwordDialogOpen, setPasswordDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
+  console.log("UsersTable renderizando com:", { 
+    usuariosCount: users?.length,
+    usuarios: users,
+    isLoading, 
+    hasError: !!error 
+  });
+
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -52,7 +59,13 @@ export const UsersTable: React.FC<UsersTableProps> = ({
         <div className="flex flex-col items-center gap-2 max-w-md text-center">
           <AlertCircle className="h-8 w-8 text-destructive" />
           <h3 className="font-semibold text-lg">Erro ao carregar usuários</h3>
-          <p className="text-sm text-muted-foreground">{error.message}</p>
+          <p className="text-sm text-muted-foreground">
+            {error.message}
+            <br />
+            <pre className="mt-2 p-2 bg-muted text-xs overflow-auto rounded">
+              {JSON.stringify(error, null, 2)}
+            </pre>
+          </p>
           <Button onClick={refetch} variant="outline" size="sm" className="mt-2">
             Tentar novamente
           </Button>
@@ -61,14 +74,15 @@ export const UsersTable: React.FC<UsersTableProps> = ({
     );
   }
 
-  if (users.length === 0) {
+  if (!users || users.length === 0) {
     return (
       <div className="flex justify-center items-center h-64 border rounded-lg bg-muted/10">
         <div className="flex flex-col items-center gap-2 p-6 text-center">
           <UserX className="h-12 w-12 text-muted-foreground mb-2" />
           <h3 className="font-semibold text-lg">Nenhum usuário encontrado</h3>
           <p className="text-sm text-muted-foreground">
-            Não há usuários cadastrados no sistema. Clique em "Novo Usuário" para adicionar um usuário.
+            Não há usuários cadastrados na tabela appw_users do Supabase.
+            Clique em "Novo Usuário" para adicionar um usuário.
           </p>
         </div>
       </div>

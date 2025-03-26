@@ -9,49 +9,33 @@ export interface User {
 }
 
 export const fetchUsers = async (): Promise<User[]> => {
-  console.log("Iniciando fetchUsers - buscando usuários do Supabase");
+  console.log("Iniciando fetchUsers - buscando usuários reais do Supabase");
   
   try {
-    // Primeiro, obter usuários autenticados
-    const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers();
-    
-    if (authError) {
-      console.error("Erro ao buscar usuários auth:", authError);
-      throw new Error(`Falha ao buscar usuários: ${authError.message}`);
-    }
-    
-    console.log("Usuários auth recuperados:", authUsers?.users?.length || 0);
-    
-    if (!authUsers?.users?.length) {
-      console.log("Nenhum usuário auth encontrado");
-      return [];
-    }
-    
-    // Depois obter informações adicionais da tabela personalizada
-    const { data: appUsers, error: appError } = await supabase
+    // Buscar diretamente da tabela appw_users (similar ao que é feito em settings.ts)
+    const { data, error } = await supabase
       .from('appw_users')
       .select('*');
     
-    if (appError) {
-      console.error("Erro ao buscar appw_users:", appError);
-      throw new Error(`Falha ao buscar appw_users: ${appError.message}`);
+    if (error) {
+      console.error("Erro ao buscar appw_users:", error);
+      throw new Error(`Falha ao buscar usuários: ${error.message}`);
     }
     
-    console.log("Usuários app recuperados:", appUsers?.length || 0);
+    console.log("Usuários recuperados da tabela appw_users:", data?.length || 0);
+    console.log("Dados brutos:", JSON.stringify(data));
     
-    // Combinar os dados
-    const users = authUsers?.users?.map(user => {
-      const appUser = appUsers?.find(au => au.user_id === user.id);
-      return {
-        id: user.id,
-        email: user.email || '',
-        created_at: user.created_at,
-        last_sign_in_at: user.last_sign_in_at,
-        role: appUser?.role || 'user'
-      };
-    }) || [];
+    // Transformar os dados para o formato esperado
+    const users = data?.map(user => ({
+      id: user.user_id || user.id,
+      email: user.email || '',
+      created_at: user.created_at || new Date().toISOString(),
+      role: user.role || 'user',
+      // last_sign_in_at pode não existir na tabela appw_users
+      last_sign_in_at: user.last_sign_in_at || undefined
+    })) || [];
     
-    console.log("Contagem final de usuários combinados:", users.length);
+    console.log("Usuários processados:", users.length);
     return users;
   } catch (error) {
     console.error("Erro em fetchUsers:", error);

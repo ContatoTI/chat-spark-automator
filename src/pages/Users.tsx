@@ -18,6 +18,14 @@ const Users = () => {
       });
     }
   }, [error]);
+  
+  useEffect(() => {
+    console.log("Página de usuários montada, dados:", { 
+      usuariosCount: users?.length, 
+      temErro: !!error, 
+      carregando: isLoading 
+    });
+  }, [users, error, isLoading]);
 
   // Função para forçar uma atualização dos dados
   const handleRefresh = () => {
