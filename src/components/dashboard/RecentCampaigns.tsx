@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useState } from "react";
 import { 
   Check, 
   Clock, 
@@ -7,14 +7,16 @@ import {
   Calendar,
   ArrowUpRight,
   Edit,
-  MessageSquare
+  MessageSquare,
+  Users
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { fetchCampaigns } from "@/lib/api/campaigns";
+import { fetchCampaigns, Campaign } from "@/lib/api/campaigns";
 import { Skeleton } from "@/components/ui/skeleton";
+import { EditCampaignDialog } from "@/components/campaigns/EditCampaignDialog";
 
 type CampaignStatus = "draft" | "scheduled" | "sending" | "completed" | "failed";
 
@@ -62,6 +64,9 @@ const CampaignStatusBadge: React.FC<{ status: string }> = ({ status }) => {
 };
 
 export const RecentCampaigns: React.FC = () => {
+  const [editCampaignDialogOpen, setEditCampaignDialogOpen] = useState(false);
+  const [selectedCampaign, setSelectedCampaign] = useState<Campaign | null>(null);
+  
   const { data: campaigns = [], isLoading, error } = useQuery({
     queryKey: ['campaigns'],
     queryFn: fetchCampaigns,
@@ -79,6 +84,11 @@ export const RecentCampaigns: React.FC = () => {
   const getMessagePreview = (message: string) => {
     if (!message) return "";
     return message.length > 80 ? `${message.substring(0, 80)}...` : message;
+  };
+  
+  const handleEditCampaign = (campaign: Campaign) => {
+    setSelectedCampaign(campaign);
+    setEditCampaignDialogOpen(true);
   };
 
   return (
@@ -122,7 +132,10 @@ export const RecentCampaigns: React.FC = () => {
                 <th className="text-left text-xs font-medium text-muted-foreground px-6 py-3">MENSAGEM</th>
                 <th className="text-left text-xs font-medium text-muted-foreground px-6 py-3">DATA</th>
                 <th className="text-left text-xs font-medium text-muted-foreground px-6 py-3">TIPO</th>
+                <th className="text-left text-xs font-medium text-muted-foreground px-6 py-3">ENVIADOS</th>
+                <th className="text-left text-xs font-medium text-muted-foreground px-6 py-3">LIMITE</th>
                 <th className="text-left text-xs font-medium text-muted-foreground px-6 py-3">STATUS</th>
+                <th className="text-left text-xs font-medium text-muted-foreground px-6 py-3">AÇÕES</th>
               </tr>
             </thead>
             <tbody>
@@ -146,7 +159,28 @@ export const RecentCampaigns: React.FC = () => {
                     {campaign.tipo_midia || "Texto"}
                   </td>
                   <td className="px-6 py-4">
+                    <div className="flex items-center gap-2">
+                      <Users className="h-4 w-4 text-blue-500" />
+                      {campaign.enviados || 0}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="flex items-center gap-2">
+                      <Users className="h-4 w-4 text-green-500" />
+                      {campaign.limite_disparos || 1000}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4">
                     <CampaignStatusBadge status={campaign.status} />
+                  </td>
+                  <td className="px-6 py-4">
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={() => handleEditCampaign(campaign)}
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
                   </td>
                 </tr>
               ))}
@@ -154,6 +188,12 @@ export const RecentCampaigns: React.FC = () => {
           </table>
         )}
       </div>
+      
+      <EditCampaignDialog 
+        open={editCampaignDialogOpen} 
+        onOpenChange={setEditCampaignDialogOpen}
+        campaign={selectedCampaign}
+      />
     </div>
   );
 };

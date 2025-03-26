@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { 
   Dialog, 
@@ -153,6 +154,24 @@ export const EditCampaignDialog: React.FC<EditCampaignDialogProps> = ({
     if (!mediaUrl) {
       setMediaUrl("");
     }
+  };
+  
+  // Função para ajustar o horário em intervalos de 30 minutos
+  const adjustTimeToIntervals = (dateTimeStr: string): string => {
+    if (!dateTimeStr) return "";
+    
+    const date = new Date(dateTimeStr);
+    const minutes = date.getMinutes();
+    
+    // Arredondar para o intervalo de 30 minutos mais próximo
+    date.setMinutes(minutes < 15 ? 0 : minutes < 45 ? 30 : 0);
+    if (minutes >= 45) {
+      date.setHours(date.getHours() + 1);
+    }
+    date.setSeconds(0);
+    date.setMilliseconds(0);
+    
+    return date.toISOString().slice(0, 16);
   };
 
   if (!campaign) return null;
@@ -424,20 +443,6 @@ export const EditCampaignDialog: React.FC<EditCampaignDialogProps> = ({
             <div className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="producao">Produção</Label>
-                    <Switch 
-                      id="producao" 
-                      checked={producao} 
-                      onCheckedChange={setProducao} 
-                    />
-                  </div>
-                  <p className="text-sm text-muted-foreground">
-                    Ative para enviar em ambiente de produção
-                  </p>
-                </div>
-              
-                <div className="space-y-2">
                   <Label htmlFor="limite-disparos">Limite de Disparos</Label>
                   <Input
                     id="limite-disparos"
@@ -463,6 +468,20 @@ export const EditCampaignDialog: React.FC<EditCampaignDialogProps> = ({
                   </p>
                 </div>
               </div>
+              
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="producao">Produção</Label>
+                  <Switch 
+                    id="producao" 
+                    checked={producao} 
+                    onCheckedChange={setProducao} 
+                  />
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Ative para enviar em ambiente de produção
+                </p>
+              </div>
             </div>
           )}
           
@@ -478,24 +497,29 @@ export const EditCampaignDialog: React.FC<EditCampaignDialogProps> = ({
                   type="datetime-local"
                   className="w-auto"
                   value={scheduleDate}
-                  onChange={(e) => setScheduleDate(e.target.value)}
+                  onChange={(e) => setScheduleDate(adjustTimeToIntervals(e.target.value))}
+                  step="1800" // Define passos de 30 minutos (1800 segundos)
                 />
               </div>
               
-              <div className="p-4 border rounded-md bg-amber-50 dark:bg-amber-900/20 text-amber-800 dark:text-amber-300">
-                <h4 className="font-medium">Resumo da Campanha</h4>
-                <p className="text-sm mt-1">Nome: {campaignName}</p>
-                <p className="text-sm mt-1">Tipo: {mediaType ? `Mídia (${mediaType})` : "Texto"}</p>
-                <p className="text-sm mt-1">Status: {scheduleDate ? "Agendada" : 
-                  campaign.status === "draft" ? "Rascunho" : "Envio imediato"}</p>
-                <p className="text-sm mt-1">Produção: {producao ? "Sim" : "Não"}</p>
-                <p className="text-sm mt-1">Limite de Disparos: {limiteDisparos}</p>
-                <p className="text-sm mt-1">Enviados: {enviados}</p>
-                {scheduleDate && (
-                  <p className="text-sm mt-1">
-                    Data de envio: {new Date(scheduleDate).toLocaleString("pt-BR")}
-                  </p>
-                )}
+              <div className="flex p-4 border rounded-md bg-amber-50 dark:bg-amber-900/20 text-amber-800 dark:text-amber-300">
+                <div className="flex-1 space-y-1">
+                  <h4 className="font-medium">Resumo da Campanha</h4>
+                  <div className="flex flex-wrap gap-x-6 gap-y-2">
+                    <p className="text-sm">Nome: {campaignName}</p>
+                    <p className="text-sm">Tipo: {mediaType ? `Mídia (${mediaType})` : "Texto"}</p>
+                    <p className="text-sm">Status: {scheduleDate ? "Agendada" : 
+                      campaign.status === "draft" ? "Rascunho" : "Envio imediato"}</p>
+                    <p className="text-sm">Produção: {producao ? "Sim" : "Não"}</p>
+                    <p className="text-sm">Limite: {limiteDisparos}</p>
+                    <p className="text-sm">Enviados: {enviados}</p>
+                    {scheduleDate && (
+                      <p className="text-sm">
+                        Data de envio: {new Date(scheduleDate).toLocaleString("pt-BR")}
+                      </p>
+                    )}
+                  </div>
+                </div>
               </div>
             </div>
           )}
