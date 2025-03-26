@@ -2,21 +2,24 @@
 import React, { useState, useEffect } from "react";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
-import { PlusCircle, Search } from "lucide-react";
+import { PlusCircle, Search, RefreshCw } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { NewCampaignDialog } from "@/components/campaigns/NewCampaignDialog";
 import { EditCampaignDialog } from "@/components/campaigns/EditCampaignDialog";
-import { cn } from "@/lib/utils";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { insertSampleCampaigns } from "@/lib/api/campaigns";
 import { CampaignList } from "@/components/campaigns/CampaignList";
 import { useCampaignOperations } from "@/hooks/useCampaignOperations";
+import { useToast } from "@/hooks/use-toast";
+import { useQueryClient } from "@tanstack/react-query";
 
 const Campaigns = () => {
   const [newCampaignDialogOpen, setNewCampaignDialogOpen] = useState(false);
   const [editCampaignDialogOpen, setEditCampaignDialogOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTab, setSelectedTab] = useState<string>("all");
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
   
   const {
     campaigns,
@@ -31,12 +34,21 @@ const Campaigns = () => {
   } = useCampaignOperations();
 
   React.useEffect(() => {
+    // Inicialização das campanhas de exemplo
     insertSampleCampaigns().catch(console.error);
   }, []);
 
   const openEditDialog = (campaign: React.SetStateAction<import("@/lib/api/campaigns").Campaign | null>) => {
     setSelectedCampaign(campaign);
     setEditCampaignDialogOpen(true);
+  };
+  
+  const handleRefreshCampaigns = () => {
+    queryClient.invalidateQueries({ queryKey: ['campaigns'] });
+    toast({
+      title: "Atualizando campanhas",
+      description: "Lista de campanhas atualizada."
+    });
   };
 
   const filteredCampaigns = campaigns
@@ -52,6 +64,10 @@ const Campaigns = () => {
         <div className="flex flex-col gap-8">
           <div className="flex justify-between items-center">
             <h1 className="text-3xl font-semibold tracking-tight">Campanhas</h1>
+            <Button variant="outline" onClick={handleRefreshCampaigns}>
+              <RefreshCw className="mr-2 h-4 w-4" />
+              Atualizar
+            </Button>
           </div>
           <div className="p-8 text-center">
             <h2 className="text-xl font-medium text-red-600 mb-2">Erro ao carregar campanhas</h2>
@@ -72,13 +88,23 @@ const Campaigns = () => {
               Gerencie suas campanhas de WhatsApp
             </p>
           </div>
-          <Button 
-            className="w-full sm:w-auto bg-primary"
-            onClick={() => setNewCampaignDialogOpen(true)}
-          >
-            <PlusCircle className="mr-2 h-4 w-4" />
-            Nova Campanha
-          </Button>
+          <div className="flex gap-2">
+            <Button 
+              variant="outline" 
+              onClick={handleRefreshCampaigns}
+              disabled={isLoading}
+            >
+              <RefreshCw className="mr-2 h-4 w-4" />
+              Atualizar
+            </Button>
+            <Button 
+              className="w-full sm:w-auto bg-primary"
+              onClick={() => setNewCampaignDialogOpen(true)}
+            >
+              <PlusCircle className="mr-2 h-4 w-4" />
+              Nova Campanha
+            </Button>
+          </div>
         </div>
 
         <div className="glass-panel px-4 py-3">

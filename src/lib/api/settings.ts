@@ -1,3 +1,4 @@
+
 import { supabase } from '@/lib/supabase';
 
 export interface OptionRow {
@@ -45,6 +46,59 @@ const optionMapping: Record<string, { field: 'text' | 'numeric' | 'boolean', key
   webhook_disparo: { field: 'text', key: 'webhook_disparo' },
   webhook_contatos: { field: 'text', key: 'webhook_contatos' },
 };
+
+// Valores padrão para inicializar a tabela
+const defaultOptions: { option: string; field: 'text' | 'numeric' | 'boolean'; value: string | number | boolean }[] = [
+  { option: 'instancia', field: 'text', value: 'default' },
+  { option: 'ativo', field: 'boolean', value: true },
+  { option: 'producao', field: 'boolean', value: false },
+  { option: 'limite_disparos', field: 'numeric', value: 1000 },
+  { option: 'enviados', field: 'numeric', value: 0 },
+  { option: 'horario_limite', field: 'numeric', value: 17 },
+  { option: 'long_wait_min', field: 'numeric', value: 50 },
+  { option: 'long_wait_max', field: 'numeric', value: 240 },
+  { option: 'shor_wait_min', field: 'numeric', value: 5 },
+  { option: 'short_wait_max', field: 'numeric', value: 10 },
+  { option: 'batch_size_min', field: 'numeric', value: 5 },
+  { option: 'batch_size_max', field: 'numeric', value: 10 },
+  { option: 'url_api', field: 'text', value: 'https://api.example.com' },
+  { option: 'apikey', field: 'text', value: '' },
+  { option: 'webhook_disparo', field: 'text', value: 'https://webhook.example.com/disparo' },
+  { option: 'webhook_contatos', field: 'text', value: 'https://webhook.example.com/contatos' },
+];
+
+/**
+ * Inicializa a tabela AppW_Options com valores padrão se estiver vazia
+ */
+async function initializeOptionsTable() {
+  try {
+    const { count } = await supabase
+      .from('AppW_Options')
+      .select('*', { count: 'exact', head: true });
+    
+    if (count === 0) {
+      console.log('Inicializando tabela AppW_Options com valores padrão');
+      
+      const inserts = defaultOptions.map(option => {
+        const row: any = { option: option.option };
+        row[option.field] = option.value;
+        return row;
+      });
+      
+      const { error } = await supabase
+        .from('AppW_Options')
+        .insert(inserts);
+      
+      if (error) {
+        console.error('Erro ao inicializar tabela AppW_Options:', error);
+      } else {
+        console.log('Tabela AppW_Options inicializada com sucesso');
+      }
+    }
+  } catch (error) {
+    console.error('Erro ao verificar tabela AppW_Options:', error);
+  }
+}
 
 /**
  * Converte os dados da tabela vertical AppW_Options para o formato DisparoOptions
@@ -116,6 +170,9 @@ function convertDisparoOptionsToUpdates(options: DisparoOptions): { option: stri
  */
 export const fetchDisparoOptions = async (): Promise<DisparoOptions> => {
   try {
+    // Inicializa a tabela com valores padrão se estiver vazia
+    await initializeOptionsTable();
+    
     const { data, error } = await supabase
       .from('AppW_Options')
       .select('*');

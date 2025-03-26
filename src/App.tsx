@@ -8,6 +8,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { useEffect } from "react";
 import { initializeDefaultUsers } from "@/lib/auth";
+import { fetchDisparoOptions } from "@/lib/api/settings";
 import Index from "./pages/Index";
 import Contacts from "./pages/Contacts";
 import Campaigns from "./pages/Campaigns";
@@ -18,12 +19,24 @@ import Login from "./pages/Login";
 import Users from "./pages/Users";
 import Unauthorized from "./pages/Unauthorized";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 const App = () => {
   useEffect(() => {
     // Inicializar usuários padrão se não existirem
     initializeDefaultUsers();
+    
+    // Pré-carregar configurações para inicializar a tabela se necessário
+    fetchDisparoOptions().catch(error => {
+      console.log("Inicialização de configurações:", error.message);
+    });
   }, []);
 
   return (

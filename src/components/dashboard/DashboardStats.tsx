@@ -75,14 +75,31 @@ const StatCard: React.FC<StatCardProps> = ({
 // Função para buscar estatísticas de contatos do Supabase
 const fetchContactsStats = async () => {
   try {
-    // Buscar número total de contatos - Mudado para AppW_Contatos
+    // Verificar se a tabela AppW_Contatos existe
+    const { count: tableExists, error: tableCheckError } = await supabase
+      .from('AppW_Contatos')
+      .select('*', { count: 'exact', head: true });
+      
+    // Se a tabela não existir, use valores de fallback
+    if (tableCheckError) {
+      console.error("Erro ao verificar tabela AppW_Contatos:", tableCheckError);
+      console.log("Usando valores de fallback para estatísticas");
+      return {
+        total: 0,
+        sent: 0,
+        remaining: 0,
+        invalid: 0
+      };
+    }
+    
+    // Buscar número total de contatos - Usando AppW_Contatos
     const { count: total, error: totalError } = await supabase
       .from('AppW_Contatos')
       .select('*', { count: 'exact', head: true });
 
     if (totalError) throw totalError;
 
-    // Buscar número de contatos enviados - Mudado para AppW_Contatos
+    // Buscar número de contatos enviados - Usando AppW_Contatos
     const { count: sent, error: sentError } = await supabase
       .from('AppW_Contatos')
       .select('*', { count: 'exact', head: true })
@@ -90,7 +107,7 @@ const fetchContactsStats = async () => {
 
     if (sentError) throw sentError;
 
-    // Buscar número de contatos restantes - Mudado para AppW_Contatos
+    // Buscar número de contatos restantes - Usando AppW_Contatos
     const { count: remaining, error: remainingError } = await supabase
       .from('AppW_Contatos')
       .select('*', { count: 'exact', head: true })
@@ -98,7 +115,7 @@ const fetchContactsStats = async () => {
 
     if (remainingError) throw remainingError;
 
-    // Buscar número de contatos inválidos - Mudado para AppW_Contatos
+    // Buscar número de contatos inválidos - Usando AppW_Contatos
     const { count: invalid, error: invalidError } = await supabase
       .from('AppW_Contatos')
       .select('*', { count: 'exact', head: true })
@@ -128,7 +145,13 @@ const fetchContactsStats = async () => {
     };
   } catch (error) {
     console.error("Erro ao buscar estatísticas de contatos:", error);
-    throw error;
+    // Retornar valores de fallback em caso de erro
+    return {
+      total: 0,
+      sent: 0,
+      remaining: 0,
+      invalid: 0
+    };
   }
 };
 
@@ -136,6 +159,7 @@ export const DashboardStats: React.FC = () => {
   const { data: contactsStats, isLoading, error } = useQuery({
     queryKey: ['contactsStats'],
     queryFn: fetchContactsStats,
+    refetchInterval: 60000, // Atualizar a cada minuto
   });
 
   if (error) {
