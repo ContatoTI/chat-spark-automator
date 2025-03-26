@@ -11,8 +11,9 @@ export const useUsers = () => {
   } = useQuery({
     queryKey: ['users'],
     queryFn: fetchUsers,
-    refetchOnMount: true,
     refetchOnWindowFocus: true,
+    refetchOnMount: true,
+    retry: 1, // Tentar apenas uma vez para não ficar em loop em caso de erro persistente
   });
 
   return {

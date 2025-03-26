@@ -52,19 +52,8 @@ export const createUser = async (email: string, password: string, role: string):
   }
   
   try {
-    // Verificar se o usuário já existe
-    const { data: existingUsers } = await supabase
-      .from('appw_users')
-      .select('email')
-      .eq('email', email)
-      .maybeSingle();
-      
-    if (existingUsers) {
-      console.error("Usuário já existe:", email);
-      throw new Error(`Usuário com email ${email} já existe`);
-    }
-    
-    // Criar o usuário na autenticação
+    // Criar o usuário diretamente na autenticação sem verificar se já existe
+    // O Supabase Auth irá retornar um erro se o email já existir
     console.log("Criando usuário na autenticação:", email);
     const { data, error } = await supabase.auth.admin.createUser({
       email,
@@ -97,10 +86,11 @@ export const createUser = async (email: string, password: string, role: string):
     if (insertError) {
       console.error("Erro ao adicionar usuário a appw_users:", insertError);
       
-      // Se falharmos ao adicionar o usuário à nossa tabela personalizada, excluir o usuário auth para manter a consistência
-      console.log("Tentando limpar usuário auth após falha na inserção");
-      const { error: deleteError } = await supabase.auth.admin.deleteUser(data.user.id);
-      if (deleteError) {
+      // Tente excluir o usuário do Auth para manter consistência
+      try {
+        console.log("Tentando limpar usuário auth após falha na inserção");
+        await supabase.auth.admin.deleteUser(data.user.id);
+      } catch (deleteError) {
         console.error("Erro ao excluir usuário auth durante limpeza:", deleteError);
       }
       

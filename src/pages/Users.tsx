@@ -31,6 +31,7 @@ const Users = () => {
   const handleRefresh = () => {
     console.log("Atualizando manualmente a lista de usuários");
     refetch();
+    toast.info("Atualizando lista de usuários...");
   };
 
   return (

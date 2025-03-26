@@ -81,8 +81,20 @@ export const NewUserDialog: React.FC<NewUserDialogProps> = ({
       onUserCreated(); // Atualizar a lista de usuários
     } catch (error) {
       console.error('Erro ao criar usuário:', error);
+      let errorMessage = 'Tente novamente mais tarde';
+      
+      // Verificar se é um erro do Supabase
+      if (error instanceof Error) {
+        // Verificar mensagens específicas de erro
+        if (error.message.includes('already been registered')) {
+          errorMessage = 'Este email já está registrado no Auth do Supabase';
+        } else {
+          errorMessage = error.message;
+        }
+      }
+      
       toast.error('Erro ao criar usuário', { 
-        description: error instanceof Error ? error.message : 'Tente novamente mais tarde'
+        description: errorMessage
       });
     } finally {
       setIsCreating(false);
