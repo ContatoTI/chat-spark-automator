@@ -6,7 +6,6 @@ export interface OptionRow {
   text: string | null;
   numeric: number | null;
   boolean: boolean | null;
-  profile_id?: string;
 }
 
 export interface DisparoOptions {
@@ -26,7 +25,6 @@ export interface DisparoOptions {
   apikey: string;
   webhook_disparo: string;
   webhook_contatos: string;
-  profile_id?: string; // Now truly optional
 }
 
 // Mapeamento entre nomes de opções na tabela e propriedades no objeto DisparoOptions
@@ -68,6 +66,23 @@ const defaultOptions: { option: string; field: 'text' | 'numeric' | 'boolean'; v
   { option: 'webhook_disparo', field: 'text', value: 'https://webhook.example.com/disparo' },
   { option: 'webhook_contatos', field: 'text', value: 'https://webhook.example.com/contatos' },
 ];
+
+/**
+ * Verifica se uma opção existe na tabela AppW_Options
+ */
+async function optionExists(option: string): Promise<boolean> {
+  const { count, error } = await supabase
+    .from('AppW_Options')
+    .select('*', { count: 'exact', head: true })
+    .eq('option', option);
+  
+  if (error) {
+    console.error(`Erro ao verificar se a opção ${option} existe:`, error);
+    return false;
+  }
+  
+  return count !== null && count > 0;
+}
 
 /**
  * Inicializa a tabela AppW_Options com valores padrão se estiver vazia
@@ -160,7 +175,7 @@ function convertDisparoOptionsToUpdates(options: DisparoOptions): { option: stri
   
   Object.entries(optionMapping).forEach(([optionName, { field, key }]) => {
     const value = options[key];
-    const updateObj: Partial<OptionRow> = { option: optionName };
+    const updateObj: Partial<OptionRow> = {};
     
     if (field === 'text') {
       updateObj.text = value as string;
@@ -253,14 +268,30 @@ export const updateDisparoOptions = async (options: DisparoOptions): Promise<voi
     
     // Realiza uma atualização para cada opção
     for (const { option, updates } of updateList) {
-      const { error } = await supabase
-        .from('AppW_Options')
-        .update(updates)
-        .eq('option', option);
+      // Verificar se a opção já existe
+      const exists = await optionExists(option);
+      
+      if (exists) {
+        // Atualiza a opção existente
+        const { error } = await supabase
+          .from('AppW_Options')
+          .update(updates)
+          .eq('option', option);
 
-      if (error) {
-        console.error(`Erro ao atualizar configuração ${option}:`, error);
-        throw new Error(`Erro ao atualizar configuração ${option}: ${error.message}`);
+        if (error) {
+          console.error(`Erro ao atualizar configuração ${option}:`, error);
+          throw new Error(`Erro ao atualizar configuração ${option}: ${error.message}`);
+        }
+      } else {
+        // Insere a opção se não existir
+        const { error } = await supabase
+          .from('AppW_Options')
+          .insert({ option, ...updates });
+
+        if (error) {
+          console.error(`Erro ao inserir configuração ${option}:`, error);
+          throw new Error(`Erro ao inserir configuração ${option}: ${error.message}`);
+        }
       }
     }
     

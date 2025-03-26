@@ -49,6 +49,7 @@ export function SettingsForm({ initialSettings }: SettingsFormProps) {
   // Update form when settings are loaded
   React.useEffect(() => {
     if (initialSettings) {
+      console.log("Setting form values with:", initialSettings);
       form.reset(initialSettings);
       console.log("Form reset with initial settings");
     }
@@ -81,7 +82,7 @@ export function SettingsForm({ initialSettings }: SettingsFormProps) {
 
   const onSubmit = (values: DisparoOptions) => {
     setSaveError(null);
-    console.log("Salvando configurações globais");
+    console.log("Salvando configurações globais:", values);
     updateSettingsMutation.mutate(values);
   };
 
