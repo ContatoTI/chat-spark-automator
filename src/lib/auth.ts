@@ -24,6 +24,7 @@ export async function getUserProfile(userId: string): Promise<UserProfile | null
     .single();
 
   if (error || !data) {
+    console.error("Error fetching user profile:", error);
     return null;
   }
 
@@ -38,6 +39,7 @@ export async function getUserPermissions(userId: string): Promise<UserPermission
     .single();
 
   if (error || !data) {
+    console.error("Error fetching user permissions:", error);
     return null;
   }
 
@@ -53,38 +55,46 @@ export async function createUserByAdmin(email: string, password: string, full_na
   can_manage_settings: false,
   can_view_campaigns: true
 }) {
-  const { data, error } = await supabase.auth.admin.createUser({
-    email,
-    password,
-    email_confirm: true,
-    user_metadata: { full_name }
-  });
-
-  if (error || !data.user) {
-    console.error("Erro ao criar usuário:", error);
-    return { data, error };
-  }
-
   try {
-    await supabase
-      .from("profiles")
-      .insert({
-        id: data.user.id,
-        full_name,
-        role
-      });
+    // First, create the user in the auth system
+    const { data, error } = await supabase.auth.admin.createUser({
+      email,
+      password,
+      email_confirm: true,
+      user_metadata: { full_name }
+    });
 
-    await supabase
-      .from("permissions")
-      .insert({
-        profile_id: data.user.id,
-        ...permissions
-      });
+    if (error || !data.user) {
+      console.error("Erro ao criar usuário:", error);
+      return { data, error };
+    }
 
-    return { data, error: null };
-  } catch (profileError) {
-    console.error("Erro ao criar perfil/permissões:", profileError);
-    return { data, error: profileError };
+    try {
+      // Then create the profile
+      await supabase
+        .from("profiles")
+        .insert({
+          id: data.user.id,
+          full_name,
+          role
+        });
+
+      // And finally create permissions
+      await supabase
+        .from("permissions")
+        .insert({
+          profile_id: data.user.id,
+          ...permissions
+        });
+
+      return { data, error: null };
+    } catch (profileError) {
+      console.error("Erro ao criar perfil/permissões:", profileError);
+      return { data, error: profileError };
+    }
+  } catch (err) {
+    console.error("Error in createUserByAdmin:", err);
+    return { data: null, error: err };
   }
 }
 
@@ -107,38 +117,58 @@ export async function updateUserPermissions(userId: string, permissions: Partial
 }
 
 export async function getAllUsers() {
-  const { data, error } = await supabase
-    .from("profiles")
-    .select(`
-      *,
-      permissions(*)
-    `);
+  try {
+    const { data, error } = await supabase
+      .from("profiles")
+      .select(`
+        *,
+        permissions(*)
+      `);
 
-  if (error) throw error;
-  return data;
+    if (error) throw error;
+    return data;
+  } catch (err) {
+    console.error("Error fetching all users:", err);
+    throw err;
+  }
 }
 
 export async function initializeDefaultUsers() {
   try {
-    const { data: existingUsers } = await supabase
+    // Check if there are any existing users
+    const { data: existingUsers, error: checkError } = await supabase
       .from("profiles")
       .select("id")
       .limit(1);
+      
+    if (checkError) {
+      console.error("Error checking for existing users:", checkError);
+      return;
+    }
 
+    // If no users exist, create default ones
     if (!existingUsers || existingUsers.length === 0) {
-      await createUserByAdmin("admin@falcontruck.com.br", "123456", "Admin", "admin", {
-        can_manage_users: true,
-        can_manage_settings: true,
-        can_view_campaigns: true
-      });
+      console.log("No existing users found, creating defaults");
+      
+      try {
+        await createUserByAdmin("admin@falcontruck.com.br", "123456", "Admin", "admin", {
+          can_manage_users: true,
+          can_manage_settings: true,
+          can_view_campaigns: true
+        });
 
-      await createUserByAdmin("user@falcontruck.com.br", "123456", "User", "client", {
-        can_manage_users: false,
-        can_manage_settings: false,
-        can_view_campaigns: true
-      });
+        await createUserByAdmin("user@falcontruck.com.br", "123456", "User", "client", {
+          can_manage_users: false,
+          can_manage_settings: false,
+          can_view_campaigns: true
+        });
 
-      console.log("Usuários padrão criados com sucesso");
+        console.log("Usuários padrão criados com sucesso");
+      } catch (createError) {
+        console.error("Error creating default users:", createError);
+      }
+    } else {
+      console.log("Users already exist, skipping default creation");
     }
   } catch (error) {
     console.error("Erro ao inicializar usuários padrão:", error);

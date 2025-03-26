@@ -64,7 +64,7 @@ const SidebarLink: React.FC<SidebarLinkProps> = ({ to, icon: Icon, label, active
 export const Sidebar: React.FC<SidebarProps> = ({ open }) => {
   const location = useLocation();
   const currentPath = location.pathname;
-  const { user, isAdmin, signOut } = useAuth();
+  const { user, isAdmin, permissions, signOut } = useAuth();
 
   return (
     <aside
@@ -78,6 +78,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ open }) => {
     >
       <div className="flex flex-col gap-2 p-4">
         <div className="py-2">
+          <h2 className="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-4 px-3">
+            MENU PRINCIPAL
+          </h2>
           <nav className="flex flex-col gap-1">
             <SidebarLink
               to="/"
@@ -85,12 +88,16 @@ export const Sidebar: React.FC<SidebarProps> = ({ open }) => {
               label="Dashboard"
               active={currentPath === "/"}
             />
-            <SidebarLink
-              to="/campaigns"
-              icon={MessageSquare}
-              label="Campanhas"
-              active={currentPath === "/campaigns"}
-            />
+            
+            {(permissions?.can_view_campaigns || isAdmin) && (
+              <SidebarLink
+                to="/campaigns"
+                icon={MessageSquare}
+                label="Campanhas"
+                active={currentPath === "/campaigns"}
+              />
+            )}
+            
             <SidebarLink
               to="/history"
               icon={History}
@@ -118,6 +125,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ open }) => {
 
         {user && (
           <div className="mt-auto pt-4 border-t">
+            <div className="px-3 py-2 text-sm font-medium text-slate-500">
+              {user.email}
+            </div>
             <SidebarLink
               to="#"
               icon={LogOut}
