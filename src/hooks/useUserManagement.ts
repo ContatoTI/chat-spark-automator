@@ -22,6 +22,10 @@ export const useUserManagement = () => {
   } = useQuery({
     queryKey: ["users"],
     queryFn: getAllUsers,
+    retry: 2,
+    refetchOnWindowFocus: false,
+    // Don't fetch if we're not on the users page
+    enabled: window.location.pathname === "/users",
   });
 
   const updateRoleMutation = useMutation({
@@ -35,7 +39,8 @@ export const useUserManagement = () => {
         description: "A função do usuário foi atualizada com sucesso.",
       });
     },
-    onError: () => {
+    onError: (error) => {
+      console.error("Erro ao atualizar função:", error);
       toast({
         variant: "destructive",
         title: "Erro ao atualizar função",
@@ -63,7 +68,8 @@ export const useUserManagement = () => {
         description: "As permissões do usuário foram atualizadas com sucesso.",
       });
     },
-    onError: () => {
+    onError: (error) => {
+      console.error("Erro ao atualizar permissões:", error);
       toast({
         variant: "destructive",
         title: "Erro ao atualizar permissões",
@@ -94,7 +100,8 @@ export const useUserManagement = () => {
         description: "O usuário foi criado com sucesso.",
       });
     },
-    onError: () => {
+    onError: (error) => {
+      console.error("Erro ao criar usuário:", error);
       toast({
         variant: "destructive",
         title: "Erro ao criar usuário",

@@ -16,8 +16,9 @@ export const useSettingsForm = () => {
   } = useQuery({
     queryKey: ['disparo-options'],
     queryFn: fetchDisparoOptions,
-    retry: 2,
+    retry: 3,  // Increase retries
     refetchOnWindowFocus: false,
+    staleTime: 1000 * 60 * 5, // 5 minutes
   });
 
   // Show toast when there's an error
@@ -32,7 +33,7 @@ export const useSettingsForm = () => {
     }
   }, [error, toast]);
 
-  // Fornecer valores padrão se não houver configurações
+  // Provide default values if no settings are available
   const defaultSettings: DisparoOptions = {
     instancia: '',
     Ativo: true,
