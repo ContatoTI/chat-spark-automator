@@ -10,7 +10,6 @@ import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import { Skeleton } from "../ui/skeleton";
 import { supabase } from "@/lib/supabase";
-import { fetchDisparoOptions } from "@/lib/api/settings";
 
 interface StatCardProps {
   title: string;
@@ -76,32 +75,32 @@ const StatCard: React.FC<StatCardProps> = ({
 // Função para buscar estatísticas de contatos do Supabase
 const fetchContactsStats = async () => {
   try {
-    // Buscar número total de contatos
+    // Buscar número total de contatos - Mudado para AppW_Contatos
     const { count: total, error: totalError } = await supabase
-      .from('Contatos')
+      .from('AppW_Contatos')
       .select('*', { count: 'exact', head: true });
 
     if (totalError) throw totalError;
 
-    // Buscar número de contatos enviados
+    // Buscar número de contatos enviados - Mudado para AppW_Contatos
     const { count: sent, error: sentError } = await supabase
-      .from('Contatos')
+      .from('AppW_Contatos')
       .select('*', { count: 'exact', head: true })
       .eq('Enviado', true);
 
     if (sentError) throw sentError;
 
-    // Buscar número de contatos restantes
+    // Buscar número de contatos restantes - Mudado para AppW_Contatos
     const { count: remaining, error: remainingError } = await supabase
-      .from('Contatos')
+      .from('AppW_Contatos')
       .select('*', { count: 'exact', head: true })
       .eq('Enviado', false);
 
     if (remainingError) throw remainingError;
 
-    // Buscar número de contatos inválidos - corrigido para buscar pelo texto "Invalido"
+    // Buscar número de contatos inválidos - Mudado para AppW_Contatos
     const { count: invalid, error: invalidError } = await supabase
-      .from('Contatos')
+      .from('AppW_Contatos')
       .select('*', { count: 'exact', head: true })
       .eq('Invalido', 'Invalido');
 
@@ -114,7 +113,7 @@ const fetchContactsStats = async () => {
       .eq('option', 'enviados')
       .single();
 
-    if (optionsError) throw optionsError;
+    if (optionsError && optionsError.code !== 'PGRST116') throw optionsError;
     
     // Obter o valor numeric da opção 'enviados'
     const settingsEnviados = optionsData?.numeric || 0;

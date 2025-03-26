@@ -78,9 +78,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ open }) => {
     >
       <div className="flex flex-col gap-2 p-4">
         <div className="py-2">
-          <h2 className="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-4 px-3">
-            MENU PRINCIPAL
-          </h2>
           <nav className="flex flex-col gap-1">
             <SidebarLink
               to="/"
@@ -101,21 +98,20 @@ export const Sidebar: React.FC<SidebarProps> = ({ open }) => {
               active={currentPath === "/history"}
             />
             
+            <SidebarLink
+              to="/settings"
+              icon={Settings}
+              label="Configurações"
+              active={currentPath === "/settings"}
+            />
+            
             {isAdmin && (
-              <>
-                <SidebarLink
-                  to="/settings"
-                  icon={Settings}
-                  label="Configurações"
-                  active={currentPath === "/settings"}
-                />
-                <SidebarLink
-                  to="/users"
-                  icon={Users}
-                  label="Usuários"
-                  active={currentPath === "/users"}
-                />
-              </>
+              <SidebarLink
+                to="/users"
+                icon={Users}
+                label="Usuários"
+                active={currentPath === "/users"}
+              />
             )}
           </nav>
         </div>

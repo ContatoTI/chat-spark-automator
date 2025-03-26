@@ -43,9 +43,7 @@ const App = () => {
               <Route path="/contacts" element={<ProtectedRoute><Contacts /></ProtectedRoute>} />
               <Route path="/campaigns" element={<ProtectedRoute><Campaigns /></ProtectedRoute>} />
               <Route path="/history" element={<ProtectedRoute><History /></ProtectedRoute>} />
-              <Route path="/settings" element={
-                <ProtectedRoute requireAdmin={true}><Settings /></ProtectedRoute>
-              } />
+              <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
               <Route path="/users" element={
                 <ProtectedRoute requireAdmin={true}><Users /></ProtectedRoute>
               } />
