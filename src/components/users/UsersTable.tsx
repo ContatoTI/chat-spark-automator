@@ -10,7 +10,7 @@ import {
   TableRow 
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { Pencil, Trash2, KeyRound, AlertCircle } from 'lucide-react';
+import { Pencil, Trash2, KeyRound, AlertCircle, UserX } from 'lucide-react';
 import { UserRoleDialog } from './UserRoleDialog';
 import { UserPasswordDialog } from './UserPasswordDialog';
 import { UserDeleteDialog } from './UserDeleteDialog';
@@ -64,10 +64,11 @@ export const UsersTable: React.FC<UsersTableProps> = ({
   if (users.length === 0) {
     return (
       <div className="flex justify-center items-center h-64 border rounded-lg bg-muted/10">
-        <div className="flex flex-col items-center gap-2 p-6">
+        <div className="flex flex-col items-center gap-2 p-6 text-center">
+          <UserX className="h-12 w-12 text-muted-foreground mb-2" />
           <h3 className="font-semibold text-lg">Nenhum usuário encontrado</h3>
           <p className="text-sm text-muted-foreground">
-            Clique em "Novo Usuário" para adicionar um usuário ao sistema.
+            Não há usuários cadastrados no sistema. Clique em "Novo Usuário" para adicionar um usuário.
           </p>
         </div>
       </div>

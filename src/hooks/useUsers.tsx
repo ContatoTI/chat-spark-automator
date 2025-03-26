@@ -11,6 +11,9 @@ export const useUsers = () => {
   } = useQuery({
     queryKey: ['users'],
     queryFn: fetchUsers,
+    staleTime: 0, // Always treat data as stale
+    refetchOnMount: true, // Refetch when component mounts
+    refetchOnWindowFocus: true, // Refetch when window gains focus
   });
 
   return {

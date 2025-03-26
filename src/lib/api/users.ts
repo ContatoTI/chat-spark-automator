@@ -21,6 +21,8 @@ export const fetchUsers = async (): Promise<User[]> => {
       throw new Error(`Failed to fetch users: ${authError.message}`);
     }
     
+    console.log("Auth users retrieved:", authUsers?.users?.length || 0);
+    
     // Then get additional user info from the custom table
     const { data: appUsers, error: appError } = await supabase
       .from('appw_users')
@@ -30,6 +32,8 @@ export const fetchUsers = async (): Promise<User[]> => {
       console.error("Error fetching app users:", appError);
       throw new Error(`Failed to fetch appw_users: ${appError.message}`);
     }
+    
+    console.log("App users retrieved:", appUsers?.length || 0);
     
     // Combine the data
     const users = authUsers?.users?.map(user => {
@@ -43,7 +47,12 @@ export const fetchUsers = async (): Promise<User[]> => {
       };
     }) || [];
     
-    console.log("Users fetched successfully:", users);
+    console.log("Final combined user count:", users.length);
+    
+    if (users.length === 0) {
+      console.log("No users found in the database");
+    }
+    
     return users;
   } catch (error) {
     console.error("Error in fetchUsers:", error);
