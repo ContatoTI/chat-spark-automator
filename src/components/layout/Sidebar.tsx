@@ -7,6 +7,7 @@ import {
   MessageSquare, 
   History, 
   Settings,
+  Users,
 } from "lucide-react";
 
 interface SidebarProps {
@@ -75,6 +76,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ open }) => {
               icon={History}
               label="Histórico"
               active={currentPath === "/history"}
+            />
+            <SidebarLink
+              to="/users"
+              icon={Users}
+              label="Usuários"
+              active={currentPath === "/users"}
             />
             <SidebarLink
               to="/settings"
