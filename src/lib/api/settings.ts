@@ -37,11 +37,11 @@ const optionMapping: Record<string, { field: 'text' | 'numeric' | 'boolean', key
   horario_limite: { field: 'numeric', key: 'horario_limite' },
   long_wait_min: { field: 'numeric', key: 'long_wait_min' },
   long_wait_max: { field: 'numeric', key: 'long_wait_max' },
-  shor_wait_min: { field: 'numeric', key: 'ShortWaitMin' }, // This had a typo in the database column name
+  shor_wait_min: { field: 'numeric', key: 'ShortWaitMin' }, // Observação: Tem um typo no nome da coluna no banco
   short_wait_max: { field: 'numeric', key: 'ShortWaitMax' },
-  batch_size_min: { field: 'numeric', key: 'BatchSizeMim' },
+  batch_size_min: { field: 'numeric', key: 'BatchSizeMim' }, // Atenção ao erro de digitação "Mim" ao invés de "Min"
   batch_size_max: { field: 'numeric', key: 'BatchSizeMax' },
-  url_api: { field: 'text', key: 'urlAPI' }, // Changed to match the database column name
+  url_api: { field: 'text', key: 'urlAPI' },
   apikey: { field: 'text', key: 'apikey' },
   webhook_disparo: { field: 'text', key: 'webhook_disparo' },
   webhook_contatos: { field: 'text', key: 'webhook_contatos' },
@@ -130,6 +130,7 @@ function convertRowsToDisparoOptions(rows: OptionRow[]): DisparoOptions {
 
   // Para cada linha, aplica o valor ao campo correspondente
   rows.forEach(row => {
+    console.log(`Processando opção: ${row.option} com valores:`, row);
     const mapping = Object.entries(optionMapping).find(([key]) => key === row.option);
     if (mapping) {
       const [_, { field, key }] = mapping;
@@ -140,10 +141,12 @@ function convertRowsToDisparoOptions(rows: OptionRow[]): DisparoOptions {
       } else if (field === 'boolean' && row.boolean !== null) {
         (options[key] as boolean) = row.boolean;
       }
+    } else {
+      console.warn(`Opção não mapeada: ${row.option}`);
     }
   });
 
-  console.log("Converted options:", options);
+  console.log("Opções convertidas:", options);
   return options;
 }
 
@@ -188,6 +191,8 @@ export const fetchDisparoOptions = async (): Promise<DisparoOptions> => {
       throw new Error(`Erro ao buscar configurações: ${error.message}`);
     }
 
+    console.log("Dados brutos recebidos do Supabase:", data);
+
     if (!data || data.length === 0) {
       // Em vez de lançar erro, retornar configurações padrão
       console.log('Nenhuma configuração encontrada, usando valores padrão');
@@ -210,8 +215,6 @@ export const fetchDisparoOptions = async (): Promise<DisparoOptions> => {
         webhook_contatos: 'https://webhook.example.com/contatos',
       };
     }
-
-    console.log("Fetched data from AppW_Options:", data);
     
     // Converte as linhas da tabela para o formato DisparoOptions
     return convertRowsToDisparoOptions(data as OptionRow[]);

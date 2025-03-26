@@ -119,7 +119,7 @@ const fetchContactsStats = async () => {
     const { count: invalid, error: invalidError } = await supabase
       .from('AppW_Contatos')
       .select('*', { count: 'exact', head: true })
-      .eq('Invalido', 'Invalido');
+      .eq('Invalido', true);
 
     if (invalidError) throw invalidError;
 
@@ -130,16 +130,25 @@ const fetchContactsStats = async () => {
       .eq('option', 'enviados')
       .single();
 
-    if (optionsError && optionsError.code !== 'PGRST116') throw optionsError;
+    if (optionsError && optionsError.code !== 'PGRST116') {
+      console.warn("Erro ao buscar opção 'enviados':", optionsError);
+    }
     
     // Obter o valor numeric da opção 'enviados'
-    const settingsEnviados = optionsData?.numeric || 0;
+    const settingsEnviados = optionsData?.numeric || sent || 0;
 
-    console.log("Estatísticas de contatos:", { total, sent, remaining, invalid, settingsEnviados });
+    console.log("Estatísticas de contatos:", { 
+      total, 
+      sent, 
+      remaining, 
+      invalid, 
+      settingsEnviados,
+      optionsData 
+    });
     
     return {
       total: total || 0,
-      sent: settingsEnviados || 0, // Usar o valor diretamente da opção 'enviados'
+      sent: settingsEnviados, // Usar o valor da opção 'enviados' ou contagem direta
       remaining: remaining || 0,
       invalid: invalid || 0
     };

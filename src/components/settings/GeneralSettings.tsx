@@ -12,6 +12,9 @@ interface GeneralSettingsProps {
 }
 
 export function GeneralSettings({ form }: GeneralSettingsProps) {
+  // Exibe o valor da apikey no console para debug
+  console.log("API Key no formulário:", form.getValues().apikey);
+  
   return (
     <Card>
       <CardHeader>
@@ -65,7 +68,11 @@ export function GeneralSettings({ form }: GeneralSettingsProps) {
               <FormItem>
                 <FormLabel>API Key</FormLabel>
                 <FormControl>
-                  <Input {...field} type="password" />
+                  <Input 
+                    {...field} 
+                    type="password" 
+                    value={field.value || ''} // Garantir que nunca seja null ou undefined
+                  />
                 </FormControl>
                 <FormDescription>
                   Chave de API para autenticação

@@ -16,10 +16,8 @@ export const useSettingsForm = () => {
   } = useQuery({
     queryKey: ['disparo-options'],
     queryFn: fetchDisparoOptions,
-    retry: 1,
-    meta: {
-      errorToast: true
-    },
+    retry: 2,
+    refetchOnWindowFocus: false,
   });
 
   // Show toast when there's an error
