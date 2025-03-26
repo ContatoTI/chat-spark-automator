@@ -52,6 +52,7 @@ export const fetchUsers = async (): Promise<User[]> => {
 };
 
 export const createUser = async (email: string, password: string, role: string): Promise<void> => {
+  console.log("Creating user:", { email, role });
   try {
     // Create the user in Auth
     const { data, error } = await supabase.auth.admin.createUser({
@@ -60,15 +61,35 @@ export const createUser = async (email: string, password: string, role: string):
       email_confirm: true, // Skip email confirmation
     });
     
-    if (error) throw error;
+    if (error) {
+      console.error("Error creating auth user:", error);
+      throw error;
+    }
     
     // Add the user to our custom table
     if (data.user) {
+      console.log("Auth user created successfully, adding to appw_users:", data.user.id);
       const { error: insertError } = await supabase
         .from('appw_users')
-        .insert([{ user_id: data.user.id, role, email }]);
+        .insert([
+          { 
+            user_id: data.user.id, 
+            email: email, 
+            role: role 
+          }
+        ]);
         
-      if (insertError) throw insertError;
+      if (insertError) {
+        console.error("Error adding user to appw_users:", insertError);
+        
+        // If we fail to add the user to our custom table, delete the auth user to maintain consistency
+        await supabase.auth.admin.deleteUser(data.user.id);
+        throw insertError;
+      }
+      
+      console.log("User successfully created and added to appw_users");
+    } else {
+      throw new Error("User data not returned from auth signup");
     }
   } catch (error) {
     console.error("Error creating user:", error);

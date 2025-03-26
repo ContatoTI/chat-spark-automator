@@ -60,6 +60,7 @@ export const NewUserDialog: React.FC<NewUserDialogProps> = ({
 
   const onSubmit = async (data: FormData) => {
     try {
+      console.log("Submitting new user:", { email: data.email, role: data.role });
       await createUser(data.email, data.password, data.role);
       toast.success('Usuário criado com sucesso');
       reset();
