@@ -14,6 +14,7 @@ import { BatchSettings } from "./BatchSettings";
 import { SaveButton } from "./SaveButton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface SettingsFormProps {
   initialSettings: DisparoOptions;
@@ -23,6 +24,7 @@ export function SettingsForm({ initialSettings }: SettingsFormProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [saveError, setSaveError] = React.useState<string | null>(null);
+  const { user } = useAuth();
 
   const form = useForm({
     resolver: zodResolver(settingsSchema),
@@ -43,15 +45,22 @@ export function SettingsForm({ initialSettings }: SettingsFormProps) {
       apikey: "",
       webhook_disparo: "",
       webhook_contatos: "",
+      profile_id: user?.id,
     },
   });
 
   // Update form when settings are loaded
   React.useEffect(() => {
     if (initialSettings) {
+      // Ensure the profile_id is set to the current user
+      if (user?.id && (!initialSettings.profile_id || initialSettings.profile_id !== user.id)) {
+        initialSettings.profile_id = user.id;
+      }
+      
       form.reset(initialSettings);
+      console.log("Form reset with initial settings including profile_id:", initialSettings.profile_id);
     }
-  }, [initialSettings, form]);
+  }, [initialSettings, form, user]);
 
   const updateSettingsMutation = useMutation({
     mutationFn: updateDisparoOptions,
@@ -80,6 +89,22 @@ export function SettingsForm({ initialSettings }: SettingsFormProps) {
 
   const onSubmit = (values: DisparoOptions) => {
     setSaveError(null);
+    
+    // Validation to ensure user is authenticated
+    if (!user) {
+      setSaveError("Usuário não autenticado. Faça login novamente para salvar configurações.");
+      toast({
+        variant: "destructive",
+        title: "Erro de autenticação",
+        description: "Usuário não autenticado. Faça login novamente.",
+      });
+      return;
+    }
+    
+    // Ensure the profile_id is set to the current user
+    values.profile_id = user.id;
+    console.log("Salvando configurações com profile_id:", values.profile_id);
+    
     updateSettingsMutation.mutate(values);
   };
 

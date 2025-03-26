@@ -18,6 +18,7 @@ export const settingsSchema = z.object({
   apikey: z.string().min(1, { message: 'A chave de API é obrigatória' }),
   webhook_disparo: z.string().url({ message: 'URL inválida' }).or(z.string().length(0)),
   webhook_contatos: z.string().url({ message: 'URL inválida' }).or(z.string().length(0)),
+  profile_id: z.string().optional(),
 }).refine(data => data.long_wait_min <= data.long_wait_max, {
   message: "O valor mínimo deve ser menor ou igual ao valor máximo",
   path: ["long_wait_min"],
