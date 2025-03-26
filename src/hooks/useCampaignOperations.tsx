@@ -31,10 +31,6 @@ export const useCampaignOperations = () => {
           .single();
         
         if (error) {
-          if (error.code === 'PGRST116') {
-            console.log('Webhook URL not found, will initialize with default value');
-            return;
-          }
           console.error('Error fetching webhook URL:', error);
           return;
         }

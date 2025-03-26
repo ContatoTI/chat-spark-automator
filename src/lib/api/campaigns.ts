@@ -18,52 +18,19 @@ export interface Campaign {
 }
 
 /**
- * Verifica se a tabela AppW_Campanhas existe e cria amostra se não houver dados
- */
-const ensureCampaignsTable = async (): Promise<boolean> => {
-  try {
-    // Verificar se existem campanhas na tabela
-    const { count, error } = await supabase
-      .from('AppW_Campanhas')
-      .select('*', { count: 'exact', head: true });
-    
-    if (error) {
-      console.error('Erro ao verificar tabela de campanhas:', error);
-      return false;
-    }
-    
-    // Se não houver campanhas, insere amostras
-    if (count === 0) {
-      await insertSampleCampaigns();
-    }
-    
-    return true;
-  } catch (error) {
-    console.error('Erro ao verificar tabela de campanhas:', error);
-    return false;
-  }
-};
-
-/**
  * Fetches all campaigns from Supabase
  */
 export const fetchCampaigns = async (): Promise<Campaign[]> => {
   try {
-    // Garantir que a tabela existe e tem dados
-    await ensureCampaignsTable();
-    
     const { data, error } = await supabase
       .from('AppW_Campanhas')
       .select('*')
       .order('data', { ascending: false });
 
     if (error) {
-      console.error('Erro detalhado ao buscar campanhas:', error);
       throw new Error(`Erro ao buscar campanhas: ${error.message}`);
     }
 
-    console.log('Campanhas carregadas:', data?.length || 0);
-    
     // Add some UI-specific fields
     return (data || []).map(campaign => ({
       ...campaign,
@@ -222,27 +189,19 @@ const sampleCampaigns: Campaign[] = [
 
 // Insert sample campaigns if none exist
 export const insertSampleCampaigns = async (): Promise<void> => {
+  const { data } = await supabase
+    .from('AppW_Campanhas')
+    .select('*')
+    .limit(1);
+  
+  if (data && data.length > 0) {
+    return; // Campaigns already exist
+  }
+  
   try {
-    const { data } = await supabase
-      .from('AppW_Campanhas')
-      .select('*')
-      .limit(1);
-    
-    if (data && data.length > 0) {
-      console.log('Campanhas já existem, pulando inserção');
-      return; // Campaigns already exist
-    }
-    
-    console.log('Inserindo campanhas de exemplo...');
-    const { error } = await supabase.from('AppW_Campanhas').insert(sampleCampaigns);
-    
-    if (error) {
-      console.error('Erro ao inserir campanhas de exemplo:', error);
-      return;
-    }
-    
-    console.log('Campanhas de exemplo inseridas com sucesso');
+    await supabase.from('AppW_Campanhas').insert(sampleCampaigns);
+    console.log('Sample campaigns inserted successfully');
   } catch (error) {
-    console.error('Erro ao inserir campanhas de exemplo:', error);
+    console.error('Error inserting sample campaigns:', error);
   }
 };

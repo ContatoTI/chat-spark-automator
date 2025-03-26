@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import { Skeleton } from "../ui/skeleton";
 import { supabase } from "@/lib/supabase";
+import { fetchDisparoOptions } from "@/lib/api/settings";
 
 interface StatCardProps {
   title: string;
@@ -75,51 +76,34 @@ const StatCard: React.FC<StatCardProps> = ({
 // Função para buscar estatísticas de contatos do Supabase
 const fetchContactsStats = async () => {
   try {
-    // Verificar se a tabela AppW_Contatos existe
-    const { count: tableExists, error: tableCheckError } = await supabase
-      .from('AppW_Contatos')
-      .select('*', { count: 'exact', head: true });
-      
-    // Se a tabela não existir, use valores de fallback
-    if (tableCheckError) {
-      console.error("Erro ao verificar tabela AppW_Contatos:", tableCheckError);
-      console.log("Usando valores de fallback para estatísticas");
-      return {
-        total: 0,
-        sent: 0,
-        remaining: 0,
-        invalid: 0
-      };
-    }
-    
-    // Buscar número total de contatos - Usando AppW_Contatos
+    // Buscar número total de contatos
     const { count: total, error: totalError } = await supabase
-      .from('AppW_Contatos')
+      .from('Contatos')
       .select('*', { count: 'exact', head: true });
 
     if (totalError) throw totalError;
 
-    // Buscar número de contatos enviados - Usando AppW_Contatos
+    // Buscar número de contatos enviados
     const { count: sent, error: sentError } = await supabase
-      .from('AppW_Contatos')
+      .from('Contatos')
       .select('*', { count: 'exact', head: true })
       .eq('Enviado', true);
 
     if (sentError) throw sentError;
 
-    // Buscar número de contatos restantes - Usando AppW_Contatos
+    // Buscar número de contatos restantes
     const { count: remaining, error: remainingError } = await supabase
-      .from('AppW_Contatos')
+      .from('Contatos')
       .select('*', { count: 'exact', head: true })
       .eq('Enviado', false);
 
     if (remainingError) throw remainingError;
 
-    // Buscar número de contatos inválidos - Usando AppW_Contatos
+    // Buscar número de contatos inválidos - corrigido para buscar pelo texto "Invalido"
     const { count: invalid, error: invalidError } = await supabase
-      .from('AppW_Contatos')
+      .from('Contatos')
       .select('*', { count: 'exact', head: true })
-      .eq('Invalido', true);
+      .eq('Invalido', 'Invalido');
 
     if (invalidError) throw invalidError;
 
@@ -130,37 +114,22 @@ const fetchContactsStats = async () => {
       .eq('option', 'enviados')
       .single();
 
-    if (optionsError && optionsError.code !== 'PGRST116') {
-      console.warn("Erro ao buscar opção 'enviados':", optionsError);
-    }
+    if (optionsError) throw optionsError;
     
     // Obter o valor numeric da opção 'enviados'
-    const settingsEnviados = optionsData?.numeric || sent || 0;
+    const settingsEnviados = optionsData?.numeric || 0;
 
-    console.log("Estatísticas de contatos:", { 
-      total, 
-      sent, 
-      remaining, 
-      invalid, 
-      settingsEnviados,
-      optionsData 
-    });
+    console.log("Estatísticas de contatos:", { total, sent, remaining, invalid, settingsEnviados });
     
     return {
       total: total || 0,
-      sent: settingsEnviados, // Usar o valor da opção 'enviados' ou contagem direta
+      sent: settingsEnviados || 0, // Usar o valor diretamente da opção 'enviados'
       remaining: remaining || 0,
       invalid: invalid || 0
     };
   } catch (error) {
     console.error("Erro ao buscar estatísticas de contatos:", error);
-    // Retornar valores de fallback em caso de erro
-    return {
-      total: 0,
-      sent: 0,
-      remaining: 0,
-      invalid: 0
-    };
+    throw error;
   }
 };
 
@@ -168,7 +137,6 @@ export const DashboardStats: React.FC = () => {
   const { data: contactsStats, isLoading, error } = useQuery({
     queryKey: ['contactsStats'],
     queryFn: fetchContactsStats,
-    refetchInterval: 60000, // Atualizar a cada minuto
   });
 
   if (error) {

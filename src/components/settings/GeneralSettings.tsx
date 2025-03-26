@@ -1,5 +1,5 @@
 
-import React, { useEffect } from "react";
+import React from "react";
 import { FormField, FormItem, FormLabel, FormControl, FormDescription, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
@@ -12,12 +12,6 @@ interface GeneralSettingsProps {
 }
 
 export function GeneralSettings({ form }: GeneralSettingsProps) {
-  // Log the values for debugging
-  useEffect(() => {
-    const currentValues = form.getValues();
-    console.log("Valores atuais do formulário:", currentValues);
-  }, [form]);
-  
   return (
     <Card>
       <CardHeader>
@@ -35,7 +29,7 @@ export function GeneralSettings({ form }: GeneralSettingsProps) {
               <FormItem>
                 <FormLabel>Instância</FormLabel>
                 <FormControl>
-                  <Input {...field} value={field.value || ''} />
+                  <Input {...field} />
                 </FormControl>
                 <FormDescription>
                   Nome da instância do WhatsApp
@@ -52,7 +46,7 @@ export function GeneralSettings({ form }: GeneralSettingsProps) {
               <FormItem>
                 <FormLabel>URL da API</FormLabel>
                 <FormControl>
-                  <Input {...field} value={field.value || ''} />
+                  <Input {...field} />
                 </FormControl>
                 <FormDescription>
                   URL da API Evolution
@@ -71,12 +65,7 @@ export function GeneralSettings({ form }: GeneralSettingsProps) {
               <FormItem>
                 <FormLabel>API Key</FormLabel>
                 <FormControl>
-                  <Input 
-                    {...field} 
-                    type="password" 
-                    value={field.value || ''} 
-                    className="font-mono"
-                  />
+                  <Input {...field} type="password" />
                 </FormControl>
                 <FormDescription>
                   Chave de API para autenticação
@@ -95,7 +84,7 @@ export function GeneralSettings({ form }: GeneralSettingsProps) {
               <FormItem>
                 <FormLabel>Webhook Disparo</FormLabel>
                 <FormControl>
-                  <Input {...field} value={field.value || ''} />
+                  <Input {...field} />
                 </FormControl>
                 <FormDescription>
                   URL do webhook para campanhas de disparo
@@ -112,7 +101,7 @@ export function GeneralSettings({ form }: GeneralSettingsProps) {
               <FormItem>
                 <FormLabel>Webhook Contatos</FormLabel>
                 <FormControl>
-                  <Input {...field} value={field.value || ''} />
+                  <Input {...field} />
                 </FormControl>
                 <FormDescription>
                   URL do webhook para sincronização de contatos
