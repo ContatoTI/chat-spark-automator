@@ -8,7 +8,8 @@ import {
   ArrowUpRight,
   Edit,
   MessageSquare,
-  Users
+  Users,
+  Zap
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -17,6 +18,8 @@ import { useQuery } from "@tanstack/react-query";
 import { fetchCampaigns, Campaign } from "@/lib/api/campaigns";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EditCampaignDialog } from "@/components/campaigns/EditCampaignDialog";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
 
 type CampaignStatus = "draft" | "scheduled" | "sending" | "completed" | "failed";
 
@@ -91,6 +94,13 @@ export const RecentCampaigns: React.FC = () => {
     setEditCampaignDialogOpen(true);
   };
 
+  // Calculate progress percentage for the campaign
+  const getProgressPercentage = (enviados: number, limite: number) => {
+    if (limite <= 0) return 0;
+    const percentage = (enviados / limite) * 100;
+    return Math.min(percentage, 100);
+  };
+
   return (
     <div className="glass-panel overflow-hidden">
       <div className="flex items-center justify-between p-6 border-b">
@@ -144,7 +154,17 @@ export const RecentCampaigns: React.FC = () => {
                   key={campaign.id} 
                   className="border-b hover:bg-muted/20 transition-colors"
                 >
-                  <td className="px-6 py-4 font-medium">{campaign.nome}</td>
+                  <td className="px-6 py-4 font-medium">
+                    <div className="flex items-center gap-2">
+                      {campaign.producao && (
+                        <Badge variant="outline" className="bg-amber-100 text-amber-800 border-amber-300">
+                          <Zap className="h-3 w-3 mr-1" />
+                          Prod
+                        </Badge>
+                      )}
+                      {campaign.nome}
+                    </div>
+                  </td>
                   <td className="px-6 py-4 text-muted-foreground">
                     <div className="flex items-center gap-2">
                       <MessageSquare className="h-4 w-4" />
@@ -159,9 +179,15 @@ export const RecentCampaigns: React.FC = () => {
                     {campaign.tipo_midia || "Texto"}
                   </td>
                   <td className="px-6 py-4">
-                    <div className="flex items-center gap-2">
-                      <Users className="h-4 w-4 text-blue-500" />
-                      {campaign.enviados || 0}
+                    <div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <Users className="h-4 w-4 text-blue-500" />
+                        {campaign.enviados || 0}
+                      </div>
+                      <Progress 
+                        value={getProgressPercentage(campaign.enviados || 0, campaign.limite_disparos || 1)} 
+                        className="h-1.5 w-24"
+                      />
                     </div>
                   </td>
                   <td className="px-6 py-4">

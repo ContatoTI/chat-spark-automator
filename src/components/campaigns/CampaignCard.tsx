@@ -4,7 +4,7 @@ import { Campaign } from "@/lib/api/campaigns";
 import { CampaignStatusBadge } from "./CampaignStatusBadge";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Calendar, Edit, Send, MoreHorizontal, Copy, Trash2 } from "lucide-react";
+import { Calendar, Edit, Send, MoreHorizontal, Copy, Trash2, Zap } from "lucide-react";
 import { 
   DropdownMenu, 
   DropdownMenuContent, 
@@ -24,6 +24,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { Badge } from "@/components/ui/badge";
 
 interface CampaignCardProps {
   campaign: Campaign;
@@ -56,7 +57,15 @@ export const CampaignCard: React.FC<CampaignCardProps> = ({
         <div className="flex-1">
           <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
             <div>
-              <CardTitle className="text-xl">{campaign.nome}</CardTitle>
+              <div className="flex items-center gap-3">
+                <CardTitle className="text-xl">{campaign.nome}</CardTitle>
+                {campaign.producao && (
+                  <Badge variant="outline" className="bg-amber-100 text-amber-800 border-amber-300">
+                    <Zap className="h-3.5 w-3.5 mr-1" />
+                    Produção
+                  </Badge>
+                )}
+              </div>
               <div className="mt-2">
                 <CampaignStatusBadge status={campaign.status} />
               </div>
@@ -86,6 +95,16 @@ export const CampaignCard: React.FC<CampaignCardProps> = ({
                     <p className="capitalize">{campaign.tipo_midia}</p>
                   </div>
                 )}
+                
+                <div>
+                  <h4 className="text-sm font-medium text-muted-foreground mb-1">Limite:</h4>
+                  <p>{campaign.limite_disparos}</p>
+                </div>
+                
+                <div>
+                  <h4 className="text-sm font-medium text-muted-foreground mb-1">Enviados:</h4>
+                  <p>{campaign.enviados}</p>
+                </div>
               </div>
             </div>
           </CardContent>

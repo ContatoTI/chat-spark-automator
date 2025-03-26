@@ -76,7 +76,7 @@ const StatCard: React.FC<StatCardProps> = ({
 // Função para buscar estatísticas de contatos do Supabase
 const fetchContactsStats = async () => {
   try {
-    // Buscar número total de contatos
+    // Buscar número total de contatos diretamente na tabela Contatos
     const { count: total, error: totalError } = await supabase
       .from('Contatos')
       .select('*', { count: 'exact', head: true });
@@ -99,7 +99,7 @@ const fetchContactsStats = async () => {
 
     if (remainingError) throw remainingError;
 
-    // Buscar número de contatos inválidos - corrigido para buscar pelo texto "Invalido"
+    // Buscar número de contatos inválidos
     const { count: invalid, error: invalidError } = await supabase
       .from('Contatos')
       .select('*', { count: 'exact', head: true })
