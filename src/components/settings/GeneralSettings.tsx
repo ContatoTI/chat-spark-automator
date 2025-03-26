@@ -134,26 +134,7 @@ export function GeneralSettings({ form }: GeneralSettingsProps) {
             )}
           />
           
-          <FormField
-            control={form.control}
-            name="Producao"
-            render={({ field }) => (
-              <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                <div className="space-y-0.5">
-                  <FormLabel className="text-base">Modo Produção</FormLabel>
-                  <FormDescription>
-                    Ativa o modo de produção
-                  </FormDescription>
-                </div>
-                <FormControl>
-                  <Switch
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                  />
-                </FormControl>
-              </FormItem>
-            )}
-          />
+          {/* Removido o campo Producao, pois foi movido para a tabela AppW_Campanhas */}
         </div>
       </CardContent>
     </Card>
