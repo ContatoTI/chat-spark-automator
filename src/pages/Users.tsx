@@ -7,7 +7,7 @@ import { useUsers } from "@/hooks/useUsers";
 import { toast } from "sonner";
 
 const Users = () => {
-  const { users, isLoading, error, refetch } = useUsers();
+  const { users, isLoading, error, refetch, isError } = useUsers();
 
   useEffect(() => {
     // Mostrar toast de erro se houver problemas ao carregar os usuários
@@ -23,9 +23,17 @@ const Users = () => {
     console.log("Página de usuários montada, dados:", { 
       usuariosCount: users?.length, 
       temErro: !!error, 
-      carregando: isLoading 
+      carregando: isLoading,
+      usuarios: users
     });
-  }, [users, error, isLoading]);
+
+    // Mensagem informativa sobre o carregamento de usuários
+    if (!isLoading && !isError && users.length === 0) {
+      toast.info("Nenhum usuário encontrado", {
+        description: "O sistema está buscando apenas usuários da tabela appw_users"
+      });
+    }
+  }, [users, error, isLoading, isError]);
 
   // Função para forçar uma atualização dos dados
   const handleRefresh = () => {

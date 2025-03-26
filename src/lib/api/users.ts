@@ -10,10 +10,10 @@ export interface User {
 }
 
 export const fetchUsers = async (): Promise<User[]> => {
-  console.log("Iniciando fetchUsers - buscando usuários reais do Supabase");
+  console.log("Iniciando fetchUsers - buscando usuários apenas da tabela appw_users");
   
   try {
-    // Buscar diretamente da tabela appw_users
+    // Buscar apenas da tabela appw_users, ignorando Auth
     const { data, error } = await supabase
       .from('appw_users')
       .select('*');
@@ -24,7 +24,6 @@ export const fetchUsers = async (): Promise<User[]> => {
     }
     
     console.log("Usuários recuperados da tabela appw_users:", data?.length || 0);
-    console.log("Dados brutos:", JSON.stringify(data));
     
     // Transformar os dados para o formato esperado
     const users = data?.map(user => ({
@@ -52,22 +51,21 @@ export const createUser = async (email: string, password: string, role: string):
   }
   
   try {
-    // Verificar primeiro se o usuário existe no Auth do Supabase
-    console.log("Verificando se o email existe no Auth:", email);
-    const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers();
+    // Verificar diretamente na tabela appw_users se o email já existe
+    const { data: existingUsers, error: checkError } = await supabase
+      .from('appw_users')
+      .select('email')
+      .eq('email', email)
+      .maybeSingle();
     
-    if (authError) {
-      console.error("Erro ao listar usuários auth:", authError);
-      throw new Error(`Erro ao verificar usuários existentes: ${authError.message}`);
+    if (checkError) {
+      console.error("Erro ao verificar email existente:", checkError);
+      throw new Error(`Erro ao verificar usuários existentes: ${checkError.message}`);
     }
     
-    // Verificar se o email já existe na lista de usuários Auth
-    // Corrigindo o erro de tipo usando uma verificação explícita de tipo
-    const emailExists = authUsers?.users?.some((user: any) => user?.email === email) || false;
-    
-    if (emailExists) {
-      console.error("Email já existe no Auth do Supabase:", email);
-      throw new Error(`Este email já está registrado no Auth do Supabase`);
+    if (existingUsers) {
+      console.error("Email já existe na tabela appw_users:", email);
+      throw new Error(`Este email já está registrado na tabela appw_users`);
     }
     
     // Criar o usuário na autenticação
@@ -79,6 +77,11 @@ export const createUser = async (email: string, password: string, role: string):
     });
     
     if (error) {
+      // Se o erro for de email duplicado, forneça uma mensagem mais amigável
+      if (error.message.includes("already registered")) {
+        console.error("Email já existe no Auth do Supabase:", email);
+        throw new Error("Este email já está registrado no Supabase Auth. Por favor, use outro email.");
+      }
       console.error("Erro ao criar usuário auth:", error);
       throw error;
     }
@@ -151,18 +154,24 @@ export const resetUserPassword = async (userId: string, newPassword: string): Pr
 
 export const deleteUser = async (userId: string): Promise<void> => {
   try {
-    // Delete from auth
-    const { error: authError } = await supabase.auth.admin.deleteUser(userId);
-    
-    if (authError) throw authError;
-    
-    // Delete from custom table
+    // Excluir primeiro a entrada da tabela personalizada
     const { error: appError } = await supabase
       .from('appw_users')
       .delete()
       .eq('user_id', userId);
       
-    if (appError) throw appError;
+    if (appError) {
+      console.error("Erro ao excluir da tabela appw_users:", appError);
+      throw appError;
+    }
+    
+    // Excluir do sistema de autenticação
+    const { error: authError } = await supabase.auth.admin.deleteUser(userId);
+    
+    if (authError) {
+      console.error("Erro ao excluir do Auth:", authError);
+      throw authError;
+    }
   } catch (error) {
     console.error("Erro deletando usuário:", error);
     throw error;
