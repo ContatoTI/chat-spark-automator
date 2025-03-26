@@ -72,9 +72,14 @@ const defaultOptions: { option: string; field: 'text' | 'numeric' | 'boolean'; v
  */
 async function initializeOptionsTable() {
   try {
-    const { count } = await supabase
+    const { count, error: countError } = await supabase
       .from('AppW_Options')
       .select('*', { count: 'exact', head: true });
+    
+    if (countError) {
+      console.error('Erro ao verificar tabela AppW_Options:', countError);
+      return;
+    }
     
     if (count === 0) {
       console.log('Inicializando tabela AppW_Options com valores padrão');
@@ -178,11 +183,31 @@ export const fetchDisparoOptions = async (): Promise<DisparoOptions> => {
       .select('*');
 
     if (error) {
+      console.error('Erro ao buscar configurações:', error);
       throw new Error(`Erro ao buscar configurações: ${error.message}`);
     }
 
     if (!data || data.length === 0) {
-      throw new Error('Nenhuma configuração encontrada');
+      // Em vez de lançar erro, retornar configurações padrão
+      console.log('Nenhuma configuração encontrada, usando valores padrão');
+      return {
+        instancia: 'default',
+        Ativo: true,
+        Producao: false,
+        Limite_disparos: 1000,
+        Enviados: 0,
+        horario_limite: 17,
+        long_wait_min: 50,
+        long_wait_max: 240,
+        ShortWaitMin: 5,
+        ShortWaitMax: 10,
+        BatchSizeMim: 5,
+        BatchSizeMax: 10,
+        urlAPI: 'https://api.example.com',
+        apikey: '',
+        webhook_disparo: 'https://webhook.example.com/disparo',
+        webhook_contatos: 'https://webhook.example.com/contatos',
+      };
     }
 
     // Converte as linhas da tabela para o formato DisparoOptions
@@ -209,6 +234,7 @@ export const updateDisparoOptions = async (options: DisparoOptions): Promise<voi
         .eq('option', option);
 
       if (error) {
+        console.error(`Erro ao atualizar configuração ${option}:`, error);
         throw new Error(`Erro ao atualizar configuração ${option}: ${error.message}`);
       }
     }
