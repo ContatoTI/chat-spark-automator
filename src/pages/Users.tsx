@@ -30,8 +30,8 @@ const Users = () => {
   // Função para forçar uma atualização dos dados
   const handleRefresh = () => {
     console.log("Atualizando manualmente a lista de usuários");
-    refetch();
     toast.info("Atualizando lista de usuários...");
+    refetch();
   };
 
   return (

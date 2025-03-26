@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { 
   Dialog, 
@@ -83,14 +82,9 @@ export const NewUserDialog: React.FC<NewUserDialogProps> = ({
       console.error('Erro ao criar usuário:', error);
       let errorMessage = 'Tente novamente mais tarde';
       
-      // Verificar se é um erro do Supabase
+      // Verificar se é um erro do Supabase ou nosso
       if (error instanceof Error) {
-        // Verificar mensagens específicas de erro
-        if (error.message.includes('already been registered')) {
-          errorMessage = 'Este email já está registrado no Auth do Supabase';
-        } else {
-          errorMessage = error.message;
-        }
+        errorMessage = error.message;
       }
       
       toast.error('Erro ao criar usuário', { 

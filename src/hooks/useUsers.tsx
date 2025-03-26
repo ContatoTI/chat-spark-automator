@@ -11,9 +11,10 @@ export const useUsers = () => {
   } = useQuery({
     queryKey: ['users'],
     queryFn: fetchUsers,
-    refetchOnWindowFocus: true,
+    refetchOnWindowFocus: false, // Evitar múltiplas requisições automáticas
     refetchOnMount: true,
     retry: 1, // Tentar apenas uma vez para não ficar em loop em caso de erro persistente
+    staleTime: 10000, // 10 segundos antes de considerar os dados obsoletos
   });
 
   return {

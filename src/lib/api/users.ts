@@ -1,3 +1,4 @@
+
 import { supabase } from "@/lib/supabase";
 
 export interface User {
@@ -12,7 +13,7 @@ export const fetchUsers = async (): Promise<User[]> => {
   console.log("Iniciando fetchUsers - buscando usuários reais do Supabase");
   
   try {
-    // Buscar diretamente da tabela appw_users (similar ao que é feito em settings.ts)
+    // Buscar diretamente da tabela appw_users
     const { data, error } = await supabase
       .from('appw_users')
       .select('*');
@@ -31,7 +32,6 @@ export const fetchUsers = async (): Promise<User[]> => {
       email: user.email || '',
       created_at: user.created_at || new Date().toISOString(),
       role: user.role || 'user',
-      // last_sign_in_at pode não existir na tabela appw_users
       last_sign_in_at: user.last_sign_in_at || undefined
     })) || [];
     
@@ -52,9 +52,25 @@ export const createUser = async (email: string, password: string, role: string):
   }
   
   try {
-    // Criar o usuário diretamente na autenticação sem verificar se já existe
-    // O Supabase Auth irá retornar um erro se o email já existir
-    console.log("Criando usuário na autenticação:", email);
+    // Verificar primeiro se o usuário existe no Auth do Supabase
+    console.log("Verificando se o email existe no Auth:", email);
+    const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers();
+    
+    if (authError) {
+      console.error("Erro ao listar usuários auth:", authError);
+      throw new Error(`Erro ao verificar usuários existentes: ${authError.message}`);
+    }
+    
+    // Verificar se o email já existe na lista de usuários Auth
+    const emailExists = authUsers.users.some(user => user.email === email);
+    
+    if (emailExists) {
+      console.error("Email já existe no Auth do Supabase:", email);
+      throw new Error(`Este email já está registrado no Auth do Supabase`);
+    }
+    
+    // Criar o usuário na autenticação
+    console.log("Criando usuário no Auth:", email);
     const { data, error } = await supabase.auth.admin.createUser({
       email,
       password,
