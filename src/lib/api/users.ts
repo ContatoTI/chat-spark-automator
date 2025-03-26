@@ -75,31 +75,36 @@ export const createUser = async (email: string, password: string, role: string):
       throw error;
     }
     
+    if (!data || !data.user) {
+      console.error("No user data returned from auth creation");
+      throw new Error("Failed to create user: No user data returned");
+    }
+    
+    console.log("Auth user created successfully:", data.user.id);
+    
     // Add the user to our custom table
-    if (data.user) {
-      console.log("Auth user created successfully, adding to appw_users:", data.user.id);
-      const { error: insertError } = await supabase
-        .from('appw_users')
-        .insert([
-          { 
-            user_id: data.user.id, 
-            email: email, 
-            role: role 
-          }
-        ]);
-        
-      if (insertError) {
-        console.error("Error adding user to appw_users:", insertError);
-        
-        // If we fail to add the user to our custom table, delete the auth user to maintain consistency
-        await supabase.auth.admin.deleteUser(data.user.id);
-        throw insertError;
+    const { error: insertError } = await supabase
+      .from('appw_users')
+      .insert([{ 
+        user_id: data.user.id, 
+        email: email, 
+        role: role 
+      }]);
+      
+    if (insertError) {
+      console.error("Error adding user to appw_users:", insertError);
+      
+      // If we fail to add the user to our custom table, delete the auth user to maintain consistency
+      console.log("Attempting to clean up auth user after failed insert");
+      const { error: deleteError } = await supabase.auth.admin.deleteUser(data.user.id);
+      if (deleteError) {
+        console.error("Error deleting auth user during cleanup:", deleteError);
       }
       
-      console.log("User successfully created and added to appw_users");
-    } else {
-      throw new Error("User data not returned from auth signup");
+      throw new Error(`Failed to add user to database: ${insertError.message}`);
     }
+    
+    console.log("User successfully created and added to appw_users");
   } catch (error) {
     console.error("Error creating user:", error);
     throw error;

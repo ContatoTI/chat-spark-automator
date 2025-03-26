@@ -61,6 +61,14 @@ export const NewUserDialog: React.FC<NewUserDialogProps> = ({
   const onSubmit = async (data: FormData) => {
     try {
       console.log("Submitting new user:", { email: data.email, role: data.role });
+      
+      if (!data.email || !data.password) {
+        toast.error('Dados incompletos', {
+          description: 'Email e senha são obrigatórios'
+        });
+        return;
+      }
+      
       await createUser(data.email, data.password, data.role);
       toast.success('Usuário criado com sucesso');
       reset();

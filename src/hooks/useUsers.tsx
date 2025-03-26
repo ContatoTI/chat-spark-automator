@@ -14,6 +14,7 @@ export const useUsers = () => {
     staleTime: 0, // Always treat data as stale
     refetchOnMount: true, // Refetch when component mounts
     refetchOnWindowFocus: true, // Refetch when window gains focus
+    retry: 1, // Retry once if there's an error
   });
 
   return {
