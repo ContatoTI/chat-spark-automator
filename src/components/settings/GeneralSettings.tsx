@@ -75,6 +75,7 @@ export function GeneralSettings({ form }: GeneralSettingsProps) {
                     {...field} 
                     type="password" 
                     value={field.value || ''} 
+                    className="font-mono"
                   />
                 </FormControl>
                 <FormDescription>

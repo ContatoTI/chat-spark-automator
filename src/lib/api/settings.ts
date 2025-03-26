@@ -68,23 +68,6 @@ const defaultOptions: { option: string; field: 'text' | 'numeric' | 'boolean'; v
 ];
 
 /**
- * Verifica se uma opção existe na tabela AppW_Options
- */
-async function optionExists(option: string): Promise<boolean> {
-  const { count, error } = await supabase
-    .from('AppW_Options')
-    .select('*', { count: 'exact', head: true })
-    .eq('option', option);
-  
-  if (error) {
-    console.error(`Erro ao verificar se a opção ${option} existe:`, error);
-    return false;
-  }
-  
-  return count !== null && count > 0;
-}
-
-/**
  * Inicializa a tabela AppW_Options com valores padrão se estiver vazia
  */
 async function initializeOptionsTable() {
@@ -118,23 +101,25 @@ async function initializeOptionsTable() {
     if (count === 0) {
       console.log('Inicializando tabela AppW_Options com valores padrão');
       
-      // Cria cada opção individualmente para evitar problemas com transações grandes
-      for (const option of defaultOptions) {
+      // Usando upsert para inicializar a tabela
+      const insertData = defaultOptions.map(option => {
         const row: any = { option: option.option };
         row[option.field] = option.value;
-        
-        const { error } = await supabase
-          .from('AppW_Options')
-          .insert([row]);
-        
-        if (error) {
-          console.error(`Erro ao inserir opção ${option.option}:`, error);
-        } else {
-          console.log(`Opção ${option.option} inicializada com sucesso`);
-        }
-      }
+        return row;
+      });
       
-      console.log('Tabela AppW_Options inicializada com sucesso');
+      const { error } = await supabase
+        .from('AppW_Options')
+        .upsert(insertData, { 
+          onConflict: 'option',  // Chave primária ou única
+          ignoreDuplicates: false // Atualiza registros existentes
+        });
+      
+      if (error) {
+        console.error('Erro ao inicializar tabela AppW_Options:', error);
+      } else {
+        console.log('Tabela AppW_Options inicializada com sucesso');
+      }
     } else {
       console.log('Tabela AppW_Options já contém dados, não é necessário inicializar');
     }
@@ -199,13 +184,20 @@ function convertRowsToDisparoOptions(rows: OptionRow[]): DisparoOptions {
 /**
  * Converte um objeto DisparoOptions em um array de atualizações para a tabela AppW_Options
  */
-function convertDisparoOptionsToUpdates(options: DisparoOptions): { option: string; updates: Partial<OptionRow> }[] {
-  const updateList: { option: string; updates: Partial<OptionRow> }[] = [];
+function convertDisparoOptionsToUpdates(options: DisparoOptions): { option: string; updates: Record<string, any> }[] {
+  const updateList: { option: string; updates: Record<string, any> }[] = [];
   
   Object.entries(optionMapping).forEach(([optionName, { field, key }]) => {
     const value = options[key];
-    const updateObj: Partial<OptionRow> = {};
+    // Criamos o objeto completo com a opção e o campo específico
+    const updateObj: Record<string, any> = { option: optionName };
     
+    // Zeramos os outros campos para evitar conflitos
+    updateObj.text = null;
+    updateObj.numeric = null;
+    updateObj.boolean = null;
+    
+    // Definimos apenas o campo relevante
     if (field === 'text') {
       updateObj.text = value as string;
     } else if (field === 'numeric') {
@@ -285,39 +277,25 @@ export const updateDisparoOptions = async (options: DisparoOptions): Promise<voi
     const updateList = convertDisparoOptionsToUpdates(options);
     console.log("Lista de atualizações:", updateList);
     
-    // Realiza uma atualização para cada opção, uma por uma
-    for (const { option, updates } of updateList) {
-      // Verificar se a opção já existe
-      const exists = await optionExists(option);
-      console.log(`Opção ${option} existe? ${exists}`);
-      
-      if (exists) {
-        // Atualiza a opção existente
-        console.log(`Atualizando opção ${option} com:`, updates);
-        const { error } = await supabase
-          .from('AppW_Options')
-          .update(updates)
-          .eq('option', option);
-
-        if (error) {
-          console.error(`Erro ao atualizar configuração ${option}:`, error);
-          throw new Error(`Erro ao atualizar configuração ${option}: ${error.message}`);
-        }
-      } else {
-        // Insere a opção se não existir
-        console.log(`Inserindo nova opção ${option} com:`, { option, ...updates });
-        const { error } = await supabase
-          .from('AppW_Options')
-          .insert([{ option, ...updates }]);
-
-        if (error) {
-          console.error(`Erro ao inserir configuração ${option}:`, error);
-          throw new Error(`Erro ao inserir configuração ${option}: ${error.message}`);
-        }
-      }
+    // Preparamos todos os registros para o upsert de uma vez
+    const upsertData = updateList.map(item => item.updates);
+    
+    console.log("Dados para upsert:", upsertData);
+    
+    // Realizamos um único upsert para todas as opções
+    const { error } = await supabase
+      .from('AppW_Options')
+      .upsert(upsertData, {
+        onConflict: 'option',  // Chave primária ou única
+        ignoreDuplicates: false // Atualiza registros existentes
+      });
+    
+    if (error) {
+      console.error('Erro ao atualizar configurações:', error);
+      throw new Error(`Erro ao atualizar configurações: ${error.message}`);
     }
     
-    console.log("Configurações atualizadas com sucesso");
+    console.log("Configurações atualizadas com sucesso via upsert");
   } catch (error) {
     console.error('Erro ao atualizar configurações:', error);
     throw error;

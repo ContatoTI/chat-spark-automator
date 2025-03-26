@@ -16,7 +16,7 @@ export const useSettingsForm = () => {
   } = useQuery({
     queryKey: ['disparo-options'],
     queryFn: fetchDisparoOptions,
-    retry: 2,  // Reduzido para debug mais rápido
+    retry: 1,  // Reduzido para debug mais rápido
     refetchOnWindowFocus: false,
     staleTime: 1000 * 60 * 5, // 5 minutos
   });
