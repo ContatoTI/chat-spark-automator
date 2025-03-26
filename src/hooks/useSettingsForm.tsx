@@ -17,9 +17,12 @@ export const useSettingsForm = () => {
     queryKey: ['disparo-options'],
     queryFn: fetchDisparoOptions,
     retry: 1,
-    onError: (error) => {
-      console.error("Erro ao carregar configurações:", error);
-      if (error instanceof Error) {
+    meta: {
+      errorToast: true
+    },
+    onSettled: (data, error) => {
+      if (error && error instanceof Error) {
+        console.error("Erro ao carregar configurações:", error);
         // Mostrar toast de erro apenas uma vez
         toast({
           variant: "destructive",
