@@ -20,18 +20,19 @@ export const useSettingsForm = () => {
     meta: {
       errorToast: true
     },
-    onSettled: (data, error) => {
-      if (error && error instanceof Error) {
-        console.error("Erro ao carregar configurações:", error);
-        // Mostrar toast de erro apenas uma vez
-        toast({
-          variant: "destructive",
-          title: "Erro ao carregar configurações",
-          description: error.message,
-        });
-      }
-    },
   });
+
+  // Show toast when there's an error
+  useEffect(() => {
+    if (error && error instanceof Error) {
+      console.error("Erro ao carregar configurações:", error);
+      toast({
+        variant: "destructive",
+        title: "Erro ao carregar configurações",
+        description: error.message,
+      });
+    }
+  }, [error, toast]);
 
   // Fornecer valores padrão se não houver configurações
   const defaultSettings: DisparoOptions = {
