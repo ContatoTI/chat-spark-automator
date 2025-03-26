@@ -15,6 +15,11 @@ export interface Campaign {
   status: string;
   contacts?: number; // For UI purposes
   delivered?: number; // For UI purposes
+  
+  // Campos movidos de AppW_Options para AppW_Campanhas
+  producao: boolean;
+  limite_disparos: number;
+  enviados: number;
 }
 
 /**
@@ -31,15 +36,19 @@ export const fetchCampaigns = async (): Promise<Campaign[]> => {
       throw new Error(`Erro ao buscar campanhas: ${error.message}`);
     }
 
-    // Add some UI-specific fields
+    // Add some UI-specific fields and defaults for new fields if they don't exist
     return (data || []).map(campaign => ({
       ...campaign,
       contacts: Math.floor(Math.random() * 2000) + 100, // Random number for contacts
-      delivered: campaign.status === 'completed' 
+      delivered: campaign.enviados || (campaign.status === 'completed' 
         ? Math.floor(Math.random() * 1000) + 50
         : campaign.status === 'sending'
           ? Math.floor(Math.random() * 50)
-          : 0
+          : 0),
+      // Garantir que os novos campos tenham valores padrão se não existirem
+      producao: campaign.producao !== undefined ? campaign.producao : false,
+      limite_disparos: campaign.limite_disparos || 1000,
+      enviados: campaign.enviados || 0
     }));
   } catch (error) {
     console.error('Erro ao buscar campanhas:', error);
@@ -123,7 +132,10 @@ const sampleCampaigns: Campaign[] = [
     tipo_midia: "image",
     url_midia: "https://example.com/summer-promo.jpg",
     data_disparo: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
-    status: "completed"
+    status: "completed",
+    producao: false,
+    limite_disparos: 2000,
+    enviados: 1200
   },
   {
     nome: "Lançamento Produto X",
@@ -135,7 +147,10 @@ const sampleCampaigns: Campaign[] = [
     tipo_midia: "video",
     url_midia: "https://example.com/product-x-launch.mp4",
     data_disparo: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-    status: "scheduled"
+    status: "scheduled",
+    producao: false,
+    limite_disparos: 1500,
+    enviados: 0
   },
   {
     nome: "Pesquisa de Satisfação",
@@ -147,7 +162,10 @@ const sampleCampaigns: Campaign[] = [
     tipo_midia: "link",
     url_midia: "https://example.com/survey",
     data_disparo: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString(),
-    status: "failed"
+    status: "failed",
+    producao: false,
+    limite_disparos: 800,
+    enviados: 600
   },
   {
     nome: "Atualização do Sistema",
@@ -159,7 +177,10 @@ const sampleCampaigns: Campaign[] = [
     tipo_midia: null,
     url_midia: null,
     data_disparo: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(),
-    status: "completed"
+    status: "completed",
+    producao: true,
+    limite_disparos: 3000,
+    enviados: 2800
   },
   {
     nome: "Convite para Evento",
@@ -171,7 +192,10 @@ const sampleCampaigns: Campaign[] = [
     tipo_midia: "image",
     url_midia: "https://example.com/event-invite.jpg",
     data_disparo: null,
-    status: "draft"
+    status: "draft",
+    producao: false,
+    limite_disparos: 500,
+    enviados: 0
   },
   {
     nome: "Confirmação de Pedido",
@@ -183,7 +207,10 @@ const sampleCampaigns: Campaign[] = [
     tipo_midia: null,
     url_midia: null,
     data_disparo: new Date().toISOString(),
-    status: "sending"
+    status: "sending",
+    producao: true,
+    limite_disparos: 1,
+    enviados: 0
   }
 ];
 

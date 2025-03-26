@@ -20,41 +20,7 @@ export function LimitsSettings({ form }: LimitsSettingsProps) {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-          <FormField
-            control={form.control}
-            name="Limite_disparos"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Limite de Disparos</FormLabel>
-                <FormControl>
-                  <Input type="number" {...field} onChange={e => field.onChange(Number(e.target.value))} />
-                </FormControl>
-                <FormDescription>
-                  Número máximo de mensagens
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          
-          <FormField
-            control={form.control}
-            name="Enviados"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Enviados</FormLabel>
-                <FormControl>
-                  <Input type="number" {...field} onChange={e => field.onChange(Number(e.target.value))} />
-                </FormControl>
-                <FormDescription>
-                  Quantidade já enviada
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          
+        <div className="grid grid-cols-1 gap-6">
           <FormField
             control={form.control}
             name="horario_limite"

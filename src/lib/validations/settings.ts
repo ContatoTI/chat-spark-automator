@@ -4,9 +4,10 @@ import { z } from 'zod';
 export const settingsSchema = z.object({
   instancia: z.string().min(1, { message: 'A instância é obrigatória' }),
   Ativo: z.boolean(),
-  Producao: z.boolean(),
-  Limite_disparos: z.number().int().min(1, { message: 'O limite mínimo é 1' }),
-  Enviados: z.number().int().min(0, { message: 'O valor mínimo é 0' }),
+  // Campos removidos pois foram movidos para a tabela AppW_Campanhas
+  // Producao: z.boolean(),
+  // Limite_disparos: z.number().int().min(1, { message: 'O limite mínimo é 1' }),
+  // Enviados: z.number().int().min(0, { message: 'O valor mínimo é 0' }),
   horario_limite: z.number().int().min(0, { message: 'O valor mínimo é 0' }).max(23, { message: 'O valor máximo é 23' }),
   long_wait_min: z.number().int().min(1, { message: 'O valor mínimo é 1' }),
   long_wait_max: z.number().int().min(1, { message: 'O valor mínimo é 1' }),

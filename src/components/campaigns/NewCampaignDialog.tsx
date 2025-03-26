@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { 
   Dialog, 
@@ -12,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
 import { 
   Image as ImageIcon, 
   File, 
@@ -20,7 +20,8 @@ import {
   Send,
   Calendar,
   User,
-  Users
+  Users,
+  Settings
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -39,7 +40,7 @@ export const NewCampaignDialog: React.FC<NewCampaignDialogProps> = ({
 }) => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const [activeTab, setActiveTab] = useState<"message" | "schedule">("message");
+  const [activeTab, setActiveTab] = useState<"message" | "schedule" | "settings">("message");
   const [campaignName, setCampaignName] = useState("");
   const [message1, setMessage1] = useState("");
   const [message2, setMessage2] = useState("");
@@ -50,7 +51,10 @@ export const NewCampaignDialog: React.FC<NewCampaignDialogProps> = ({
   const [mediaUrl, setMediaUrl] = useState<string>("");
   const [scheduleDate, setScheduleDate] = useState<string>("");
   
-  // Reset form when dialog closes
+  const [producao, setProducao] = useState(false);
+  const [limiteDisparos, setLimiteDisparos] = useState(1000);
+  const [enviados, setEnviados] = useState(0);
+  
   React.useEffect(() => {
     if (!open) {
       setCampaignName("");
@@ -63,10 +67,12 @@ export const NewCampaignDialog: React.FC<NewCampaignDialogProps> = ({
       setMediaUrl("");
       setScheduleDate("");
       setActiveTab("message");
+      setProducao(false);
+      setLimiteDisparos(1000);
+      setEnviados(0);
     }
   }, [open]);
   
-  // Create campaign mutation
   const createMutation = useMutation({
     mutationFn: (newCampaign: Campaign) => createCampaign(newCampaign),
     onSuccess: () => {
@@ -85,9 +91,19 @@ export const NewCampaignDialog: React.FC<NewCampaignDialogProps> = ({
       return;
     }
     
-    // Media URL is no longer required, removing the validation
-    
-    setActiveTab("schedule");
+    if (activeTab === "message") {
+      setActiveTab("settings");
+    } else if (activeTab === "settings") {
+      setActiveTab("schedule");
+    }
+  };
+  
+  const handleBack = () => {
+    if (activeTab === "schedule") {
+      setActiveTab("settings");
+    } else if (activeTab === "settings") {
+      setActiveTab("message");
+    }
   };
   
   const handleSubmit = () => {
@@ -106,6 +122,9 @@ export const NewCampaignDialog: React.FC<NewCampaignDialogProps> = ({
         ? new Date(scheduleDate).toISOString() 
         : null,
       status: scheduleDate ? "scheduled" : "draft",
+      producao: producao,
+      limite_disparos: limiteDisparos,
+      enviados: enviados
     };
     
     createMutation.mutate(newCampaign);
@@ -142,6 +161,25 @@ export const NewCampaignDialog: React.FC<NewCampaignDialogProps> = ({
             >
               <Send className="h-4 w-4" />
               Mensagem
+            </button>
+            <button
+              className={cn(
+                "flex items-center gap-2 px-4 py-2 font-medium",
+                "border-b-2 transition-colors",
+                activeTab === "settings"
+                  ? "border-primary text-primary"
+                  : "border-transparent text-muted-foreground hover:text-foreground"
+              )}
+              onClick={() => {
+                if (campaignName.trim() && message1.trim()) {
+                  setActiveTab("settings");
+                } else {
+                  toast.error("Por favor, preencha todos os campos obrigatórios.");
+                }
+              }}
+            >
+              <Settings className="h-4 w-4" />
+              Configurações
             </button>
             <button
               className={cn(
@@ -362,6 +400,52 @@ export const NewCampaignDialog: React.FC<NewCampaignDialogProps> = ({
             </div>
           )}
           
+          {activeTab === "settings" && (
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="producao">Produção</Label>
+                    <Switch 
+                      id="producao" 
+                      checked={producao} 
+                      onCheckedChange={setProducao} 
+                    />
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    Ative para enviar em ambiente de produção
+                  </p>
+                </div>
+              
+                <div className="space-y-2">
+                  <Label htmlFor="limite-disparos">Limite de Disparos</Label>
+                  <Input
+                    id="limite-disparos"
+                    type="number"
+                    value={limiteDisparos}
+                    onChange={(e) => setLimiteDisparos(Number(e.target.value))}
+                  />
+                  <p className="text-sm text-muted-foreground">
+                    Número máximo de mensagens a serem enviadas
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="enviados">Enviados</Label>
+                  <Input
+                    id="enviados"
+                    type="number"
+                    value={enviados}
+                    onChange={(e) => setEnviados(Number(e.target.value))}
+                  />
+                  <p className="text-sm text-muted-foreground">
+                    Quantidade de mensagens já enviadas
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+          
           {activeTab === "schedule" && (
             <div className="space-y-6">
               <div className="space-y-4">
@@ -396,6 +480,8 @@ export const NewCampaignDialog: React.FC<NewCampaignDialogProps> = ({
                 <p className="text-sm mt-1">Nome: {campaignName}</p>
                 <p className="text-sm mt-1">Tipo: {mediaType ? `Mídia (${mediaType})` : "Texto"}</p>
                 <p className="text-sm mt-1">Status: {scheduleDate ? "Agendada" : "Rascunho"}</p>
+                <p className="text-sm mt-1">Produção: {producao ? "Sim" : "Não"}</p>
+                <p className="text-sm mt-1">Limite de Disparos: {limiteDisparos}</p>
                 {scheduleDate && (
                   <p className="text-sm mt-1">
                     Data de envio: {new Date(scheduleDate).toLocaleString("pt-BR")}
@@ -417,9 +503,20 @@ export const NewCampaignDialog: React.FC<NewCampaignDialogProps> = ({
             </Button>
           )}
           
+          {activeTab === "settings" && (
+            <>
+              <Button variant="outline" onClick={handleBack}>
+                Voltar
+              </Button>
+              <Button onClick={handleNext} className="bg-primary">
+                Próximo
+              </Button>
+            </>
+          )}
+          
           {activeTab === "schedule" && (
             <>
-              <Button variant="outline" onClick={() => setActiveTab("message")}>
+              <Button variant="outline" onClick={handleBack}>
                 Voltar
               </Button>
               <Button 

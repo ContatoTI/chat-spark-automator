@@ -1,3 +1,4 @@
+
 import { supabase } from '@/lib/supabase';
 
 export interface OptionRow {
@@ -10,9 +11,10 @@ export interface OptionRow {
 export interface DisparoOptions {
   instancia: string;
   Ativo: boolean;
-  Producao: boolean;
-  Limite_disparos: number;
-  Enviados: number;
+  // Campos movidos para a tabela AppW_Campanhas
+  // Producao: boolean;
+  // Limite_disparos: number;
+  // Enviados: number;
   horario_limite: number;
   long_wait_min: number;
   long_wait_max: number;
@@ -30,9 +32,10 @@ export interface DisparoOptions {
 const optionMapping: Record<string, { field: 'text' | 'numeric' | 'boolean', key: keyof DisparoOptions }> = {
   instancia: { field: 'text', key: 'instancia' },
   ativo: { field: 'boolean', key: 'Ativo' },
-  producao: { field: 'boolean', key: 'Producao' },
-  limite_disparos: { field: 'numeric', key: 'Limite_disparos' },
-  enviados: { field: 'numeric', key: 'Enviados' },
+  // Removidos pois foram movidos para a tabela AppW_Campanhas
+  // producao: { field: 'boolean', key: 'Producao' },
+  // limite_disparos: { field: 'numeric', key: 'Limite_disparos' },
+  // enviados: { field: 'numeric', key: 'Enviados' },
   horario_limite: { field: 'numeric', key: 'horario_limite' },
   long_wait_min: { field: 'numeric', key: 'long_wait_min' },
   long_wait_max: { field: 'numeric', key: 'long_wait_max' },
@@ -53,9 +56,10 @@ function convertRowsToDisparoOptions(rows: OptionRow[]): DisparoOptions {
   const options: DisparoOptions = {
     instancia: '',
     Ativo: true,
-    Producao: false,
-    Limite_disparos: 1000,
-    Enviados: 0,
+    // Removidos pois foram movidos para a tabela AppW_Campanhas
+    // Producao: false,
+    // Limite_disparos: 1000,
+    // Enviados: 0,
     horario_limite: 17,
     long_wait_min: 50,
     long_wait_max: 240,

@@ -26,9 +26,10 @@ export function SettingsForm({ initialSettings }: SettingsFormProps) {
     defaultValues: {
       instancia: "",
       Ativo: true,
-      Producao: true,
-      Limite_disparos: 1000,
-      Enviados: 0,
+      // Campos removidos pois foram movidos para a tabela AppW_Campanhas
+      // Producao: true,
+      // Limite_disparos: 1000,
+      // Enviados: 0,
       horario_limite: 17,
       long_wait_min: 50,
       long_wait_max: 240,
