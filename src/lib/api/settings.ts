@@ -37,11 +37,11 @@ const optionMapping: Record<string, { field: 'text' | 'numeric' | 'boolean', key
   horario_limite: { field: 'numeric', key: 'horario_limite' },
   long_wait_min: { field: 'numeric', key: 'long_wait_min' },
   long_wait_max: { field: 'numeric', key: 'long_wait_max' },
-  shor_wait_min: { field: 'numeric', key: 'ShortWaitMin' },
+  shor_wait_min: { field: 'numeric', key: 'ShortWaitMin' }, // This had a typo in the database column name
   short_wait_max: { field: 'numeric', key: 'ShortWaitMax' },
   batch_size_min: { field: 'numeric', key: 'BatchSizeMim' },
   batch_size_max: { field: 'numeric', key: 'BatchSizeMax' },
-  url_api: { field: 'text', key: 'urlAPI' },
+  url_api: { field: 'text', key: 'urlAPI' }, // Changed to match the database column name
   apikey: { field: 'text', key: 'apikey' },
   webhook_disparo: { field: 'text', key: 'webhook_disparo' },
   webhook_contatos: { field: 'text', key: 'webhook_contatos' },
@@ -143,6 +143,7 @@ function convertRowsToDisparoOptions(rows: OptionRow[]): DisparoOptions {
     }
   });
 
+  console.log("Converted options:", options);
   return options;
 }
 
@@ -210,6 +211,8 @@ export const fetchDisparoOptions = async (): Promise<DisparoOptions> => {
       };
     }
 
+    console.log("Fetched data from AppW_Options:", data);
+    
     // Converte as linhas da tabela para o formato DisparoOptions
     return convertRowsToDisparoOptions(data as OptionRow[]);
   } catch (error) {
