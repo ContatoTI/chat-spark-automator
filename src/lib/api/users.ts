@@ -62,7 +62,8 @@ export const createUser = async (email: string, password: string, role: string):
     }
     
     // Verificar se o email já existe na lista de usuários Auth
-    const emailExists = authUsers.users.some(user => user.email === email);
+    // Corrigindo o erro de tipo usando uma verificação explícita de tipo
+    const emailExists = authUsers?.users?.some((user: any) => user?.email === email) || false;
     
     if (emailExists) {
       console.error("Email já existe no Auth do Supabase:", email);
