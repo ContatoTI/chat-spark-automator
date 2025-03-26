@@ -12,10 +12,10 @@ interface GeneralSettingsProps {
 }
 
 export function GeneralSettings({ form }: GeneralSettingsProps) {
-  // Log the API key value for debugging
+  // Log the values for debugging
   useEffect(() => {
-    const apiKeyValue = form.getValues().apikey;
-    console.log("API Key no formulário:", apiKeyValue);
+    const currentValues = form.getValues();
+    console.log("Valores atuais do formulário:", currentValues);
   }, [form]);
   
   return (

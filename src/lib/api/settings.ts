@@ -89,36 +89,57 @@ async function optionExists(option: string): Promise<boolean> {
  */
 async function initializeOptionsTable() {
   try {
+    console.log('Verificando necessidade de inicializar tabela AppW_Options');
+    
+    // Primeiro, verifica se a tabela existe
+    const { error: tableError } = await supabase
+      .from('AppW_Options')
+      .select('*', { count: 'exact', head: true })
+      .limit(1);
+    
+    if (tableError) {
+      console.error('Erro ao verificar tabela AppW_Options:', tableError);
+      console.log('A tabela AppW_Options pode não existir. Tente criá-la manualmente.');
+      return;
+    }
+    
+    // Verifica se a tabela está vazia
     const { count, error: countError } = await supabase
       .from('AppW_Options')
       .select('*', { count: 'exact', head: true });
     
     if (countError) {
-      console.error('Erro ao verificar tabela AppW_Options:', countError);
+      console.error('Erro ao verificar contagem de opções:', countError);
       return;
     }
+    
+    console.log(`Contagem de opções na tabela: ${count}`);
     
     if (count === 0) {
       console.log('Inicializando tabela AppW_Options com valores padrão');
       
-      const inserts = defaultOptions.map(option => {
+      // Cria cada opção individualmente para evitar problemas com transações grandes
+      for (const option of defaultOptions) {
         const row: any = { option: option.option };
         row[option.field] = option.value;
-        return row;
-      });
-      
-      const { error } = await supabase
-        .from('AppW_Options')
-        .insert(inserts);
-      
-      if (error) {
-        console.error('Erro ao inicializar tabela AppW_Options:', error);
-      } else {
-        console.log('Tabela AppW_Options inicializada com sucesso');
+        
+        const { error } = await supabase
+          .from('AppW_Options')
+          .insert([row]);
+        
+        if (error) {
+          console.error(`Erro ao inserir opção ${option.option}:`, error);
+        } else {
+          console.log(`Opção ${option.option} inicializada com sucesso`);
+        }
       }
+      
+      console.log('Tabela AppW_Options inicializada com sucesso');
+    } else {
+      console.log('Tabela AppW_Options já contém dados, não é necessário inicializar');
     }
   } catch (error) {
-    console.error('Erro ao verificar tabela AppW_Options:', error);
+    console.error('Erro ao inicializar tabela AppW_Options:', error);
   }
 }
 
@@ -126,6 +147,7 @@ async function initializeOptionsTable() {
  * Converte os dados da tabela vertical AppW_Options para o formato DisparoOptions
  */
 function convertRowsToDisparoOptions(rows: OptionRow[]): DisparoOptions {
+  // Valores padrão para caso alguma opção não seja encontrada
   const options: DisparoOptions = {
     instancia: '',
     Ativo: true,
@@ -145,17 +167,18 @@ function convertRowsToDisparoOptions(rows: OptionRow[]): DisparoOptions {
     webhook_contatos: '',
   };
 
-  // Para cada linha, aplica o valor ao campo correspondente
+  // Cria um mapa para facilitar a busca de opções
+  const optionsMap = new Map<string, OptionRow>();
   rows.forEach(row => {
-    // Normalizamos a opção para minúsculas para garantir correspondência
-    const optionKey = row.option.toLowerCase();
-    console.log(`Processando opção: ${optionKey} com valores:`, row);
+    optionsMap.set(row.option.toLowerCase(), row);
+  });
+
+  // Preenche o objeto de opções a partir do mapeamento
+  Object.entries(optionMapping).forEach(([optionName, { field, key }]) => {
+    const row = optionsMap.get(optionName.toLowerCase());
     
-    // Encontra o mapeamento correspondente
-    const mappingEntry = Object.entries(optionMapping).find(([key]) => key.toLowerCase() === optionKey);
-    
-    if (mappingEntry) {
-      const [_, { field, key }] = mappingEntry;
+    if (row) {
+      console.log(`Processando opção: ${optionName} (${field}) para ${key} com valor:`, row[field]);
       
       if (field === 'text' && row.text !== null) {
         (options[key] as string) = row.text;
@@ -165,7 +188,7 @@ function convertRowsToDisparoOptions(rows: OptionRow[]): DisparoOptions {
         (options[key] as boolean) = row.boolean;
       }
     } else {
-      console.warn(`Opção não mapeada: ${optionKey}`);
+      console.log(`Opção ${optionName} não encontrada, usando valor padrão para ${key}`);
     }
   });
 
@@ -198,22 +221,16 @@ function convertDisparoOptionsToUpdates(options: DisparoOptions): { option: stri
 }
 
 /**
- * Busca as opções de configuração da nova tabela AppW_Options
+ * Busca as opções de configuração da tabela AppW_Options
  */
 export const fetchDisparoOptions = async (): Promise<DisparoOptions> => {
   try {
-    // Verificar se o usuário está autenticado
-    const { data: { user } } = await supabase.auth.getUser();
-    
-    if (!user) {
-      throw new Error('Usuário não autenticado');
-    }
-    
     console.log("Buscando configurações globais");
     
     // Inicializa a tabela com valores padrão se estiver vazia
     await initializeOptionsTable();
     
+    // Busca todas as opções
     const { data, error } = await supabase
       .from('AppW_Options')
       .select('*');
@@ -227,6 +244,8 @@ export const fetchDisparoOptions = async (): Promise<DisparoOptions> => {
 
     if (!data || data.length === 0) {
       console.log('Nenhuma configuração encontrada, usando valores padrão');
+      
+      // Valores padrão para caso não haja configurações
       return {
         instancia: 'default',
         Ativo: true,
@@ -256,29 +275,25 @@ export const fetchDisparoOptions = async (): Promise<DisparoOptions> => {
 };
 
 /**
- * Atualiza as opções de configuração na nova tabela AppW_Options
+ * Atualiza as opções de configuração na tabela AppW_Options
  */
 export const updateDisparoOptions = async (options: DisparoOptions): Promise<void> => {
   try {
-    // Verificar se o usuário está autenticado
-    const { data: { user } } = await supabase.auth.getUser();
-    
-    if (!user) {
-      throw new Error('Usuário não autenticado');
-    }
-    
-    console.log("Atualizando configurações globais");
+    console.log("Atualizando configurações globais:", options);
     
     // Converte o objeto para atualizações individuais
     const updateList = convertDisparoOptionsToUpdates(options);
+    console.log("Lista de atualizações:", updateList);
     
-    // Realiza uma atualização para cada opção
+    // Realiza uma atualização para cada opção, uma por uma
     for (const { option, updates } of updateList) {
       // Verificar se a opção já existe
       const exists = await optionExists(option);
+      console.log(`Opção ${option} existe? ${exists}`);
       
       if (exists) {
         // Atualiza a opção existente
+        console.log(`Atualizando opção ${option} com:`, updates);
         const { error } = await supabase
           .from('AppW_Options')
           .update(updates)
@@ -290,9 +305,10 @@ export const updateDisparoOptions = async (options: DisparoOptions): Promise<voi
         }
       } else {
         // Insere a opção se não existir
+        console.log(`Inserindo nova opção ${option} com:`, { option, ...updates });
         const { error } = await supabase
           .from('AppW_Options')
-          .insert({ option, ...updates });
+          .insert([{ option, ...updates }]);
 
         if (error) {
           console.error(`Erro ao inserir configuração ${option}:`, error);
