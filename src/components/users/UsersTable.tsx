@@ -35,13 +35,6 @@ export const UsersTable: React.FC<UsersTableProps> = ({
   const [passwordDialogOpen, setPasswordDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
-  console.log("UsersTable renderizando com:", { 
-    usuariosCount: users?.length,
-    usuarios: users,
-    isLoading, 
-    hasError: !!error 
-  });
-
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -61,10 +54,6 @@ export const UsersTable: React.FC<UsersTableProps> = ({
           <h3 className="font-semibold text-lg">Erro ao carregar usuários</h3>
           <p className="text-sm text-muted-foreground">
             {error.message}
-            <br />
-            <pre className="mt-2 p-2 bg-muted text-xs overflow-auto rounded">
-              {JSON.stringify(error, null, 2)}
-            </pre>
           </p>
           <Button onClick={refetch} variant="outline" size="sm" className="mt-2">
             Tentar novamente
@@ -88,21 +77,6 @@ export const UsersTable: React.FC<UsersTableProps> = ({
       </div>
     );
   }
-
-  const handleRoleEdit = (user: User) => {
-    setSelectedUser(user);
-    setRoleDialogOpen(true);
-  };
-
-  const handlePasswordReset = (user: User) => {
-    setSelectedUser(user);
-    setPasswordDialogOpen(true);
-  };
-
-  const handleDeleteUser = (user: User) => {
-    setSelectedUser(user);
-    setDeleteDialogOpen(true);
-  };
 
   const formatDate = (dateString?: string) => {
     if (!dateString) return "Nunca";
@@ -142,7 +116,10 @@ export const UsersTable: React.FC<UsersTableProps> = ({
                     <Button 
                       variant="ghost" 
                       size="icon"
-                      onClick={() => handleRoleEdit(user)}
+                      onClick={() => {
+                        setSelectedUser(user);
+                        setRoleDialogOpen(true);
+                      }}
                       title="Editar função"
                     >
                       <Pencil className="h-4 w-4" />
@@ -150,7 +127,10 @@ export const UsersTable: React.FC<UsersTableProps> = ({
                     <Button 
                       variant="ghost" 
                       size="icon"
-                      onClick={() => handlePasswordReset(user)}
+                      onClick={() => {
+                        setSelectedUser(user);
+                        setPasswordDialogOpen(true);
+                      }}
                       title="Redefinir senha"
                     >
                       <KeyRound className="h-4 w-4" />
@@ -158,7 +138,10 @@ export const UsersTable: React.FC<UsersTableProps> = ({
                     <Button 
                       variant="ghost" 
                       size="icon"
-                      onClick={() => handleDeleteUser(user)}
+                      onClick={() => {
+                        setSelectedUser(user);
+                        setDeleteDialogOpen(true);
+                      }}
                       className="text-destructive hover:text-destructive/90 hover:bg-destructive/10"
                       title="Excluir usuário"
                     >

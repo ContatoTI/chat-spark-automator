@@ -36,7 +36,7 @@ export const UserDeleteDialog: React.FC<UserDeleteDialogProps> = ({
       onSuccess();
       onOpenChange(false);
     } catch (error) {
-      console.error('Error deleting user:', error);
+      console.error('Erro ao excluir usuário:', error);
       toast.error('Erro ao excluir usuário', { 
         description: error instanceof Error ? error.message : 'Tente novamente mais tarde'
       });
@@ -60,8 +60,7 @@ export const UserDeleteDialog: React.FC<UserDeleteDialogProps> = ({
         </DialogHeader>
         <div className="py-4">
           <p className="text-sm text-muted-foreground">
-            O usuário será removido permanentemente do sistema e perderá acesso 
-            imediatamente.
+            O usuário será removido permanentemente do sistema.
           </p>
         </div>
         <DialogFooter>

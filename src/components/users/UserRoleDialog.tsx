@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   Dialog, 
   DialogContent, 
@@ -19,7 +19,6 @@ import {
 import { Label } from "@/components/ui/label";
 import { User, updateUserRole } from "@/lib/api/users";
 import { toast } from "sonner";
-import { useState } from "react";
 
 interface UserRoleDialogProps {
   user: User;
@@ -50,8 +49,8 @@ export const UserRoleDialog: React.FC<UserRoleDialogProps> = ({
       onSuccess();
       onOpenChange(false);
     } catch (error) {
-      console.error('Error updating user role:', error);
-      toast.error('Erro ao atualizar função do usuário', { 
+      console.error('Erro ao atualizar função:', error);
+      toast.error('Erro ao atualizar função', { 
         description: error instanceof Error ? error.message : 'Tente novamente mais tarde'
       });
     } finally {

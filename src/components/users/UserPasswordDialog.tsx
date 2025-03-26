@@ -53,10 +53,8 @@ export const UserPasswordDialog: React.FC<UserPasswordDialogProps> = ({
       setConfirmPassword('');
       onOpenChange(false);
     } catch (error) {
-      console.error('Error resetting password:', error);
-      toast.error('Erro ao redefinir senha', { 
-        description: error instanceof Error ? error.message : 'Tente novamente mais tarde'
-      });
+      console.error('Erro ao redefinir senha:', error);
+      setError(error instanceof Error ? error.message : 'Erro ao redefinir senha');
     } finally {
       setIsSubmitting(false);
     }

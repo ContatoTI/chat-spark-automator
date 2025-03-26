@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { 
   Dialog, 
@@ -17,7 +18,6 @@ import {
   SelectTrigger, 
   SelectValue 
 } from "@/components/ui/select";
-import { useForm } from "react-hook-form";
 import { createUser } from "@/lib/api/users";
 import { toast } from "sonner";
 
@@ -27,69 +27,65 @@ interface NewUserDialogProps {
   onUserCreated: () => void;
 }
 
-type FormData = {
-  email: string;
-  password: string;
-  confirmPassword: string;
-  role: 'user' | 'admin';
-};
-
 export const NewUserDialog: React.FC<NewUserDialogProps> = ({ 
   open, 
   onOpenChange,
   onUserCreated 
 }) => {
-  const { 
-    register, 
-    handleSubmit, 
-    reset, 
-    watch,
-    setValue,
-    formState: { errors, isSubmitting } 
-  } = useForm<FormData>({
-    defaultValues: {
-      email: '',
-      password: '',
-      confirmPassword: '',
-      role: 'user'
-    }
-  });
-  
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [role, setRole] = useState('user');
   const [isCreating, setIsCreating] = useState(false);
-  const password = watch('password');
+  const [error, setError] = useState('');
+  
+  const resetForm = () => {
+    setEmail('');
+    setPassword('');
+    setConfirmPassword('');
+    setRole('user');
+    setError('');
+  };
 
-  const onSubmit = async (data: FormData) => {
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+
+    // Validação simples
+    if (!email) {
+      setError('Email é obrigatório');
+      return;
+    }
+    
+    if (!password) {
+      setError('Senha é obrigatória');
+      return;
+    }
+    
+    if (password.length < 6) {
+      setError('Senha deve ter pelo menos 6 caracteres');
+      return;
+    }
+    
+    if (password !== confirmPassword) {
+      setError('As senhas não coincidem');
+      return;
+    }
+
     try {
       setIsCreating(true);
-      console.log("Submetendo novo usuário:", { email: data.email, role: data.role });
-      
-      if (!data.email || !data.password) {
-        toast.error('Dados incompletos', {
-          description: 'Email e senha são obrigatórios'
-        });
-        setIsCreating(false);
-        return;
-      }
-      
-      await createUser(data.email, data.password, data.role);
-      toast.success('Usuário criado com sucesso', {
-        description: `${data.email} foi adicionado como ${data.role === 'admin' ? 'administrador' : 'usuário'}`
-      });
-      reset();
+      await createUser(email, password, role);
+      toast.success('Usuário criado com sucesso');
+      resetForm();
       onOpenChange(false);
-      onUserCreated(); // Atualizar a lista de usuários
+      onUserCreated();
     } catch (error) {
       console.error('Erro ao criar usuário:', error);
-      let errorMessage = 'Tente novamente mais tarde';
-      
-      // Verificar se é um erro do Supabase ou nosso
       if (error instanceof Error) {
-        errorMessage = error.message;
+        setError(error.message);
+      } else {
+        setError('Erro desconhecido ao criar usuário');
       }
-      
-      toast.error('Erro ao criar usuário', { 
-        description: errorMessage
-      });
     } finally {
       setIsCreating(false);
     }
@@ -97,7 +93,7 @@ export const NewUserDialog: React.FC<NewUserDialogProps> = ({
 
   const handleOpenChange = (open: boolean) => {
     if (!open) {
-      reset();
+      resetForm();
     }
     onOpenChange(open);
   };
@@ -105,7 +101,7 @@ export const NewUserDialog: React.FC<NewUserDialogProps> = ({
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
-        <form onSubmit={handleSubmit(onSubmit)}>
+        <form onSubmit={handleSubmit}>
           <DialogHeader>
             <DialogTitle>Novo Usuário</DialogTitle>
             <DialogDescription>
@@ -118,55 +114,34 @@ export const NewUserDialog: React.FC<NewUserDialogProps> = ({
               <Input
                 id="email"
                 type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 placeholder="email@exemplo.com"
-                {...register('email', { 
-                  required: 'Email é obrigatório',
-                  pattern: {
-                    value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                    message: 'Email inválido'
-                  }
-                })}
               />
-              {errors.email && (
-                <p className="text-sm text-destructive">{errors.email.message}</p>
-              )}
             </div>
             <div className="grid gap-2">
               <Label htmlFor="password">Senha</Label>
               <Input
                 id="password"
                 type="password"
-                {...register('password', { 
-                  required: 'Senha é obrigatória',
-                  minLength: {
-                    value: 6,
-                    message: 'Senha deve ter pelo menos 6 caracteres'
-                  }
-                })}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
               />
-              {errors.password && (
-                <p className="text-sm text-destructive">{errors.password.message}</p>
-              )}
             </div>
             <div className="grid gap-2">
               <Label htmlFor="confirmPassword">Confirmar Senha</Label>
               <Input
                 id="confirmPassword"
                 type="password"
-                {...register('confirmPassword', { 
-                  required: 'Confirmação de senha é obrigatória',
-                  validate: value => value === password || 'As senhas não coincidem'
-                })}
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
               />
-              {errors.confirmPassword && (
-                <p className="text-sm text-destructive">{errors.confirmPassword.message}</p>
-              )}
             </div>
             <div className="grid gap-2">
               <Label htmlFor="role">Função</Label>
               <Select 
-                defaultValue="user" 
-                onValueChange={(value) => setValue('role', value as 'user' | 'admin')}
+                value={role} 
+                onValueChange={setRole}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Selecione uma função" />
@@ -177,6 +152,9 @@ export const NewUserDialog: React.FC<NewUserDialogProps> = ({
                 </SelectContent>
               </Select>
             </div>
+            {error && (
+              <p className="text-sm text-destructive">{error}</p>
+            )}
           </div>
           <DialogFooter>
             <Button
