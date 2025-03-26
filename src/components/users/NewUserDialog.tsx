@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   Dialog, 
   DialogContent, 
@@ -55,30 +55,37 @@ export const NewUserDialog: React.FC<NewUserDialogProps> = ({
       role: 'user'
     }
   });
-
+  
+  const [isCreating, setIsCreating] = useState(false);
   const password = watch('password');
 
   const onSubmit = async (data: FormData) => {
     try {
-      console.log("Submitting new user:", { email: data.email, role: data.role });
+      setIsCreating(true);
+      console.log("Submetendo novo usuário:", { email: data.email, role: data.role });
       
       if (!data.email || !data.password) {
         toast.error('Dados incompletos', {
           description: 'Email e senha são obrigatórios'
         });
+        setIsCreating(false);
         return;
       }
       
       await createUser(data.email, data.password, data.role);
-      toast.success('Usuário criado com sucesso');
+      toast.success('Usuário criado com sucesso', {
+        description: `${data.email} foi adicionado como ${data.role === 'admin' ? 'administrador' : 'usuário'}`
+      });
       reset();
       onOpenChange(false);
-      onUserCreated();
+      onUserCreated(); // Atualizar a lista de usuários
     } catch (error) {
-      console.error('Error creating user:', error);
+      console.error('Erro ao criar usuário:', error);
       toast.error('Erro ao criar usuário', { 
         description: error instanceof Error ? error.message : 'Tente novamente mais tarde'
       });
+    } finally {
+      setIsCreating(false);
     }
   };
 
@@ -170,12 +177,12 @@ export const NewUserDialog: React.FC<NewUserDialogProps> = ({
               type="button"
               variant="outline"
               onClick={() => onOpenChange(false)}
-              disabled={isSubmitting}
+              disabled={isCreating}
             >
               Cancelar
             </Button>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? (
+            <Button type="submit" disabled={isCreating}>
+              {isCreating ? (
                 <>
                   <span className="h-4 w-4 mr-2 animate-spin rounded-full border-2 border-current border-t-transparent"></span>
                   Criando...

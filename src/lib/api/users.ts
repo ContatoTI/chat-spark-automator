@@ -1,4 +1,3 @@
-
 import { supabase } from "@/lib/supabase";
 
 export interface User {
@@ -10,32 +9,37 @@ export interface User {
 }
 
 export const fetchUsers = async (): Promise<User[]> => {
-  console.log("Fetching users from Supabase");
+  console.log("Iniciando fetchUsers - buscando usuários do Supabase");
   
   try {
-    // First, get auth users
+    // Primeiro, obter usuários autenticados
     const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers();
     
     if (authError) {
-      console.error("Error fetching auth users:", authError);
-      throw new Error(`Failed to fetch users: ${authError.message}`);
+      console.error("Erro ao buscar usuários auth:", authError);
+      throw new Error(`Falha ao buscar usuários: ${authError.message}`);
     }
     
-    console.log("Auth users retrieved:", authUsers?.users?.length || 0);
+    console.log("Usuários auth recuperados:", authUsers?.users?.length || 0);
     
-    // Then get additional user info from the custom table
+    if (!authUsers?.users?.length) {
+      console.log("Nenhum usuário auth encontrado");
+      return [];
+    }
+    
+    // Depois obter informações adicionais da tabela personalizada
     const { data: appUsers, error: appError } = await supabase
       .from('appw_users')
       .select('*');
     
     if (appError) {
-      console.error("Error fetching app users:", appError);
-      throw new Error(`Failed to fetch appw_users: ${appError.message}`);
+      console.error("Erro ao buscar appw_users:", appError);
+      throw new Error(`Falha ao buscar appw_users: ${appError.message}`);
     }
     
-    console.log("App users retrieved:", appUsers?.length || 0);
+    console.log("Usuários app recuperados:", appUsers?.length || 0);
     
-    // Combine the data
+    // Combinar os dados
     const users = authUsers?.users?.map(user => {
       const appUser = appUsers?.find(au => au.user_id === user.id);
       return {
@@ -47,42 +51,57 @@ export const fetchUsers = async (): Promise<User[]> => {
       };
     }) || [];
     
-    console.log("Final combined user count:", users.length);
-    
-    if (users.length === 0) {
-      console.log("No users found in the database");
-    }
-    
+    console.log("Contagem final de usuários combinados:", users.length);
     return users;
   } catch (error) {
-    console.error("Error in fetchUsers:", error);
+    console.error("Erro em fetchUsers:", error);
     throw error;
   }
 };
 
 export const createUser = async (email: string, password: string, role: string): Promise<void> => {
-  console.log("Creating user:", { email, role });
+  console.log("Criando usuário:", { email, role });
+  
+  if (!email || !password) {
+    console.error("Email ou senha não fornecidos");
+    throw new Error("Email e senha são obrigatórios");
+  }
+  
   try {
-    // Create the user in Auth
+    // Verificar se o usuário já existe
+    const { data: existingUsers } = await supabase
+      .from('appw_users')
+      .select('email')
+      .eq('email', email)
+      .maybeSingle();
+      
+    if (existingUsers) {
+      console.error("Usuário já existe:", email);
+      throw new Error(`Usuário com email ${email} já existe`);
+    }
+    
+    // Criar o usuário na autenticação
+    console.log("Criando usuário na autenticação:", email);
     const { data, error } = await supabase.auth.admin.createUser({
       email,
       password,
-      email_confirm: true, // Skip email confirmation
+      email_confirm: true, // Pular confirmação de email
     });
     
     if (error) {
-      console.error("Error creating auth user:", error);
+      console.error("Erro ao criar usuário auth:", error);
       throw error;
     }
     
     if (!data || !data.user) {
-      console.error("No user data returned from auth creation");
-      throw new Error("Failed to create user: No user data returned");
+      console.error("Nenhum dado de usuário retornado da criação auth");
+      throw new Error("Falha ao criar usuário: Nenhum dado retornado");
     }
     
-    console.log("Auth user created successfully:", data.user.id);
+    console.log("Usuário auth criado com sucesso:", data.user.id);
     
-    // Add the user to our custom table
+    // Adicionar o usuário à nossa tabela personalizada
+    console.log("Adicionando usuário à tabela appw_users:", data.user.id);
     const { error: insertError } = await supabase
       .from('appw_users')
       .insert([{ 
@@ -92,21 +111,21 @@ export const createUser = async (email: string, password: string, role: string):
       }]);
       
     if (insertError) {
-      console.error("Error adding user to appw_users:", insertError);
+      console.error("Erro ao adicionar usuário a appw_users:", insertError);
       
-      // If we fail to add the user to our custom table, delete the auth user to maintain consistency
-      console.log("Attempting to clean up auth user after failed insert");
+      // Se falharmos ao adicionar o usuário à nossa tabela personalizada, excluir o usuário auth para manter a consistência
+      console.log("Tentando limpar usuário auth após falha na inserção");
       const { error: deleteError } = await supabase.auth.admin.deleteUser(data.user.id);
       if (deleteError) {
-        console.error("Error deleting auth user during cleanup:", deleteError);
+        console.error("Erro ao excluir usuário auth durante limpeza:", deleteError);
       }
       
-      throw new Error(`Failed to add user to database: ${insertError.message}`);
+      throw new Error(`Falha ao adicionar usuário ao banco de dados: ${insertError.message}`);
     }
     
-    console.log("User successfully created and added to appw_users");
+    console.log("Usuário criado e adicionado com sucesso a appw_users");
   } catch (error) {
-    console.error("Error creating user:", error);
+    console.error("Erro ao criar usuário:", error);
     throw error;
   }
 };
@@ -120,7 +139,7 @@ export const updateUserRole = async (userId: string, role: string): Promise<void
       
     if (error) throw error;
   } catch (error) {
-    console.error("Error updating user role:", error);
+    console.error("Erro atualizando o papel do usuário:", error);
     throw error;
   }
 };
@@ -134,7 +153,7 @@ export const resetUserPassword = async (userId: string, newPassword: string): Pr
     
     if (error) throw error;
   } catch (error) {
-    console.error("Error resetting password:", error);
+    console.error("Erro resetando a senha:", error);
     throw error;
   }
 };
@@ -154,7 +173,7 @@ export const deleteUser = async (userId: string): Promise<void> => {
       
     if (appError) throw appError;
   } catch (error) {
-    console.error("Error deleting user:", error);
+    console.error("Erro deletando usuário:", error);
     throw error;
   }
 };

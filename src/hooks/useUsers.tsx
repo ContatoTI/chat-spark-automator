@@ -11,14 +11,15 @@ export const useUsers = () => {
   } = useQuery({
     queryKey: ['users'],
     queryFn: fetchUsers,
-    staleTime: 0, // Always treat data as stale
-    refetchOnMount: true, // Refetch when component mounts
-    refetchOnWindowFocus: true, // Refetch when window gains focus
-    retry: 1, // Retry once if there's an error
+    staleTime: 0, // Sempre considerar os dados como desatualizados
+    refetchOnMount: true, // Atualizar quando o componente montar
+    refetchOnWindowFocus: true, // Atualizar quando a janela ganhar foco
+    retry: 2, // Tentar novamente duas vezes em caso de erro
+    refetchInterval: false, // Não atualizar automaticamente em intervalos
   });
 
   return {
-    users,
+    users: users || [], // Garantir que sempre retorne um array
     isLoading,
     error,
     refetch

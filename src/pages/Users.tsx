@@ -12,17 +12,29 @@ const Users = () => {
   useEffect(() => {
     // Mostrar toast de erro se houver problemas ao carregar os usuários
     if (error) {
+      console.error("Erro ao carregar usuários:", error);
       toast.error("Erro ao carregar usuários", {
         description: error instanceof Error ? error.message : "Tente novamente mais tarde"
       });
     }
   }, [error]);
 
+  // Função para forçar uma atualização dos dados
+  const handleRefresh = () => {
+    console.log("Atualizando manualmente a lista de usuários");
+    refetch();
+  };
+
   return (
     <Layout>
       <div className="flex flex-col gap-8">
-        <UsersHeader onRefresh={refetch} />
-        <UsersTable users={users} isLoading={isLoading} error={error} refetch={refetch} />
+        <UsersHeader onRefresh={handleRefresh} />
+        <UsersTable 
+          users={users} 
+          isLoading={isLoading} 
+          error={error} 
+          refetch={handleRefresh} 
+        />
       </div>
     </Layout>
   );
