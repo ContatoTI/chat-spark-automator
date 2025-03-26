@@ -26,7 +26,7 @@ export interface DisparoOptions {
   apikey: string;
   webhook_disparo: string;
   webhook_contatos: string;
-  profile_id?: string; // Add profile_id to the interface
+  profile_id?: string; // Now truly optional
 }
 
 // Mapeamento entre nomes de opções na tabela e propriedades no objeto DisparoOptions
@@ -72,12 +72,11 @@ const defaultOptions: { option: string; field: 'text' | 'numeric' | 'boolean'; v
 /**
  * Inicializa a tabela AppW_Options com valores padrão se estiver vazia
  */
-async function initializeOptionsTable(userId: string) {
+async function initializeOptionsTable() {
   try {
     const { count, error: countError } = await supabase
       .from('AppW_Options')
-      .select('*', { count: 'exact', head: true })
-      .eq('profile_id', userId);
+      .select('*', { count: 'exact', head: true });
     
     if (countError) {
       console.error('Erro ao verificar tabela AppW_Options:', countError);
@@ -85,13 +84,10 @@ async function initializeOptionsTable(userId: string) {
     }
     
     if (count === 0) {
-      console.log('Inicializando tabela AppW_Options com valores padrão para usuário:', userId);
+      console.log('Inicializando tabela AppW_Options com valores padrão');
       
       const inserts = defaultOptions.map(option => {
-        const row: any = { 
-          option: option.option,
-          profile_id: userId  // Incluir profile_id em cada linha
-        };
+        const row: any = { option: option.option };
         row[option.field] = option.value;
         return row;
       });
@@ -103,7 +99,7 @@ async function initializeOptionsTable(userId: string) {
       if (error) {
         console.error('Erro ao inicializar tabela AppW_Options:', error);
       } else {
-        console.log('Tabela AppW_Options inicializada com sucesso para o usuário:', userId);
+        console.log('Tabela AppW_Options inicializada com sucesso');
       }
     }
   } catch (error) {
@@ -114,7 +110,7 @@ async function initializeOptionsTable(userId: string) {
 /**
  * Converte os dados da tabela vertical AppW_Options para o formato DisparoOptions
  */
-function convertRowsToDisparoOptions(rows: OptionRow[], userId: string): DisparoOptions {
+function convertRowsToDisparoOptions(rows: OptionRow[]): DisparoOptions {
   const options: DisparoOptions = {
     instancia: '',
     Ativo: true,
@@ -132,7 +128,6 @@ function convertRowsToDisparoOptions(rows: OptionRow[], userId: string): Disparo
     apikey: '',
     webhook_disparo: '',
     webhook_contatos: '',
-    profile_id: userId  // Adicionar profile_id
   };
 
   // Para cada linha, aplica o valor ao campo correspondente
@@ -165,10 +160,7 @@ function convertDisparoOptionsToUpdates(options: DisparoOptions): { option: stri
   
   Object.entries(optionMapping).forEach(([optionName, { field, key }]) => {
     const value = options[key];
-    const updateObj: Partial<OptionRow> = { 
-      option: optionName,
-      profile_id: options.profile_id  // Incluir profile_id em cada atualização
-    };
+    const updateObj: Partial<OptionRow> = { option: optionName };
     
     if (field === 'text') {
       updateObj.text = value as string;
@@ -189,22 +181,21 @@ function convertDisparoOptionsToUpdates(options: DisparoOptions): { option: stri
  */
 export const fetchDisparoOptions = async (): Promise<DisparoOptions> => {
   try {
-    // Obter o ID do usuário atual
+    // Verificar se o usuário está autenticado
     const { data: { user } } = await supabase.auth.getUser();
     
     if (!user) {
       throw new Error('Usuário não autenticado');
     }
     
-    console.log("Buscando configurações para o usuário:", user.id);
+    console.log("Buscando configurações globais");
     
-    // Inicializa a tabela com valores padrão se estiver vazia para este usuário
-    await initializeOptionsTable(user.id);
+    // Inicializa a tabela com valores padrão se estiver vazia
+    await initializeOptionsTable();
     
     const { data, error } = await supabase
       .from('AppW_Options')
-      .select('*')
-      .eq('profile_id', user.id);
+      .select('*');
 
     if (error) {
       console.error('Erro ao buscar configurações:', error);
@@ -232,12 +223,11 @@ export const fetchDisparoOptions = async (): Promise<DisparoOptions> => {
         apikey: '',
         webhook_disparo: 'https://webhook.example.com/disparo',
         webhook_contatos: 'https://webhook.example.com/contatos',
-        profile_id: user.id
       };
     }
     
     // Converte as linhas da tabela para o formato DisparoOptions
-    return convertRowsToDisparoOptions(data as OptionRow[], user.id);
+    return convertRowsToDisparoOptions(data as OptionRow[]);
   } catch (error) {
     console.error('Erro ao buscar configurações:', error);
     throw error;
@@ -249,17 +239,14 @@ export const fetchDisparoOptions = async (): Promise<DisparoOptions> => {
  */
 export const updateDisparoOptions = async (options: DisparoOptions): Promise<void> => {
   try {
-    // Obter o ID do usuário atual
+    // Verificar se o usuário está autenticado
     const { data: { user } } = await supabase.auth.getUser();
     
     if (!user) {
       throw new Error('Usuário não autenticado');
     }
     
-    // Garantir que o profile_id corresponde ao usuário logado
-    options.profile_id = user.id;
-    
-    console.log("Atualizando configurações para o usuário:", user.id);
+    console.log("Atualizando configurações globais");
     
     // Converte o objeto para atualizações individuais
     const updateList = convertDisparoOptionsToUpdates(options);
@@ -269,8 +256,7 @@ export const updateDisparoOptions = async (options: DisparoOptions): Promise<voi
       const { error } = await supabase
         .from('AppW_Options')
         .update(updates)
-        .eq('option', option)
-        .eq('profile_id', user.id);  // Filtrar por profile_id
+        .eq('option', option);
 
       if (error) {
         console.error(`Erro ao atualizar configuração ${option}:`, error);

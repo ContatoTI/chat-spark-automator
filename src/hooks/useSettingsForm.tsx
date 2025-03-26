@@ -3,11 +3,9 @@ import { useQuery } from "@tanstack/react-query";
 import { fetchDisparoOptions, DisparoOptions } from "@/lib/api/settings";
 import { useToast } from "@/hooks/use-toast";
 import { useEffect } from "react";
-import { useAuth } from "@/contexts/AuthContext";
 
 export const useSettingsForm = () => {
   const { toast } = useToast();
-  const { user } = useAuth();
   
   const { 
     data: settings, 
@@ -16,12 +14,11 @@ export const useSettingsForm = () => {
     refetch,
     isError
   } = useQuery({
-    queryKey: ['disparo-options', user?.id],
+    queryKey: ['disparo-options'],
     queryFn: fetchDisparoOptions,
     retry: 5,  // Increase retries to handle initial load issues
     refetchOnWindowFocus: false,
     staleTime: 1000 * 60 * 5, // 5 minutes
-    enabled: !!user, // Only run query when user is authenticated
   });
 
   // Show toast when there's an error
@@ -54,7 +51,6 @@ export const useSettingsForm = () => {
     apikey: '',
     webhook_disparo: '',
     webhook_contatos: '',
-    profile_id: user?.id,
   };
 
   return {
