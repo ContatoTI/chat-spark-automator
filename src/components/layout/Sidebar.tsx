@@ -8,7 +8,9 @@ import {
   History, 
   Settings,
   Users,
+  LogOut
 } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface SidebarProps {
   open: boolean;
@@ -42,6 +44,7 @@ const SidebarLink: React.FC<SidebarLinkProps> = ({ to, icon: Icon, label, active
 export const Sidebar: React.FC<SidebarProps> = ({ open }) => {
   const location = useLocation();
   const currentPath = location.pathname;
+  const { isAdmin, logout } = useAuth();
 
   return (
     <aside
@@ -77,19 +80,36 @@ export const Sidebar: React.FC<SidebarProps> = ({ open }) => {
               label="Histórico"
               active={currentPath === "/history"}
             />
-            <SidebarLink
-              to="/users"
-              icon={Users}
-              label="Usuários"
-              active={currentPath === "/users"}
-            />
-            <SidebarLink
-              to="/settings"
-              icon={Settings}
-              label="Configurações"
-              active={currentPath === "/settings"}
-            />
+            
+            {/* Exibir links apenas para administradores */}
+            {isAdmin && (
+              <>
+                <SidebarLink
+                  to="/users"
+                  icon={Users}
+                  label="Usuários"
+                  active={currentPath === "/users"}
+                />
+                <SidebarLink
+                  to="/settings"
+                  icon={Settings}
+                  label="Configurações"
+                  active={currentPath === "/settings"}
+                />
+              </>
+            )}
           </nav>
+        </div>
+        
+        {/* Adicionar botão de logout no final do sidebar */}
+        <div className="mt-auto">
+          <button
+            onClick={() => logout()}
+            className="flex w-full items-center gap-3 px-3 py-2 rounded-md text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all duration-200"
+          >
+            <LogOut className="h-5 w-5" />
+            <span>Sair</span>
+          </button>
         </div>
       </div>
     </aside>
