@@ -53,15 +53,15 @@ export const CampaignCalendarView: React.FC<CampaignCalendarViewProps> = ({
 
   // Custom day renderer that works with react-day-picker
   const renderDay = (props: DayProps) => {
-    const { date: day, ...cellProps } = props;
+    const { date: day } = props;
     // Use format to get a safe date string or check if the day is a proper Date
     const dateStr = day instanceof Date ? day.toDateString() : '';
     const dayCampaigns = campaignsByDate[dateStr] || [];
     
     return (
       <div 
-        {...cellProps} 
-        className={`${cellProps.className} h-16 min-w-16 overflow-y-auto relative`}
+        {...props}
+        className="h-16 min-w-16 overflow-y-auto relative"
       >
         <div className="absolute top-1 left-1 font-medium">{day instanceof Date ? day.getDate() : ''}</div>
         <div className="mt-6 max-h-12 overflow-y-auto px-0.5">
