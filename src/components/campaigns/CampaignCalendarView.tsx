@@ -111,7 +111,7 @@ export const CampaignCalendarView: React.FC<CampaignCalendarViewProps> = ({
       <div 
         className={cn(
           "relative h-full w-full min-h-[110px] p-0",
-          isCurrentDay ? "bg-blue-50/70 dark:bg-blue-900/10" : "hover:bg-slate-50/50 dark:hover:bg-slate-900/20"
+          isCurrentDay ? "bg-yellow-100/70 dark:bg-yellow-900/20" : ""
         )}
         onDragOver={(e) => {
           e.preventDefault();
@@ -126,39 +126,52 @@ export const CampaignCalendarView: React.FC<CampaignCalendarViewProps> = ({
           handleDropOnDate(day);
         }}
       >
-        <div className={cn(
-          "absolute top-1 right-1 font-medium text-sm z-10",
-          isCurrentDay ? "h-7 w-7 rounded-full bg-blue-500 text-white flex items-center justify-center" : "text-muted-foreground"
-        )}>
-          {day.getDate()}
-        </div>
-        <div className="h-full pt-7 px-1 space-y-1">
-          {dayCampaigns.map((campaign) => (
-            <div 
-              key={campaign.id}
-              className={cn(
-                "px-2 py-1 text-sm h-[calc(100%-24px)] w-full rounded-md cursor-move transition-all duration-100",
-                getCampaignBgColor(campaign.status)
-              )}
-              draggable
-              onDragStart={() => handleDragStart(campaign)}
-              onDragEnd={handleDragEnd}
-            >
-              <div className="flex items-center justify-between">
-                <div className="font-medium truncate max-w-[80%]">
-                  {campaign.nome}
+        {dayCampaigns.length > 0 ? (
+          // Se houver campanhas, o dia inteiro será preenchido com a cor
+          <div className={cn(
+            "absolute inset-0 flex flex-col p-1",
+            getCampaignBgColor(dayCampaigns[0].status)
+          )}>
+            <div className="flex justify-end">
+              <div className={cn(
+                "w-6 h-6 flex items-center justify-center text-sm font-medium rounded-full mb-1",
+                isCurrentDay ? "bg-white/80 text-primary" : "text-inherit"
+              )}>
+                {day.getDate()}
+              </div>
+            </div>
+            
+            <div className="flex-1 flex flex-col justify-between">
+              <div className="font-medium">
+                {dayCampaigns[0].nome}
+              </div>
+              
+              <div className="flex justify-between items-center mt-1">
+                <div className="text-xs">
+                  {new Date(dayCampaigns[0].data_disparo).toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'})}
                 </div>
                 <button 
-                  onClick={(e) => { e.stopPropagation(); onEdit(campaign); }}
+                  onClick={(e) => { e.stopPropagation(); onEdit(dayCampaigns[0]); }}
                   className="text-inherit hover:text-blue-500 transition-colors"
                 >
                   <Edit className="h-4 w-4" />
                   <span className="sr-only">Editar</span>
                 </button>
               </div>
+              
+              {dayCampaigns.length > 1 && (
+                <div className="text-xs mt-1 font-medium">
+                  +{dayCampaigns.length - 1} mais
+                </div>
+              )}
             </div>
-          ))}
-        </div>
+          </div>
+        ) : (
+          // Se não houver campanhas, apenas o número do dia é mostrado
+          <div className="absolute top-1 right-1 font-medium text-sm z-10">
+            {day.getDate()}
+          </div>
+        )}
       </div>
     );
   };
