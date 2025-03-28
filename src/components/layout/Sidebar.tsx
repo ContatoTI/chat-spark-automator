@@ -5,7 +5,6 @@ import { cn } from "@/lib/utils";
 import { 
   LayoutDashboard, 
   MessageSquare, 
-  History, 
   Settings,
   Users,
   LogOut
@@ -73,12 +72,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ open }) => {
               icon={MessageSquare}
               label="Campanhas"
               active={currentPath === "/campaigns"}
-            />
-            <SidebarLink
-              to="/history"
-              icon={History}
-              label="Histórico"
-              active={currentPath === "/history"}
             />
             
             {/* Exibir links apenas para administradores */}

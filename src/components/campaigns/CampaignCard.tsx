@@ -31,6 +31,7 @@ interface CampaignCardProps {
   onEdit: (campaign: Campaign) => void;
   onDelete: (id: number) => void;
   onSendNow: (campaign: Campaign) => void;
+  onDuplicate: (campaign: Campaign) => void;
   isSending: boolean;
 }
 
@@ -39,6 +40,7 @@ export const CampaignCard: React.FC<CampaignCardProps> = ({
   onEdit,
   onDelete,
   onSendNow,
+  onDuplicate,
   isSending
 }) => {
   const formatDate = (dateString: string | null) => {
@@ -157,30 +159,44 @@ export const CampaignCard: React.FC<CampaignCardProps> = ({
             </AlertDialogContent>
           </AlertDialog>
           
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="w-full">
-                <MoreHorizontal className="mr-2 h-4 w-4" />
-                Ações
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-40">
-              <DropdownMenuLabel>Opções</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem>
-                <Copy className="mr-2 h-4 w-4" />
-                Duplicar
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem 
-                className="text-red-600"
-                onClick={() => campaign.id && onDelete(campaign.id)}
+          <Button
+            variant="outline"
+            className="w-full"
+            onClick={() => onDuplicate(campaign)}
+          >
+            <Copy className="mr-2 h-4 w-4" />
+            Duplicar
+          </Button>
+          
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button
+                variant="outline"
+                className="w-full border-red-500 hover:bg-red-50 text-red-600"
               >
                 <Trash2 className="mr-2 h-4 w-4" />
                 Excluir
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Deseja realmente excluir a campanha "{campaign.nome}"?
+                  Esta ação não pode ser desfeita.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                <AlertDialogAction 
+                  onClick={() => campaign.id && onDelete(campaign.id)}
+                  className="bg-red-500 hover:bg-red-600"
+                >
+                  Excluir
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </CardFooter>
       </div>
     </Card>
