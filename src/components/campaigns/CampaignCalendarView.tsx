@@ -87,17 +87,17 @@ export const CampaignCalendarView: React.FC<CampaignCalendarViewProps> = ({
   const getCampaignBgColor = (status: string) => {
     switch (status) {
       case 'rascunho':
-        return 'bg-yellow-100 border-yellow-200 dark:bg-yellow-900/20 dark:border-yellow-800/50';
+        return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/50 dark:text-yellow-200';
       case 'agendada':
-        return 'bg-blue-100 border-blue-200 dark:bg-blue-900/20 dark:border-blue-800/50';
+        return 'bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-200';
       case 'em_andamento':
-        return 'bg-amber-100 border-amber-200 dark:bg-amber-900/20 dark:border-amber-800/50';
+        return 'bg-amber-100 text-amber-800 dark:bg-amber-900/50 dark:text-amber-200';
       case 'concluida':
-        return 'bg-green-100 border-green-200 dark:bg-green-900/20 dark:border-green-800/50';
+        return 'bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-200';
       case 'failed':
-        return 'bg-red-100 border-red-200 dark:bg-red-900/20 dark:border-red-800/50';
+        return 'bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-200';
       default:
-        return 'bg-gray-100 border-gray-200 dark:bg-gray-800 dark:border-gray-700';
+        return 'bg-gray-100 text-gray-800 dark:bg-gray-800/70 dark:text-gray-200';
     }
   };
 
@@ -110,8 +110,8 @@ export const CampaignCalendarView: React.FC<CampaignCalendarViewProps> = ({
     return (
       <div 
         className={cn(
-          "relative h-full min-h-[100px] w-full border-t p-0",
-          isCurrentDay ? "bg-blue-50 dark:bg-blue-900/10" : "hover:bg-slate-50/50 dark:hover:bg-slate-900/20"
+          "relative h-full w-full min-h-[110px] p-0",
+          isCurrentDay ? "bg-blue-50/70 dark:bg-blue-900/10" : "hover:bg-slate-50/50 dark:hover:bg-slate-900/20"
         )}
         onDragOver={(e) => {
           e.preventDefault();
@@ -127,17 +127,17 @@ export const CampaignCalendarView: React.FC<CampaignCalendarViewProps> = ({
         }}
       >
         <div className={cn(
-          "absolute top-1 right-1 font-medium text-sm",
-          isCurrentDay ? "text-sm h-6 w-6 rounded-full bg-blue-500 text-white flex items-center justify-center" : "text-muted-foreground"
+          "absolute top-1 right-1 font-medium text-sm z-10",
+          isCurrentDay ? "h-7 w-7 rounded-full bg-blue-500 text-white flex items-center justify-center" : "text-muted-foreground"
         )}>
           {day.getDate()}
         </div>
-        <div className="pt-7 px-1 space-y-1 overflow-visible">
+        <div className="h-full pt-7 px-1 space-y-1">
           {dayCampaigns.map((campaign) => (
             <div 
               key={campaign.id}
               className={cn(
-                "px-2 py-1 text-xs rounded-md border cursor-move transition-all duration-100",
+                "px-2 py-1 text-sm h-[calc(100%-24px)] w-full rounded-md cursor-move transition-all duration-100",
                 getCampaignBgColor(campaign.status)
               )}
               draggable
@@ -145,14 +145,14 @@ export const CampaignCalendarView: React.FC<CampaignCalendarViewProps> = ({
               onDragEnd={handleDragEnd}
             >
               <div className="flex items-center justify-between">
-                <div className="font-medium truncate max-w-[85%]">
-                  {campaign.nome.length > 18 ? campaign.nome.substring(0, 16) + '...' : campaign.nome}
+                <div className="font-medium truncate max-w-[80%]">
+                  {campaign.nome}
                 </div>
                 <button 
                   onClick={(e) => { e.stopPropagation(); onEdit(campaign); }}
-                  className="text-gray-500 hover:text-blue-500 transition-colors"
+                  className="text-inherit hover:text-blue-500 transition-colors"
                 >
-                  <Edit className="h-3.5 w-3.5" />
+                  <Edit className="h-4 w-4" />
                   <span className="sr-only">Editar</span>
                 </button>
               </div>
