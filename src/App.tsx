@@ -9,7 +9,6 @@ import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import Index from "./pages/Index";
 import Contacts from "./pages/Contacts";
 import Campaigns from "./pages/Campaigns";
-import History from "./pages/History";
 import Settings from "./pages/Settings";
 import Users from "./pages/Users";
 import Login from "./pages/Login";
@@ -33,7 +32,6 @@ const App = () => (
               <Route path="/" element={<Index />} />
               <Route path="/contacts" element={<Contacts />} />
               <Route path="/campaigns" element={<Campaigns />} />
-              <Route path="/history" element={<History />} />
             </Route>
             
             {/* Rotas que apenas administradores podem acessar */}

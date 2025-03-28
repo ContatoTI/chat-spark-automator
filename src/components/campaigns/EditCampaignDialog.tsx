@@ -30,6 +30,7 @@ import { updateCampaign, Campaign } from "@/lib/api/campaigns";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { format } from "date-fns";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface EditCampaignDialogProps {
   open: boolean;
@@ -57,7 +58,7 @@ export const EditCampaignDialog: React.FC<EditCampaignDialogProps> = ({
   
   const [producao, setProducao] = useState(false);
   const [limiteDisparos, setLimiteDisparos] = useState(1000);
-  const [enviados, setEnviados] = useState(0);
+  const enviados = campaign?.enviados || 0;
   
   useEffect(() => {
     if (campaign && open) {
@@ -88,7 +89,6 @@ export const EditCampaignDialog: React.FC<EditCampaignDialogProps> = ({
       
       setProducao(campaign.producao !== undefined ? campaign.producao : false);
       setLimiteDisparos(campaign.limite_disparos || 1000);
-      setEnviados(campaign.enviados || 0);
     }
   }, [campaign, open]);
   
@@ -107,7 +107,6 @@ export const EditCampaignDialog: React.FC<EditCampaignDialogProps> = ({
       setActiveTab("message");
       setProducao(false);
       setLimiteDisparos(1000);
-      setEnviados(0);
     }
   }, [open]);
   
@@ -170,8 +169,7 @@ export const EditCampaignDialog: React.FC<EditCampaignDialogProps> = ({
       data_disparo: finalDateTime ? finalDateTime.toISOString() : null,
       status: calculateStatus(enviados, limiteDisparos, finalDateTime),
       producao: producao,
-      limite_disparos: limiteDisparos,
-      enviados: enviados
+      limite_disparos: limiteDisparos
     };
     
     updateMutation.mutate({ id: campaign.id, updatedCampaign });
@@ -534,19 +532,21 @@ export const EditCampaignDialog: React.FC<EditCampaignDialogProps> = ({
                 <div className="flex flex-col items-end gap-2">
                   <div className="grid w-full max-w-sm items-center gap-1.5">
                     <Label htmlFor="schedule-time">Horário</Label>
-                    <select
-                      id="schedule-time"
-                      className="w-auto px-3 py-2 rounded-md border border-input bg-background"
+                    <Select
                       value={scheduleTime}
-                      onChange={(e) => setScheduleTime(e.target.value)}
+                      onValueChange={setScheduleTime}
                     >
-                      <option value="">Selecione</option>
-                      {timeOptions.map((option) => (
-                        <option key={option.value} value={option.value}>
-                          {option.label}
-                        </option>
-                      ))}
-                    </select>
+                      <SelectTrigger className="w-[180px]">
+                        <SelectValue placeholder="Selecione o horário" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {timeOptions.map((option) => (
+                          <SelectItem key={option.value} value={option.value}>
+                            {option.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                   
                   <div className="grid w-full max-w-sm items-center gap-1.5">
