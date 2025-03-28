@@ -2,15 +2,14 @@
 import React from "react";
 import { 
   Users, 
-  CheckCircle, 
-  Clock, 
-  AlertTriangle
+  AlertTriangle,
+  RefreshCw
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import { Skeleton } from "../ui/skeleton";
 import { supabase } from "@/lib/supabase";
-import { fetchDisparoOptions } from "@/lib/api/settings";
+import { Button } from "../ui/button";
 
 interface StatCardProps {
   title: string;
@@ -76,55 +75,25 @@ const StatCard: React.FC<StatCardProps> = ({
 // Função para buscar estatísticas de contatos do Supabase
 const fetchContactsStats = async () => {
   try {
-    // Buscar número total de contatos diretamente na tabela Contatos
+    // Buscar número total de contatos da tabela AppW_Contatos
     const { count: total, error: totalError } = await supabase
-      .from('Contatos')
+      .from('AppW_Contatos')
       .select('*', { count: 'exact', head: true });
 
     if (totalError) throw totalError;
 
-    // Buscar número de contatos enviados
-    const { count: sent, error: sentError } = await supabase
-      .from('Contatos')
-      .select('*', { count: 'exact', head: true })
-      .eq('Enviado', true);
-
-    if (sentError) throw sentError;
-
-    // Buscar número de contatos restantes
-    const { count: remaining, error: remainingError } = await supabase
-      .from('Contatos')
-      .select('*', { count: 'exact', head: true })
-      .eq('Enviado', false);
-
-    if (remainingError) throw remainingError;
-
     // Buscar número de contatos inválidos
     const { count: invalid, error: invalidError } = await supabase
-      .from('Contatos')
+      .from('AppW_Contatos')
       .select('*', { count: 'exact', head: true })
       .eq('Invalido', 'Invalido');
 
     if (invalidError) throw invalidError;
 
-    // Buscar o valor 'enviados' diretamente da tabela AppW_Options
-    const { data: optionsData, error: optionsError } = await supabase
-      .from('AppW_Options')
-      .select('*')
-      .eq('option', 'enviados')
-      .single();
-
-    if (optionsError) throw optionsError;
-    
-    // Obter o valor numeric da opção 'enviados'
-    const settingsEnviados = optionsData?.numeric || 0;
-
-    console.log("Estatísticas de contatos:", { total, sent, remaining, invalid, settingsEnviados });
+    console.log("Estatísticas de contatos:", { total, invalid });
     
     return {
       total: total || 0,
-      sent: settingsEnviados || 0, // Usar o valor diretamente da opção 'enviados'
-      remaining: remaining || 0,
       invalid: invalid || 0
     };
   } catch (error) {
@@ -134,7 +103,7 @@ const fetchContactsStats = async () => {
 };
 
 export const DashboardStats: React.FC = () => {
-  const { data: contactsStats, isLoading, error } = useQuery({
+  const { data: contactsStats, isLoading, error, refetch } = useQuery({
     queryKey: ['contactsStats'],
     queryFn: fetchContactsStats,
   });
@@ -143,36 +112,40 @@ export const DashboardStats: React.FC = () => {
     console.error("Erro ao buscar estatísticas do dashboard:", error);
   }
 
+  const handleRefresh = () => {
+    refetch();
+  };
+
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-      <StatCard
-        title="Número de Contatos"
-        value={isLoading ? 0 : contactsStats?.total || 0}
-        icon={Users}
-        description="Total de contatos"
-        isLoading={isLoading}
-      />
-      <StatCard
-        title="Enviados"
-        value={isLoading ? 0 : contactsStats?.sent || 0}
-        icon={CheckCircle}
-        description="Contatos com Enviado=TRUE"
-        isLoading={isLoading}
-      />
-      <StatCard
-        title="Restantes"
-        value={isLoading ? 0 : contactsStats?.remaining || 0}
-        icon={Clock}
-        description="Contatos com Enviado=FALSE"
-        isLoading={isLoading}
-      />
-      <StatCard
-        title="Inválidos"
-        value={isLoading ? 0 : contactsStats?.invalid || 0}
-        icon={AlertTriangle}
-        description="Contatos com Invalido='Invalido'"
-        isLoading={isLoading}
-      />
+    <div className="space-y-6">
+      <div className="flex justify-end">
+        <Button 
+          variant="outline" 
+          size="sm" 
+          onClick={handleRefresh}
+          className="flex items-center gap-1"
+        >
+          <RefreshCw className="h-4 w-4" />
+          Atualizar
+        </Button>
+      </div>
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <StatCard
+          title="Número de Contatos"
+          value={isLoading ? 0 : contactsStats?.total || 0}
+          icon={Users}
+          description="Total de contatos na base"
+          isLoading={isLoading}
+        />
+        <StatCard
+          title="Inválidos"
+          value={isLoading ? 0 : contactsStats?.invalid || 0}
+          icon={AlertTriangle}
+          description="Contatos com Invalido='Invalido'"
+          isLoading={isLoading}
+        />
+      </div>
     </div>
   );
 };

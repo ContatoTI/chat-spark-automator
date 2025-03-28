@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { 
   Dialog, 
@@ -156,14 +155,12 @@ export const EditCampaignDialog: React.FC<EditCampaignDialogProps> = ({
     }
   };
   
-  // Função para ajustar o horário em intervalos de 30 minutos
   const adjustTimeToIntervals = (dateTimeStr: string): string => {
     if (!dateTimeStr) return "";
     
     const date = new Date(dateTimeStr);
     const minutes = date.getMinutes();
     
-    // Arredondar para o intervalo de 30 minutos mais próximo
     date.setMinutes(minutes < 15 ? 0 : minutes < 45 ? 30 : 0);
     if (minutes >= 45) {
       date.setHours(date.getHours() + 1);
@@ -174,7 +171,43 @@ export const EditCampaignDialog: React.FC<EditCampaignDialogProps> = ({
     return date.toISOString().slice(0, 16);
   };
 
+  const generateTimeOptions = (): { value: string, label: string }[] => {
+    const options = [];
+    const now = new Date();
+    const startDate = new Date(now);
+    startDate.setHours(0, 0, 0, 0);
+    
+    for (let day = 0; day < 7; day++) {
+      const currentDate = new Date(startDate);
+      currentDate.setDate(currentDate.getDate() + day);
+      
+      for (let hour = 0; hour < 24; hour++) {
+        for (let minute of [0, 30]) {
+          currentDate.setHours(hour, minute, 0, 0);
+          
+          if (currentDate < now) continue;
+          
+          const value = currentDate.toISOString().slice(0, 16);
+          const formattedDate = currentDate.toLocaleDateString('pt-BR');
+          const formattedTime = currentDate.toLocaleTimeString('pt-BR', { 
+            hour: '2-digit', 
+            minute: '2-digit' 
+          });
+          
+          options.push({
+            value,
+            label: `${formattedDate} ${formattedTime}`
+          });
+        }
+      }
+    }
+    
+    return options;
+  };
+
   if (!campaign) return null;
+
+  const timeOptions = generateTimeOptions();
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -493,13 +526,18 @@ export const EditCampaignDialog: React.FC<EditCampaignDialogProps> = ({
                   <h4 className="font-medium">Agendar Envio</h4>
                   <p className="text-sm text-muted-foreground">Defina uma data e horário para envio automático</p>
                 </div>
-                <Input
-                  type="datetime-local"
-                  className="w-auto"
+                <select
+                  className="w-auto px-3 py-2 rounded-md border border-input bg-background"
                   value={scheduleDate}
-                  onChange={(e) => setScheduleDate(adjustTimeToIntervals(e.target.value))}
-                  step="1800" // Define passos de 30 minutos (1800 segundos)
-                />
+                  onChange={(e) => setScheduleDate(e.target.value)}
+                >
+                  <option value="">Selecione um horário</option>
+                  {timeOptions.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
               </div>
               
               <div className="flex p-4 border rounded-md bg-amber-50 dark:bg-amber-900/20 text-amber-800 dark:text-amber-300">
