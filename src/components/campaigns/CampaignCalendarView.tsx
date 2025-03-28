@@ -1,22 +1,12 @@
 
 import React, { useState } from "react";
 import { Campaign } from "@/lib/api/campaigns";
-import { 
-  Calendar,
-  CalendarCell,
-  CalendarCellProps,
-  CalendarControls,
-  CalendarGrid,
-  CalendarHeader,
-  CalendarHeading,
-  CalendarMonthValue,
-  CalendarValue,
-} from "@/components/ui/calendar";
+import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { CampaignStatusBadge } from "./CampaignStatusBadge";
 import { Edit, Trash2, Send, Copy } from "lucide-react";
-import { addMonths } from "date-fns";
+import { format } from "date-fns";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -60,37 +50,37 @@ export const CampaignCalendarView: React.FC<CampaignCalendarViewProps> = ({
     return acc;
   }, {});
 
-  // Renderiza uma célula do calendário com as campanhas do dia
-  const renderCampaignCell = (props: CalendarCellProps) => {
-    const { date } = props;
-    const dateStr = date.toDateString();
+  // Custom day renderer
+  const renderDay = (day: Date, selectedDays: Date[] | undefined, props: React.ComponentPropsWithRef<"div">) => {
+    const dateStr = day.toDateString();
     const dayCampaigns = campaignsByDate[dateStr] || [];
-
+    
     return (
-      <CalendarCell {...props}>
-        <div className="w-full h-full">
-          <div className="p-0.5">{date.getDate()}</div>
-          <div className="mt-1 max-h-20 overflow-y-auto">
-            {dayCampaigns.slice(0, 3).map((campaign) => (
-              <div 
-                key={campaign.id}
-                className="text-xs bg-slate-100 dark:bg-slate-800 p-1 mb-1 rounded cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-700 truncate"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onEdit(campaign);
-                }}
-              >
-                <div className="font-medium truncate">{campaign.nome}</div>
-              </div>
-            ))}
-            {dayCampaigns.length > 3 && (
-              <div className="text-xs text-center text-muted-foreground mt-1">
-                +{dayCampaigns.length - 3} mais
-              </div>
-            )}
-          </div>
+      <div 
+        {...props}
+        className={`${props.className} h-16 min-w-16 overflow-y-auto relative`}
+      >
+        <div className="absolute top-1 left-1 font-medium">{day.getDate()}</div>
+        <div className="mt-6 max-h-12 overflow-y-auto px-0.5">
+          {dayCampaigns.slice(0, 3).map((campaign) => (
+            <div 
+              key={campaign.id}
+              className="text-xs bg-slate-100 dark:bg-slate-800 p-1 mb-1 rounded cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-700 truncate"
+              onClick={(e) => {
+                e.stopPropagation();
+                onEdit(campaign);
+              }}
+            >
+              <div className="font-medium truncate">{campaign.nome}</div>
+            </div>
+          ))}
+          {dayCampaigns.length > 3 && (
+            <div className="text-xs text-center text-muted-foreground">
+              +{dayCampaigns.length - 3} mais
+            </div>
+          )}
         </div>
-      </CalendarCell>
+      </div>
     );
   };
 
@@ -226,10 +216,11 @@ export const CampaignCalendarView: React.FC<CampaignCalendarViewProps> = ({
         month={currentDate}
         onMonthChange={setCurrentDate}
         selected={undefined}
-        className="border rounded-md"
+        className="border rounded-md pointer-events-auto"
         components={{
-          Cell: renderCampaignCell
+          Day: renderDay
         }}
+        showOutsideDays
       />
       {renderMonthCampaigns()}
     </div>

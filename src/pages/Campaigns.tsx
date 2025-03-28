@@ -39,6 +39,19 @@ const Campaigns = () => {
     setEditCampaignDialogOpen(true);
   };
 
+  // Add duplicate campaign handler
+  const handleDuplicateCampaign = (campaign: import("@/lib/api/campaigns").Campaign) => {
+    // For now, just open the dialog with campaign data for user to modify
+    setSelectedCampaign({
+      ...campaign,
+      id: null, // Clear ID for new campaign
+      nome: `Cópia de ${campaign.nome}`,
+      enviados: 0, // Reset sent count
+      status: 'rascunho' // Reset status to draft
+    });
+    setNewCampaignDialogOpen(true);
+  };
+
   const filteredCampaigns = campaigns
     .filter((campaign) => {
       const matchesSearch = campaign.nome.toLowerCase().includes(searchQuery.toLowerCase());
@@ -118,6 +131,7 @@ const Campaigns = () => {
               onEdit={openEditDialog}
               onDelete={handleDeleteCampaign}
               onSendNow={handleSendCampaignNow}
+              onDuplicate={handleDuplicateCampaign}
               onNewCampaign={() => setNewCampaignDialogOpen(true)}
               isSending={sendNowMutation.isPending}
             />
