@@ -2,11 +2,10 @@
 import React, { useState } from "react";
 import { Campaign } from "@/lib/api/campaigns";
 import { Calendar } from "@/components/ui/calendar";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { CampaignStatusBadge } from "./CampaignStatusBadge";
 import { Edit, Trash2, Send, Copy } from "lucide-react";
-import { format } from "date-fns";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -18,7 +17,9 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { DayProps } from "react-day-picker";
+import { toast } from "sonner";
+import { supabase } from "@/lib/supabase";
+import { updateCampaign } from "@/lib/api/campaigns";
 
 interface CampaignCalendarViewProps {
   campaigns: Campaign[];
@@ -38,6 +39,7 @@ export const CampaignCalendarView: React.FC<CampaignCalendarViewProps> = ({
   isSending
 }) => {
   const [currentDate, setCurrentDate] = useState<Date>(new Date());
+  const [draggingCampaign, setDraggingCampaign] = useState<Campaign | null>(null);
 
   // Agrupa campanhas por data
   const campaignsByDate = campaigns.reduce<Record<string, Campaign[]>>((acc, campaign) => {
@@ -51,161 +53,145 @@ export const CampaignCalendarView: React.FC<CampaignCalendarViewProps> = ({
     return acc;
   }, {});
 
-  // Custom day renderer that works with react-day-picker
-  const renderDay = (props: DayProps) => {
-    const { date: day } = props;
-    // Use format to get a safe date string or check if the day is a proper Date
-    const dateStr = day instanceof Date ? day.toDateString() : '';
+  // Função para lidar com o início do arraste
+  const handleDragStart = (campaign: Campaign) => {
+    setDraggingCampaign(campaign);
+  };
+
+  // Função para lidar com o término do arraste
+  const handleDragEnd = () => {
+    setDraggingCampaign(null);
+  };
+
+  // Função para lidar com o soltar em uma data
+  const handleDropOnDate = async (date: Date) => {
+    if (!draggingCampaign || !draggingCampaign.id) return;
+
+    try {
+      // Atualizar a data da campanha
+      const updatedCampaign = {
+        ...draggingCampaign,
+        data_disparo: date.toISOString()
+      };
+
+      // Chamar API para atualizar a campanha
+      await updateCampaign(draggingCampaign.id, { data_disparo: date.toISOString() });
+      
+      // Mostrar notificação de sucesso
+      toast.success(`Campanha "${draggingCampaign.nome}" reagendada para ${date.toLocaleDateString("pt-BR")}`);
+
+      // Limpar o estado de arraste
+      setDraggingCampaign(null);
+    } catch (error) {
+      console.error("Erro ao reagendar campanha:", error);
+      toast.error("Erro ao reagendar campanha");
+    }
+  };
+
+  // Custom day renderer for Calendar
+  const renderDay = (day: Date) => {
+    const dateStr = day.toDateString();
     const dayCampaigns = campaignsByDate[dateStr] || [];
     
     return (
       <div 
-        {...props}
-        className="h-16 min-w-16 overflow-y-auto relative"
+        className="relative min-h-24 border-t p-1 hover:bg-slate-50 dark:hover:bg-slate-900/50 transition-colors"
+        onDragOver={(e) => {
+          e.preventDefault();
+          e.currentTarget.classList.add('bg-slate-100', 'dark:bg-slate-800');
+        }}
+        onDragLeave={(e) => {
+          e.currentTarget.classList.remove('bg-slate-100', 'dark:bg-slate-800');
+        }}
+        onDrop={(e) => {
+          e.preventDefault();
+          e.currentTarget.classList.remove('bg-slate-100', 'dark:bg-slate-800');
+          handleDropOnDate(day);
+        }}
       >
-        <div className="absolute top-1 left-1 font-medium">{day instanceof Date ? day.getDate() : ''}</div>
-        <div className="mt-6 max-h-12 overflow-y-auto px-0.5">
-          {dayCampaigns.slice(0, 3).map((campaign) => (
+        <div className="absolute top-1 left-1 font-medium text-muted-foreground text-sm">
+          {day.getDate()}
+        </div>
+        <div className="pt-5 max-h-40 overflow-y-auto space-y-1">
+          {dayCampaigns.map((campaign) => (
             <div 
               key={campaign.id}
-              className="text-xs bg-slate-100 dark:bg-slate-800 p-1 mb-1 rounded cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-700 truncate"
-              onClick={(e) => {
-                e.stopPropagation();
-                onEdit(campaign);
-              }}
+              className="text-xs bg-white dark:bg-slate-800 shadow-sm p-1.5 rounded cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+              onClick={(e) => e.stopPropagation()}
+              draggable
+              onDragStart={() => handleDragStart(campaign)}
+              onDragEnd={handleDragEnd}
             >
-              <div className="font-medium truncate">{campaign.nome}</div>
-            </div>
-          ))}
-          {dayCampaigns.length > 3 && (
-            <div className="text-xs text-center text-muted-foreground">
-              +{dayCampaigns.length - 3} mais
-            </div>
-          )}
-        </div>
-      </div>
-    );
-  };
-
-  // Renderiza a lista de campanhas para o mês atual
-  const renderMonthCampaigns = () => {
-    const currentMonth = currentDate.getMonth();
-    const currentYear = currentDate.getFullYear();
-    
-    const monthCampaigns = campaigns.filter(campaign => {
-      if (!campaign.data_disparo) return false;
-      const campaignDate = new Date(campaign.data_disparo);
-      return campaignDate.getMonth() === currentMonth && 
-             campaignDate.getFullYear() === currentYear;
-    });
-
-    if (monthCampaigns.length === 0) {
-      return (
-        <Card className="mt-4">
-          <CardContent className="p-6 text-center text-muted-foreground">
-            Nenhuma campanha agendada para este mês
-          </CardContent>
-        </Card>
-      );
-    }
-
-    return (
-      <div className="mt-4 space-y-2">
-        <h3 className="text-lg font-medium">Campanhas do mês</h3>
-        <div className="grid gap-2">
-          {monthCampaigns.map(campaign => (
-            <Card key={campaign.id} className="overflow-hidden">
-              <CardContent className="p-3">
-                <div className="flex justify-between items-center gap-2">
-                  <div>
-                    <div className="font-medium">{campaign.nome}</div>
-                    <div className="text-sm flex items-center mt-1">
-                      <CampaignStatusBadge status={campaign.status} />
-                    </div>
-                  </div>
-                  <div className="flex gap-1">
-                    <Button 
-                      variant="ghost" 
-                      size="sm"
-                      className="h-8 w-8 p-0"
-                      onClick={() => onEdit(campaign)}
-                    >
-                      <Edit className="h-4 w-4" />
-                      <span className="sr-only">Editar</span>
-                    </Button>
-                    
-                    <Button 
-                      variant="ghost" 
-                      size="sm"
-                      className="h-8 w-8 p-0"
-                      onClick={() => onDuplicate(campaign)}
-                    >
-                      <Copy className="h-4 w-4" />
-                      <span className="sr-only">Duplicar</span>
-                    </Button>
-                    
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button 
-                          variant="ghost" 
-                          size="sm"
-                          className="h-8 w-8 p-0 text-green-600"
+              <div className="font-medium truncate mb-1">{campaign.nome}</div>
+              <div className="flex items-center justify-between gap-1">
+                <CampaignStatusBadge status={campaign.status} />
+                <div className="flex gap-1">
+                  <button 
+                    onClick={(e) => { e.stopPropagation(); onEdit(campaign); }}
+                    className="text-slate-500 hover:text-blue-500 transition-colors p-0.5"
+                  >
+                    <Edit className="h-3 w-3" />
+                    <span className="sr-only">Editar</span>
+                  </button>
+                  <button 
+                    onClick={(e) => { e.stopPropagation(); onDuplicate(campaign); }}
+                    className="text-slate-500 hover:text-blue-500 transition-colors p-0.5"
+                  >
+                    <Copy className="h-3 w-3" />
+                    <span className="sr-only">Duplicar</span>
+                  </button>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <button className="text-slate-500 hover:text-green-500 transition-colors p-0.5">
+                        <Send className="h-3 w-3" />
+                        <span className="sr-only">Enviar agora</span>
+                      </button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Confirmar envio</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Deseja realmente disparar a campanha "{campaign.nome}" agora?
+                          Esta ação não pode ser desfeita.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                        <AlertDialogAction onClick={() => onSendNow(campaign)}>
+                          Enviar
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <button className="text-slate-500 hover:text-red-500 transition-colors p-0.5">
+                        <Trash2 className="h-3 w-3" />
+                        <span className="sr-only">Excluir</span>
+                      </button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Deseja realmente excluir a campanha "{campaign.nome}"?
+                          Esta ação não pode ser desfeita.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                        <AlertDialogAction 
+                          onClick={() => campaign.id && onDelete(campaign.id)}
+                          className="bg-red-500 hover:bg-red-600"
                         >
-                          <Send className="h-4 w-4" />
-                          <span className="sr-only">Enviar agora</span>
-                        </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>Confirmar envio</AlertDialogTitle>
-                          <AlertDialogDescription>
-                            Deseja realmente disparar a campanha "{campaign.nome}" agora?
-                            Esta ação não pode ser desfeita.
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                          <AlertDialogAction onClick={() => onSendNow(campaign)}>
-                            Enviar
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
-                    
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button 
-                          variant="ghost" 
-                          size="sm"
-                          className="h-8 w-8 p-0 text-red-600"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                          <span className="sr-only">Excluir</span>
-                        </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
-                          <AlertDialogDescription>
-                            Deseja realmente excluir a campanha "{campaign.nome}"?
-                            Esta ação não pode ser desfeita.
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                          <AlertDialogAction 
-                            onClick={() => campaign.id && onDelete(campaign.id)}
-                            className="bg-red-500 hover:bg-red-600"
-                          >
-                            Excluir
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
-                  </div>
+                          Excluir
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           ))}
         </div>
       </div>
@@ -214,18 +200,29 @@ export const CampaignCalendarView: React.FC<CampaignCalendarViewProps> = ({
 
   return (
     <div className="space-y-4">
-      <Calendar
-        mode="single"
-        month={currentDate}
-        onMonthChange={setCurrentDate}
-        selected={undefined}
-        className="border rounded-md pointer-events-auto"
-        components={{
-          Day: renderDay
-        }}
-        showOutsideDays
-      />
-      {renderMonthCampaigns()}
+      <Card className="overflow-hidden border rounded-md">
+        <div className="p-0">
+          <Calendar
+            mode="single"
+            month={currentDate}
+            onMonthChange={setCurrentDate}
+            selected={undefined}
+            className="w-full"
+            showOutsideDays={true}
+            fixedWeeks={true}
+            ISOWeek={false}
+            formatters={{
+              formatDay: (date) => {
+                // Render customized days
+                return renderDay(date);
+              },
+            }}
+          />
+        </div>
+      </Card>
+      <div className="text-center text-sm text-muted-foreground">
+        Arraste e solte as campanhas para reagendá-las
+      </div>
     </div>
   );
 };

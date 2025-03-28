@@ -11,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { insertSampleCampaigns } from "@/lib/api/campaigns";
 import { CampaignList } from "@/components/campaigns/CampaignList";
 import { useCampaignOperations } from "@/hooks/useCampaignOperations";
+import useCampaignStatusCalculator from "@/hooks/useCampaignStatusCalculator";
 
 const Campaigns = () => {
   const [newCampaignDialogOpen, setNewCampaignDialogOpen] = useState(false);
@@ -19,7 +20,7 @@ const Campaigns = () => {
   const [selectedTab, setSelectedTab] = useState<string>("all");
   
   const {
-    campaigns,
+    campaigns: rawCampaigns,
     isLoading,
     error,
     selectedCampaign,
@@ -29,6 +30,10 @@ const Campaigns = () => {
     handleEditCampaign,
     sendNowMutation
   } = useCampaignOperations();
+  
+  // Use o hook de cálculo de status para garantir que todas as campanhas tenham o status correto
+  const { updateCampaignsStatus } = useCampaignStatusCalculator();
+  const campaigns = updateCampaignsStatus(rawCampaigns);
 
   React.useEffect(() => {
     insertSampleCampaigns().catch(console.error);
@@ -55,7 +60,18 @@ const Campaigns = () => {
   const filteredCampaigns = campaigns
     .filter((campaign) => {
       const matchesSearch = campaign.nome.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchesTab = selectedTab === "all" || campaign.status === selectedTab;
+      
+      // Mapeie os nomes de abas em inglês para os valores de status em português
+      let statusFilter;
+      switch (selectedTab) {
+        case "draft": statusFilter = "rascunho"; break;
+        case "scheduled": statusFilter = "agendada"; break;
+        case "sending": statusFilter = "em_andamento"; break;
+        case "completed": statusFilter = "concluida"; break;
+        default: statusFilter = null;
+      }
+      
+      const matchesTab = selectedTab === "all" || (statusFilter && campaign.status === statusFilter);
       return matchesSearch && matchesTab;
     });
     
