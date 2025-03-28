@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import { updateCampaign } from "@/lib/api/campaigns";
+import { cn } from "@/lib/utils";
 
 interface CampaignCalendarViewProps {
   campaigns: Campaign[];
@@ -86,14 +87,44 @@ export const CampaignCalendarView: React.FC<CampaignCalendarViewProps> = ({
     }
   };
 
+  // Função para verificar se uma data é hoje
+  const isToday = (date: Date) => {
+    const today = new Date();
+    return date.getDate() === today.getDate() &&
+           date.getMonth() === today.getMonth() &&
+           date.getFullYear() === today.getFullYear();
+  };
+
+  // Função para obter cor de fundo baseada no status da campanha
+  const getCampaignBgColor = (status: string) => {
+    switch (status) {
+      case 'rascunho':
+        return 'bg-slate-100 border-slate-200 dark:bg-slate-800 dark:border-slate-700';
+      case 'agendada':
+        return 'bg-blue-50 border-blue-200 dark:bg-blue-900/20 dark:border-blue-800/50';
+      case 'em_andamento':
+        return 'bg-amber-50 border-amber-200 dark:bg-amber-900/20 dark:border-amber-800/50';
+      case 'concluida':
+        return 'bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-800/50';
+      case 'failed':
+        return 'bg-red-50 border-red-200 dark:bg-red-900/20 dark:border-red-800/50';
+      default:
+        return 'bg-slate-100 border-slate-200 dark:bg-slate-800 dark:border-slate-700';
+    }
+  };
+
   // Custom day renderer for Calendar
   const renderDay = (day: Date) => {
     const dateStr = day.toDateString();
     const dayCampaigns = campaignsByDate[dateStr] || [];
+    const isCurrentDay = isToday(day);
     
     return (
       <div 
-        className="relative h-full min-h-[120px] border-t hover:bg-slate-50 dark:hover:bg-slate-900/50 transition-colors"
+        className={cn(
+          "relative h-full min-h-[120px] border-t hover:bg-slate-50 dark:hover:bg-slate-900/50 transition-colors",
+          isCurrentDay && "bg-blue-50 dark:bg-blue-900/20"
+        )}
         onDragOver={(e) => {
           e.preventDefault();
           e.currentTarget.classList.add('bg-slate-100', 'dark:bg-slate-800');
@@ -107,86 +138,33 @@ export const CampaignCalendarView: React.FC<CampaignCalendarViewProps> = ({
           handleDropOnDate(day);
         }}
       >
-        <div className="absolute top-1 left-2 font-semibold text-sm">
+        <div className={cn(
+          "absolute top-1 left-2 font-semibold text-sm",
+          isCurrentDay && "bg-blue-500 text-white rounded-full w-6 h-6 flex items-center justify-center"
+        )}>
           {day.getDate()}
         </div>
         <div className="pt-6 px-1 max-h-[150px] overflow-y-auto space-y-1">
           {dayCampaigns.map((campaign) => (
             <div 
               key={campaign.id}
-              className="text-xs bg-white dark:bg-slate-800 shadow-sm p-1.5 rounded cursor-move hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+              className={cn(
+                "text-xs p-2 rounded-md border shadow-sm cursor-move hover:shadow-md transition-all duration-200",
+                getCampaignBgColor(campaign.status)
+              )}
               draggable
               onDragStart={() => handleDragStart(campaign)}
               onDragEnd={handleDragEnd}
             >
-              <div className="font-medium truncate mb-1">{campaign.nome}</div>
-              <div className="flex items-center justify-between gap-1">
-                <CampaignStatusBadge status={campaign.status} />
-                <div className="flex gap-1">
-                  <button 
-                    onClick={(e) => { e.stopPropagation(); onEdit(campaign); }}
-                    className="text-slate-500 hover:text-blue-500 transition-colors p-0.5"
-                  >
-                    <Edit className="h-3 w-3" />
-                    <span className="sr-only">Editar</span>
-                  </button>
-                  <button 
-                    onClick={(e) => { e.stopPropagation(); onDuplicate(campaign); }}
-                    className="text-slate-500 hover:text-blue-500 transition-colors p-0.5"
-                  >
-                    <Copy className="h-3 w-3" />
-                    <span className="sr-only">Duplicar</span>
-                  </button>
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <button className="text-slate-500 hover:text-green-500 transition-colors p-0.5">
-                        <Send className="h-3 w-3" />
-                        <span className="sr-only">Enviar agora</span>
-                      </button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Confirmar envio</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          Deseja realmente disparar a campanha "{campaign.nome}" agora?
-                          Esta ação não pode ser desfeita.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                        <AlertDialogAction onClick={() => onSendNow(campaign)}>
-                          Enviar
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <button className="text-slate-500 hover:text-red-500 transition-colors p-0.5">
-                        <Trash2 className="h-3 w-3" />
-                        <span className="sr-only">Excluir</span>
-                      </button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          Deseja realmente excluir a campanha "{campaign.nome}"?
-                          Esta ação não pode ser desfeita.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                        <AlertDialogAction 
-                          onClick={() => campaign.id && onDelete(campaign.id)}
-                          className="bg-red-500 hover:bg-red-600"
-                        >
-                          Excluir
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
-                </div>
+              <div className="flex items-center justify-between gap-2">
+                <div className="font-medium truncate flex-1">{campaign.nome}</div>
+                <button 
+                  onClick={(e) => { e.stopPropagation(); onEdit(campaign); }}
+                  className="text-slate-500 hover:text-blue-500 transition-colors p-0.5 rounded-full hover:bg-white"
+                >
+                  <Edit className="h-4 w-4" />
+                  <span className="sr-only">Editar</span>
+                </button>
               </div>
             </div>
           ))}
