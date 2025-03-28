@@ -2,7 +2,7 @@
 import { Campaign } from "@/lib/api/campaigns";
 
 // Tipo para status da campanha baseado nas regras definidas
-export type CampaignStatus = 'agendada' | 'em_andamento' | 'concluida' | 'rascunho';
+export type CampaignStatus = 'rascunho' | 'agendada' | 'em_andamento' | 'concluida';
 
 export const useCampaignStatusCalculator = () => {
   /**

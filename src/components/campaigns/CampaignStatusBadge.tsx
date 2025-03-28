@@ -3,9 +3,35 @@ import React from "react";
 import { CheckCircle, Clock, Edit, Calendar, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-export type CampaignStatus = "draft" | "scheduled" | "sending" | "completed" | "failed";
+export type CampaignStatus = "rascunho" | "agendada" | "em_andamento" | "concluida" | "failed";
 
 const statusConfig = {
+  rascunho: {
+    label: "Rascunho",
+    icon: Edit,
+    className: "text-slate-500 bg-slate-100 dark:bg-slate-800",
+  },
+  agendada: {
+    label: "Agendada",
+    icon: Calendar,
+    className: "text-blue-500 bg-blue-100 dark:bg-blue-900/20",
+  },
+  em_andamento: {
+    label: "Em andamento",
+    icon: Clock,
+    className: "text-amber-500 bg-amber-100 dark:bg-amber-900/20",
+  },
+  concluida: {
+    label: "Concluída",
+    icon: CheckCircle,
+    className: "text-green-500 bg-green-100 dark:bg-green-900/20",
+  },
+  failed: {
+    label: "Falhou",
+    icon: AlertCircle,
+    className: "text-red-500 bg-red-100 dark:bg-red-900/20",
+  },
+  // Mapeamento dos status em inglês para retrocompatibilidade
   draft: {
     label: "Rascunho",
     icon: Edit,
@@ -17,7 +43,7 @@ const statusConfig = {
     className: "text-blue-500 bg-blue-100 dark:bg-blue-900/20",
   },
   sending: {
-    label: "Enviando",
+    label: "Em andamento",
     icon: Clock,
     className: "text-amber-500 bg-amber-100 dark:bg-amber-900/20",
   },
@@ -26,15 +52,10 @@ const statusConfig = {
     icon: CheckCircle,
     className: "text-green-500 bg-green-100 dark:bg-green-900/20",
   },
-  failed: {
-    label: "Falhou",
-    icon: AlertCircle,
-    className: "text-red-500 bg-red-100 dark:bg-red-900/20",
-  },
 };
 
 export const CampaignStatusBadge: React.FC<{ status: string }> = ({ status }) => {
-  const config = statusConfig[status as CampaignStatus] || statusConfig.draft;
+  const config = statusConfig[status as CampaignStatus] || statusConfig.rascunho;
   const Icon = config.icon;
   
   return (

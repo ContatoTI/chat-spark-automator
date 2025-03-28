@@ -9,7 +9,10 @@ import {
   Edit,
   MessageSquare,
   Users,
-  Zap
+  Zap,
+  Trash2,
+  Send,
+  Copy
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -20,6 +23,19 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { EditCampaignDialog } from "@/components/campaigns/EditCampaignDialog";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { useCampaignOperations } from "@/hooks/useCampaignOperations";
+import { useCampaignStatusCalculator } from "@/hooks/useCampaignStatusCalculator";
 
 type CampaignStatus = "draft" | "scheduled" | "sending" | "completed" | "failed";
 
@@ -70,18 +86,27 @@ export const RecentCampaigns: React.FC = () => {
   const [editCampaignDialogOpen, setEditCampaignDialogOpen] = useState(false);
   const [selectedCampaign, setSelectedCampaign] = useState<Campaign | null>(null);
   
-  const { data: campaigns = [], isLoading, error } = useQuery({
-    queryKey: ['campaigns'],
-    queryFn: fetchCampaigns,
-  });
+  const { 
+    campaigns = [], 
+    isLoading, 
+    error, 
+    handleDeleteCampaign,
+    handleSendCampaignNow,
+    sendNowMutation 
+  } = useCampaignOperations();
+
+  const { updateCampaignsStatus } = useCampaignStatusCalculator();
   
   const formatDate = (dateString: string | null) => {
     if (!dateString) return '-';
     return new Date(dateString).toLocaleDateString("pt-BR");
   };
   
+  // Atualiza o status das campanhas
+  const processedCampaigns = updateCampaignsStatus(campaigns);
+  
   // Show only the most recent 5 campaigns
-  const recentCampaigns = campaigns.slice(0, 5);
+  const recentCampaigns = processedCampaigns.slice(0, 5);
   
   // Function to get message preview (limited to 80 characters)
   const getMessagePreview = (message: string) => {
@@ -91,6 +116,19 @@ export const RecentCampaigns: React.FC = () => {
   
   const handleEditCampaign = (campaign: Campaign) => {
     setSelectedCampaign(campaign);
+    setEditCampaignDialogOpen(true);
+  };
+
+  // Function to duplicate campaign
+  const handleDuplicateCampaign = (campaign: Campaign) => {
+    // For now, just open the dialog with campaign data for user to modify
+    setSelectedCampaign({
+      ...campaign,
+      id: null, // Clear ID for new campaign
+      nome: `Cópia de ${campaign.nome}`,
+      enviados: 0, // Reset sent count
+      status: 'rascunho' // Reset status to draft
+    });
     setEditCampaignDialogOpen(true);
   };
 
@@ -142,8 +180,7 @@ export const RecentCampaigns: React.FC = () => {
                 <th className="text-left text-xs font-medium text-muted-foreground px-6 py-3">MENSAGEM</th>
                 <th className="text-left text-xs font-medium text-muted-foreground px-6 py-3">DATA</th>
                 <th className="text-left text-xs font-medium text-muted-foreground px-6 py-3">TIPO</th>
-                <th className="text-left text-xs font-medium text-muted-foreground px-6 py-3">ENVIADOS</th>
-                <th className="text-left text-xs font-medium text-muted-foreground px-6 py-3">LIMITE</th>
+                <th className="text-left text-xs font-medium text-muted-foreground px-6 py-3">ANDAMENTO</th>
                 <th className="text-left text-xs font-medium text-muted-foreground px-6 py-3">STATUS</th>
                 <th className="text-left text-xs font-medium text-muted-foreground px-6 py-3">AÇÕES</th>
               </tr>
@@ -179,34 +216,106 @@ export const RecentCampaigns: React.FC = () => {
                     {campaign.tipo_midia || "Texto"}
                   </td>
                   <td className="px-6 py-4">
-                    <div>
-                      <div className="flex items-center gap-2 mb-1">
-                        <Users className="h-4 w-4 text-blue-500" />
-                        {campaign.enviados || 0}
+                    <div className="flex flex-col gap-1">
+                      <div className="flex items-center justify-between text-xs">
+                        <span>Enviados:</span>
+                        <span className="font-medium">{campaign.enviados || 0}</span>
                       </div>
                       <Progress 
                         value={getProgressPercentage(campaign.enviados || 0, campaign.limite_disparos || 1)} 
-                        className="h-1.5 w-24"
+                        className="h-1.5 w-full"
                       />
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-2">
-                      <Users className="h-4 w-4 text-green-500" />
-                      {campaign.limite_disparos || 1000}
+                      <div className="flex items-center justify-between text-xs">
+                        <span>Limite:</span>
+                        <span className="font-medium">{campaign.limite_disparos || 1000}</span>
+                      </div>
                     </div>
                   </td>
                   <td className="px-6 py-4">
                     <CampaignStatusBadge status={campaign.status} />
                   </td>
                   <td className="px-6 py-4">
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      onClick={() => handleEditCampaign(campaign)}
-                    >
-                      <Edit className="h-4 w-4" />
-                    </Button>
+                    <div className="flex items-center gap-1">
+                      <Button 
+                        variant="ghost" 
+                        size="icon"
+                        className="h-8 w-8"
+                        onClick={() => handleEditCampaign(campaign)}
+                      >
+                        <Edit className="h-4 w-4" />
+                        <span className="sr-only">Editar</span>
+                      </Button>
+
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button 
+                            variant="ghost" 
+                            size="icon"
+                            className="h-8 w-8 text-green-600"
+                            disabled={sendNowMutation.isPending}
+                          >
+                            <Send className="h-4 w-4" />
+                            <span className="sr-only">Enviar Agora</span>
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Confirmar envio</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Deseja realmente disparar a campanha "{campaign.nome}" agora?
+                              Esta ação não pode ser desfeita.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                            <AlertDialogAction onClick={() => handleSendCampaignNow(campaign)}>
+                              Enviar
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="h-8 w-8"
+                        onClick={() => handleDuplicateCampaign(campaign)}
+                      >
+                        <Copy className="h-4 w-4" />
+                        <span className="sr-only">Duplicar</span>
+                      </Button>
+
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button 
+                            variant="ghost" 
+                            size="icon"
+                            className="h-8 w-8 text-red-600"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                            <span className="sr-only">Excluir</span>
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Deseja realmente excluir a campanha "{campaign.nome}"?
+                              Esta ação não pode ser desfeita.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                            <AlertDialogAction 
+                              onClick={() => campaign.id && handleDeleteCampaign(campaign.id)}
+                              className="bg-red-500 hover:bg-red-600"
+                            >
+                              Excluir
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </div>
                   </td>
                 </tr>
               ))}
