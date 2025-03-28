@@ -3,7 +3,6 @@ import React, { useState } from "react";
 import { Campaign } from "@/lib/api/campaigns";
 import { Calendar } from "@/components/ui/calendar";
 import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { CampaignStatusBadge } from "./CampaignStatusBadge";
 import { Edit, Trash2, Send, Copy } from "lucide-react";
 import {
@@ -18,7 +17,6 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
-import { supabase } from "@/lib/supabase";
 import { updateCampaign } from "@/lib/api/campaigns";
 
 interface CampaignCalendarViewProps {
@@ -95,7 +93,7 @@ export const CampaignCalendarView: React.FC<CampaignCalendarViewProps> = ({
     
     return (
       <div 
-        className="relative min-h-24 border-t p-1 hover:bg-slate-50 dark:hover:bg-slate-900/50 transition-colors"
+        className="relative h-full min-h-[120px] border-t hover:bg-slate-50 dark:hover:bg-slate-900/50 transition-colors"
         onDragOver={(e) => {
           e.preventDefault();
           e.currentTarget.classList.add('bg-slate-100', 'dark:bg-slate-800');
@@ -109,15 +107,14 @@ export const CampaignCalendarView: React.FC<CampaignCalendarViewProps> = ({
           handleDropOnDate(day);
         }}
       >
-        <div className="absolute top-1 left-1 font-medium text-muted-foreground text-sm">
+        <div className="absolute top-1 left-2 font-semibold text-sm">
           {day.getDate()}
         </div>
-        <div className="pt-5 max-h-40 overflow-y-auto space-y-1">
+        <div className="pt-6 px-1 max-h-[150px] overflow-y-auto space-y-1">
           {dayCampaigns.map((campaign) => (
             <div 
               key={campaign.id}
-              className="text-xs bg-white dark:bg-slate-800 shadow-sm p-1.5 rounded cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
-              onClick={(e) => e.stopPropagation()}
+              className="text-xs bg-white dark:bg-slate-800 shadow-sm p-1.5 rounded cursor-move hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
               draggable
               onDragStart={() => handleDragStart(campaign)}
               onDragEnd={handleDragEnd}
