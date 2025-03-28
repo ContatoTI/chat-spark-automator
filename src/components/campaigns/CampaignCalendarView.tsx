@@ -18,6 +18,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { DayProps } from "react-day-picker";
 
 interface CampaignCalendarViewProps {
   campaigns: Campaign[];
@@ -51,7 +52,8 @@ export const CampaignCalendarView: React.FC<CampaignCalendarViewProps> = ({
   }, {});
 
   // Custom day renderer that works with react-day-picker
-  const renderDay = (day: Date, cellProps: React.HTMLAttributes<HTMLDivElement>) => {
+  const renderDay = (props: DayProps) => {
+    const { date: day, ...cellProps } = props;
     // Use format to get a safe date string or check if the day is a proper Date
     const dateStr = day instanceof Date ? day.toDateString() : '';
     const dayCampaigns = campaignsByDate[dateStr] || [];
