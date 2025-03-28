@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { 
   Dialog, 
@@ -19,12 +20,16 @@ import {
   Video,
   Send,
   Calendar,
-  Settings
+  Settings,
+  Users
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { updateCampaign, Campaign } from "@/lib/api/campaigns";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar as CalendarComponent } from "@/components/ui/calendar";
+import { format } from "date-fns";
 
 interface EditCampaignDialogProps {
   open: boolean;
@@ -47,7 +52,8 @@ export const EditCampaignDialog: React.FC<EditCampaignDialogProps> = ({
   const [selectedTab, setSelectedTab] = useState<"text" | "media">("text");
   const [mediaType, setMediaType] = useState<string | null>(null);
   const [mediaUrl, setMediaUrl] = useState<string>("");
-  const [scheduleDate, setScheduleDate] = useState<string>("");
+  const [scheduleDate, setScheduleDate] = useState<Date | undefined>(undefined);
+  const [scheduleTime, setScheduleTime] = useState<string>("");
   
   const [producao, setProducao] = useState(false);
   const [limiteDisparos, setLimiteDisparos] = useState(1000);
@@ -63,7 +69,21 @@ export const EditCampaignDialog: React.FC<EditCampaignDialogProps> = ({
       setSelectedTab(campaign.tipo_midia ? "media" : "text");
       setMediaType(campaign.tipo_midia);
       setMediaUrl(campaign.url_midia || "");
-      setScheduleDate(campaign.data_disparo ? new Date(campaign.data_disparo).toISOString().slice(0, 16) : "");
+      
+      // Set date and time separately if data_disparo exists
+      if (campaign.data_disparo) {
+        const date = new Date(campaign.data_disparo);
+        setScheduleDate(date);
+        
+        // Format time as HH:MM with 30-minute intervals
+        const hours = date.getHours();
+        const minutes = date.getMinutes() >= 30 ? "30" : "00";
+        setScheduleTime(`${hours.toString().padStart(2, '0')}:${minutes}`);
+      } else {
+        setScheduleDate(undefined);
+        setScheduleTime("");
+      }
+      
       setActiveTab("message");
       
       setProducao(campaign.producao !== undefined ? campaign.producao : false);
@@ -82,7 +102,8 @@ export const EditCampaignDialog: React.FC<EditCampaignDialogProps> = ({
       setSelectedTab("text");
       setMediaType(null);
       setMediaUrl("");
-      setScheduleDate("");
+      setScheduleDate(undefined);
+      setScheduleTime("");
       setActiveTab("message");
       setProducao(false);
       setLimiteDisparos(1000);
@@ -130,6 +151,14 @@ export const EditCampaignDialog: React.FC<EditCampaignDialogProps> = ({
       return;
     }
     
+    // Combine date and time for data_disparo
+    let finalDateTime = null;
+    if (scheduleDate && scheduleTime) {
+      const [hours, minutes] = scheduleTime.split(':').map(Number);
+      finalDateTime = new Date(scheduleDate);
+      finalDateTime.setHours(hours, minutes, 0, 0);
+    }
+    
     const updatedCampaign: Partial<Campaign> = {
       nome: campaignName,
       mensagem01: message1,
@@ -138,14 +167,27 @@ export const EditCampaignDialog: React.FC<EditCampaignDialogProps> = ({
       mensagem04: message4 || null,
       tipo_midia: mediaType,
       url_midia: mediaUrl || null,
-      data_disparo: scheduleDate ? new Date(scheduleDate).toISOString() : null,
-      status: scheduleDate ? "scheduled" : campaign.status === "draft" ? "draft" : "sending",
+      data_disparo: finalDateTime ? finalDateTime.toISOString() : null,
+      status: calculateStatus(enviados, limiteDisparos, finalDateTime),
       producao: producao,
       limite_disparos: limiteDisparos,
       enviados: enviados
     };
     
     updateMutation.mutate({ id: campaign.id, updatedCampaign });
+  };
+  
+  // Calculate status based on the rules provided
+  const calculateStatus = (enviados: number, limite: number, dataDisparo: Date | null): string => {
+    if (enviados === 0 && dataDisparo) {
+      return "scheduled";
+    } else if (enviados > 0 && enviados < limite) {
+      return "sending";
+    } else if (enviados >= limite) {
+      return "completed";
+    } else {
+      return "draft";
+    }
   };
   
   const handleMediaSelection = (type: string) => {
@@ -155,50 +197,21 @@ export const EditCampaignDialog: React.FC<EditCampaignDialogProps> = ({
     }
   };
   
-  const adjustTimeToIntervals = (dateTimeStr: string): string => {
-    if (!dateTimeStr) return "";
-    
-    const date = new Date(dateTimeStr);
-    const minutes = date.getMinutes();
-    
-    date.setMinutes(minutes < 15 ? 0 : minutes < 45 ? 30 : 0);
-    if (minutes >= 45) {
-      date.setHours(date.getHours() + 1);
-    }
-    date.setSeconds(0);
-    date.setMilliseconds(0);
-    
-    return date.toISOString().slice(0, 16);
-  };
-
+  // Generate time options in 30-minute intervals
   const generateTimeOptions = (): { value: string, label: string }[] => {
     const options = [];
-    const now = new Date();
-    const startDate = new Date(now);
-    startDate.setHours(0, 0, 0, 0);
     
-    for (let day = 0; day < 7; day++) {
-      const currentDate = new Date(startDate);
-      currentDate.setDate(currentDate.getDate() + day);
-      
-      for (let hour = 0; hour < 24; hour++) {
-        for (let minute of [0, 30]) {
-          currentDate.setHours(hour, minute, 0, 0);
-          
-          if (currentDate < now) continue;
-          
-          const value = currentDate.toISOString().slice(0, 16);
-          const formattedDate = currentDate.toLocaleDateString('pt-BR');
-          const formattedTime = currentDate.toLocaleTimeString('pt-BR', { 
-            hour: '2-digit', 
-            minute: '2-digit' 
-          });
-          
-          options.push({
-            value,
-            label: `${formattedDate} ${formattedTime}`
-          });
-        }
+    for (let hour = 0; hour < 24; hour++) {
+      for (let minute of [0, 30]) {
+        const hourString = hour.toString().padStart(2, '0');
+        const minuteString = minute.toString().padStart(2, '0');
+        const value = `${hourString}:${minuteString}`;
+        const label = `${hourString}:${minuteString}`;
+        
+        options.push({
+          value,
+          label
+        });
       }
     }
     
@@ -474,7 +487,7 @@ export const EditCampaignDialog: React.FC<EditCampaignDialogProps> = ({
           
           {activeTab === "settings" && (
             <div className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-1 gap-6">
                 <div className="space-y-2">
                   <Label htmlFor="limite-disparos">Limite de Disparos</Label>
                   <Input
@@ -488,17 +501,9 @@ export const EditCampaignDialog: React.FC<EditCampaignDialogProps> = ({
                   </p>
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="enviados">Enviados</Label>
-                  <Input
-                    id="enviados"
-                    type="number"
-                    value={enviados}
-                    onChange={(e) => setEnviados(Number(e.target.value))}
-                  />
-                  <p className="text-sm text-muted-foreground">
-                    Quantidade de mensagens já enviadas
-                  </p>
+                <div className="flex items-center gap-2">
+                  <Users className="h-5 w-5 text-muted-foreground" />
+                  <span>Mensagens enviadas até o momento: <strong>{enviados}</strong></span>
                 </div>
               </div>
               
@@ -526,18 +531,53 @@ export const EditCampaignDialog: React.FC<EditCampaignDialogProps> = ({
                   <h4 className="font-medium">Agendar Envio</h4>
                   <p className="text-sm text-muted-foreground">Defina uma data e horário para envio automático</p>
                 </div>
-                <select
-                  className="w-auto px-3 py-2 rounded-md border border-input bg-background"
-                  value={scheduleDate}
-                  onChange={(e) => setScheduleDate(e.target.value)}
-                >
-                  <option value="">Selecione um horário</option>
-                  {timeOptions.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
+                <div className="flex flex-col items-end gap-2">
+                  <div className="grid w-full max-w-sm items-center gap-1.5">
+                    <Label htmlFor="schedule-time">Horário</Label>
+                    <select
+                      id="schedule-time"
+                      className="w-auto px-3 py-2 rounded-md border border-input bg-background"
+                      value={scheduleTime}
+                      onChange={(e) => setScheduleTime(e.target.value)}
+                    >
+                      <option value="">Selecione</option>
+                      {timeOptions.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  
+                  <div className="grid w-full max-w-sm items-center gap-1.5">
+                    <Label htmlFor="schedule-date">Data</Label>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          id="schedule-date"
+                          variant={"outline"}
+                          className={cn(
+                            "w-full justify-start text-left font-normal",
+                            !scheduleDate && "text-muted-foreground"
+                          )}
+                        >
+                          <Calendar className="mr-2 h-4 w-4" />
+                          {scheduleDate ? format(scheduleDate, "dd/MM/yyyy") : <span>Escolha uma data</span>}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0">
+                        <CalendarComponent
+                          mode="single"
+                          selected={scheduleDate}
+                          onSelect={setScheduleDate}
+                          initialFocus
+                          disabled={(date) => date < new Date()}
+                          className="p-3 pointer-events-auto"
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                </div>
               </div>
               
               <div className="flex p-4 border rounded-md bg-amber-50 dark:bg-amber-900/20 text-amber-800 dark:text-amber-300">
@@ -546,14 +586,18 @@ export const EditCampaignDialog: React.FC<EditCampaignDialogProps> = ({
                   <div className="flex flex-wrap gap-x-6 gap-y-2">
                     <p className="text-sm">Nome: {campaignName}</p>
                     <p className="text-sm">Tipo: {mediaType ? `Mídia (${mediaType})` : "Texto"}</p>
-                    <p className="text-sm">Status: {scheduleDate ? "Agendada" : 
-                      campaign.status === "draft" ? "Rascunho" : "Envio imediato"}</p>
+                    <p className="text-sm">Status: {
+                      enviados === 0 && (scheduleDate && scheduleTime) ? "Agendada" : 
+                      (enviados > 0 && enviados < limiteDisparos) ? "Em andamento" : 
+                      enviados >= limiteDisparos ? "Concluída" :
+                      "Rascunho"
+                    }</p>
                     <p className="text-sm">Produção: {producao ? "Sim" : "Não"}</p>
                     <p className="text-sm">Limite: {limiteDisparos}</p>
                     <p className="text-sm">Enviados: {enviados}</p>
-                    {scheduleDate && (
+                    {scheduleDate && scheduleTime && (
                       <p className="text-sm">
-                        Data de envio: {new Date(scheduleDate).toLocaleString("pt-BR")}
+                        Data de envio: {format(scheduleDate, "dd/MM/yyyy")} às {scheduleTime}
                       </p>
                     )}
                   </div>
