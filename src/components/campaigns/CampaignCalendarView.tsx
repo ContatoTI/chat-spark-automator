@@ -3,19 +3,7 @@ import React, { useState } from "react";
 import { Campaign } from "@/lib/api/campaigns";
 import { Calendar } from "@/components/ui/calendar";
 import { Card } from "@/components/ui/card";
-import { CampaignStatusBadge } from "./CampaignStatusBadge";
-import { Edit, Trash2, Send, Copy } from "lucide-react";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
+import { Edit } from "lucide-react";
 import { toast } from "sonner";
 import { updateCampaign } from "@/lib/api/campaigns";
 import { cn } from "@/lib/utils";
@@ -99,17 +87,17 @@ export const CampaignCalendarView: React.FC<CampaignCalendarViewProps> = ({
   const getCampaignBgColor = (status: string) => {
     switch (status) {
       case 'rascunho':
-        return 'bg-slate-100 border-slate-200 dark:bg-slate-800 dark:border-slate-700';
+        return 'bg-yellow-100 border-yellow-200 dark:bg-yellow-900/20 dark:border-yellow-800/50';
       case 'agendada':
-        return 'bg-blue-50 border-blue-200 dark:bg-blue-900/20 dark:border-blue-800/50';
+        return 'bg-blue-100 border-blue-200 dark:bg-blue-900/20 dark:border-blue-800/50';
       case 'em_andamento':
-        return 'bg-amber-50 border-amber-200 dark:bg-amber-900/20 dark:border-amber-800/50';
+        return 'bg-amber-100 border-amber-200 dark:bg-amber-900/20 dark:border-amber-800/50';
       case 'concluida':
-        return 'bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-800/50';
+        return 'bg-green-100 border-green-200 dark:bg-green-900/20 dark:border-green-800/50';
       case 'failed':
-        return 'bg-red-50 border-red-200 dark:bg-red-900/20 dark:border-red-800/50';
+        return 'bg-red-100 border-red-200 dark:bg-red-900/20 dark:border-red-800/50';
       default:
-        return 'bg-slate-100 border-slate-200 dark:bg-slate-800 dark:border-slate-700';
+        return 'bg-gray-100 border-gray-200 dark:bg-gray-800 dark:border-gray-700';
     }
   };
 
@@ -122,47 +110,49 @@ export const CampaignCalendarView: React.FC<CampaignCalendarViewProps> = ({
     return (
       <div 
         className={cn(
-          "relative h-full min-h-[120px] border-t hover:bg-slate-50 dark:hover:bg-slate-900/50 transition-colors",
-          isCurrentDay && "bg-blue-50 dark:bg-blue-900/20"
+          "relative h-full min-h-[100px] w-full border-t p-0",
+          isCurrentDay ? "bg-blue-50 dark:bg-blue-900/10" : "hover:bg-slate-50/50 dark:hover:bg-slate-900/20"
         )}
         onDragOver={(e) => {
           e.preventDefault();
-          e.currentTarget.classList.add('bg-slate-100', 'dark:bg-slate-800');
+          e.currentTarget.classList.add('bg-slate-100', 'dark:bg-slate-800/50');
         }}
         onDragLeave={(e) => {
-          e.currentTarget.classList.remove('bg-slate-100', 'dark:bg-slate-800');
+          e.currentTarget.classList.remove('bg-slate-100', 'dark:bg-slate-800/50');
         }}
         onDrop={(e) => {
           e.preventDefault();
-          e.currentTarget.classList.remove('bg-slate-100', 'dark:bg-slate-800');
+          e.currentTarget.classList.remove('bg-slate-100', 'dark:bg-slate-800/50');
           handleDropOnDate(day);
         }}
       >
         <div className={cn(
-          "absolute top-1 left-2 font-semibold text-sm",
-          isCurrentDay && "bg-blue-500 text-white rounded-full w-6 h-6 flex items-center justify-center"
+          "absolute top-1 right-1 font-medium text-sm",
+          isCurrentDay ? "text-sm h-6 w-6 rounded-full bg-blue-500 text-white flex items-center justify-center" : "text-muted-foreground"
         )}>
           {day.getDate()}
         </div>
-        <div className="pt-6 px-1 max-h-[150px] overflow-y-auto space-y-1">
+        <div className="pt-7 px-1 space-y-1 overflow-visible">
           {dayCampaigns.map((campaign) => (
             <div 
               key={campaign.id}
               className={cn(
-                "text-xs p-2 rounded-md border shadow-sm cursor-move hover:shadow-md transition-all duration-200",
+                "px-2 py-1 text-xs rounded-md border cursor-move transition-all duration-100",
                 getCampaignBgColor(campaign.status)
               )}
               draggable
               onDragStart={() => handleDragStart(campaign)}
               onDragEnd={handleDragEnd}
             >
-              <div className="flex items-center justify-between gap-2">
-                <div className="font-medium truncate flex-1">{campaign.nome}</div>
+              <div className="flex items-center justify-between">
+                <div className="font-medium truncate max-w-[85%]">
+                  {campaign.nome.length > 18 ? campaign.nome.substring(0, 16) + '...' : campaign.nome}
+                </div>
                 <button 
                   onClick={(e) => { e.stopPropagation(); onEdit(campaign); }}
-                  className="text-slate-500 hover:text-blue-500 transition-colors p-0.5 rounded-full hover:bg-white"
+                  className="text-gray-500 hover:text-blue-500 transition-colors"
                 >
-                  <Edit className="h-4 w-4" />
+                  <Edit className="h-3.5 w-3.5" />
                   <span className="sr-only">Editar</span>
                 </button>
               </div>
@@ -175,25 +165,23 @@ export const CampaignCalendarView: React.FC<CampaignCalendarViewProps> = ({
 
   return (
     <div className="space-y-4">
-      <Card className="overflow-hidden border rounded-md">
-        <div className="p-0">
-          <Calendar
-            mode="single"
-            month={currentDate}
-            onMonthChange={setCurrentDate}
-            selected={undefined}
-            className="w-full"
-            showOutsideDays={true}
-            fixedWeeks={true}
-            ISOWeek={false}
-            formatters={{
-              formatDay: (date) => {
-                // Render customized days
-                return renderDay(date);
-              },
-            }}
-          />
-        </div>
+      <Card className="overflow-hidden rounded-md">
+        <Calendar
+          mode="single"
+          month={currentDate}
+          onMonthChange={setCurrentDate}
+          selected={undefined}
+          className="w-full"
+          showOutsideDays={true}
+          fixedWeeks={true}
+          ISOWeek={false}
+          formatters={{
+            formatDay: (date) => {
+              // Render customized days
+              return renderDay(date);
+            },
+          }}
+        />
       </Card>
       <div className="text-center text-sm text-muted-foreground">
         Arraste e solte as campanhas para reagendá-las
