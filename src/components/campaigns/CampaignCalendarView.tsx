@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Campaign } from "@/lib/api/campaigns";
 import { Calendar } from "@/components/ui/calendar";
@@ -7,7 +6,6 @@ import { Edit } from "lucide-react";
 import { toast } from "sonner";
 import { updateCampaign } from "@/lib/api/campaigns";
 import { cn } from "@/lib/utils";
-
 interface CampaignCalendarViewProps {
   campaigns: Campaign[];
   onEdit: (campaign: Campaign) => void;
@@ -16,7 +14,6 @@ interface CampaignCalendarViewProps {
   onDuplicate: (campaign: Campaign) => void;
   isSending: boolean;
 }
-
 export const CampaignCalendarView: React.FC<CampaignCalendarViewProps> = ({
   campaigns,
   onEdit,
@@ -53,7 +50,6 @@ export const CampaignCalendarView: React.FC<CampaignCalendarViewProps> = ({
   // Função para lidar com o soltar em uma data
   const handleDropOnDate = async (date: Date) => {
     if (!draggingCampaign || !draggingCampaign.id) return;
-
     try {
       // Atualizar a data da campanha
       const updatedCampaign = {
@@ -62,8 +58,10 @@ export const CampaignCalendarView: React.FC<CampaignCalendarViewProps> = ({
       };
 
       // Chamar API para atualizar a campanha
-      await updateCampaign(draggingCampaign.id, { data_disparo: date.toISOString() });
-      
+      await updateCampaign(draggingCampaign.id, {
+        data_disparo: date.toISOString()
+      });
+
       // Mostrar notificação de sucesso
       toast.success(`Campanha "${draggingCampaign.nome}" reagendada para ${date.toLocaleDateString("pt-BR")}`);
 
@@ -78,9 +76,7 @@ export const CampaignCalendarView: React.FC<CampaignCalendarViewProps> = ({
   // Função para verificar se uma data é hoje
   const isToday = (date: Date) => {
     const today = new Date();
-    return date.getDate() === today.getDate() &&
-           date.getMonth() === today.getMonth() &&
-           date.getFullYear() === today.getFullYear();
+    return date.getDate() === today.getDate() && date.getMonth() === today.getMonth() && date.getFullYear() === today.getFullYear();
   };
 
   // Função para obter cor de fundo baseada no status da campanha
@@ -106,37 +102,21 @@ export const CampaignCalendarView: React.FC<CampaignCalendarViewProps> = ({
     const dateStr = day.toDateString();
     const dayCampaigns = campaignsByDate[dateStr] || [];
     const isCurrentDay = isToday(day);
-    
-    return (
-      <div 
-        className={cn(
-          "relative h-full w-full min-h-[110px] p-0",
-          isCurrentDay ? "bg-yellow-100/70 dark:bg-yellow-900/20" : ""
-        )}
-        onDragOver={(e) => {
-          e.preventDefault();
-          e.currentTarget.classList.add('bg-slate-100', 'dark:bg-slate-800/50');
-        }}
-        onDragLeave={(e) => {
-          e.currentTarget.classList.remove('bg-slate-100', 'dark:bg-slate-800/50');
-        }}
-        onDrop={(e) => {
-          e.preventDefault();
-          e.currentTarget.classList.remove('bg-slate-100', 'dark:bg-slate-800/50');
-          handleDropOnDate(day);
-        }}
-      >
-        {dayCampaigns.length > 0 ? (
-          // Se houver campanhas, o dia inteiro será preenchido com a cor
-          <div className={cn(
-            "absolute inset-0 flex flex-col p-1",
-            getCampaignBgColor(dayCampaigns[0].status)
-          )}>
+    return <div className={cn("relative h-full w-full min-h-[110px] p-0", isCurrentDay ? "bg-yellow-100/70 dark:bg-yellow-900/20" : "")} onDragOver={e => {
+      e.preventDefault();
+      e.currentTarget.classList.add('bg-slate-100', 'dark:bg-slate-800/50');
+    }} onDragLeave={e => {
+      e.currentTarget.classList.remove('bg-slate-100', 'dark:bg-slate-800/50');
+    }} onDrop={e => {
+      e.preventDefault();
+      e.currentTarget.classList.remove('bg-slate-100', 'dark:bg-slate-800/50');
+      handleDropOnDate(day);
+    }}>
+        {dayCampaigns.length > 0 ?
+      // Se houver campanhas, o dia inteiro será preenchido com a cor
+      <div className="Isto precisa ficar quadrado ocupando todo o espa\xE7o do quadrado de dia, n\xE3o pode ficar vertical desse jeito. precisa fica igual ao da imagem que eu te mandei. Corrija por favor, tem algo quebrado neste elemento">
             <div className="flex justify-end">
-              <div className={cn(
-                "w-6 h-6 flex items-center justify-center text-sm font-medium rounded-full mb-1",
-                isCurrentDay ? "bg-white/80 text-primary" : "text-inherit"
-              )}>
+              <div className={cn("w-6 h-6 flex items-center justify-center text-sm font-medium rounded-full mb-1", isCurrentDay ? "bg-white/80 text-primary" : "text-inherit")}>
                 {day.getDate()}
               </div>
             </div>
@@ -148,57 +128,42 @@ export const CampaignCalendarView: React.FC<CampaignCalendarViewProps> = ({
               
               <div className="flex justify-between items-center mt-1">
                 <div className="text-xs">
-                  {new Date(dayCampaigns[0].data_disparo).toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'})}
+                  {new Date(dayCampaigns[0].data_disparo).toLocaleTimeString('pt-BR', {
+                hour: '2-digit',
+                minute: '2-digit'
+              })}
                 </div>
-                <button 
-                  onClick={(e) => { e.stopPropagation(); onEdit(dayCampaigns[0]); }}
-                  className="text-inherit hover:text-blue-500 transition-colors"
-                >
+                <button onClick={e => {
+              e.stopPropagation();
+              onEdit(dayCampaigns[0]);
+            }} className="text-inherit hover:text-blue-500 transition-colors">
                   <Edit className="h-4 w-4" />
                   <span className="sr-only">Editar</span>
                 </button>
               </div>
               
-              {dayCampaigns.length > 1 && (
-                <div className="text-xs mt-1 font-medium">
+              {dayCampaigns.length > 1 && <div className="text-xs mt-1 font-medium">
                   +{dayCampaigns.length - 1} mais
-                </div>
-              )}
+                </div>}
             </div>
-          </div>
-        ) : (
-          // Se não houver campanhas, apenas o número do dia é mostrado
-          <div className="absolute top-1 right-1 font-medium text-sm z-10">
+          </div> :
+      // Se não houver campanhas, apenas o número do dia é mostrado
+      <div className="absolute top-1 right-1 font-medium text-sm z-10">
             {day.getDate()}
-          </div>
-        )}
-      </div>
-    );
+          </div>}
+      </div>;
   };
-
-  return (
-    <div className="space-y-4">
+  return <div className="space-y-4">
       <Card className="overflow-hidden rounded-md">
-        <Calendar
-          mode="single"
-          month={currentDate}
-          onMonthChange={setCurrentDate}
-          selected={undefined}
-          className="w-full"
-          showOutsideDays={true}
-          fixedWeeks={true}
-          ISOWeek={false}
-          formatters={{
-            formatDay: (date) => {
-              // Render customized days
-              return renderDay(date);
-            },
-          }}
-        />
+        <Calendar mode="single" month={currentDate} onMonthChange={setCurrentDate} selected={undefined} className="w-full" showOutsideDays={true} fixedWeeks={true} ISOWeek={false} formatters={{
+        formatDay: date => {
+          // Render customized days
+          return renderDay(date);
+        }
+      }} />
       </Card>
       <div className="text-center text-sm text-muted-foreground">
         Arraste e solte as campanhas para reagendá-las
       </div>
-    </div>
-  );
+    </div>;
 };
