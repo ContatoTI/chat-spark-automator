@@ -7,6 +7,7 @@ import { Edit } from "lucide-react";
 import { toast } from "sonner";
 import { updateCampaign } from "@/lib/api/campaigns";
 import { cn } from "@/lib/utils";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface CampaignCalendarViewProps {
   campaigns: Campaign[];
@@ -27,6 +28,7 @@ export const CampaignCalendarView: React.FC<CampaignCalendarViewProps> = ({
 }) => {
   const [currentDate, setCurrentDate] = useState<Date>(new Date());
   const [draggingCampaign, setDraggingCampaign] = useState<Campaign | null>(null);
+  const queryClient = useQueryClient();
 
   // Agrupa campanhas por data
   const campaignsByDate = campaigns.reduce<Record<string, Campaign[]>>((acc, campaign) => {
@@ -65,19 +67,32 @@ export const CampaignCalendarView: React.FC<CampaignCalendarViewProps> = ({
     if (!draggingCampaign || !draggingCampaign.id) return;
     
     try {
+      // Criar uma cópia da data para manipulação adequada e evitar problemas de timezone
+      const targetDate = new Date(date);
+      // Manter a hora original se existir
+      if (draggingCampaign.data_disparo) {
+        const originalDate = new Date(draggingCampaign.data_disparo);
+        targetDate.setHours(originalDate.getHours());
+        targetDate.setMinutes(originalDate.getMinutes());
+        targetDate.setSeconds(originalDate.getSeconds());
+      }
+      
       // Atualizar a data da campanha
       const updatedCampaign = {
         ...draggingCampaign,
-        data_disparo: date.toISOString()
+        data_disparo: targetDate.toISOString()
       };
 
       // Chamar API para atualizar a campanha
       await updateCampaign(draggingCampaign.id, {
-        data_disparo: date.toISOString()
+        data_disparo: targetDate.toISOString()
       });
 
+      // Invalidar queries para forçar recarregamento dos dados
+      queryClient.invalidateQueries({ queryKey: ['campaigns'] });
+
       // Mostrar notificação de sucesso
-      toast.success(`Campanha "${draggingCampaign.nome}" reagendada para ${date.toLocaleDateString("pt-BR")}`);
+      toast.success(`Campanha "${draggingCampaign.nome}" reagendada para ${targetDate.toLocaleDateString("pt-BR")}`);
 
       // Limpar o estado de arraste
       setDraggingCampaign(null);

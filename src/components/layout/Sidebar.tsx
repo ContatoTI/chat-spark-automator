@@ -49,7 +49,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ open }) => {
     <aside
       className={cn(
         "bg-white dark:bg-slate-950 border-r transition-all duration-300 ease-in-out",
-        "z-20 h-screen w-64 overflow-y-auto",
+        "z-20 h-full w-64 overflow-y-auto",
         open ? "translate-x-0" : "-translate-x-full",
         "md:relative md:translate-x-0",
         open ? "absolute md:relative" : ""
