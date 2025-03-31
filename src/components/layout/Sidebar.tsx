@@ -49,14 +49,14 @@ export const Sidebar: React.FC<SidebarProps> = ({ open }) => {
     <aside
       className={cn(
         "bg-white dark:bg-slate-950 border-r transition-all duration-300 ease-in-out",
-        "z-20 h-[calc(100vh-4rem)] w-64 overflow-y-auto",
+        "z-20 h-screen w-64 overflow-y-auto",
         open ? "translate-x-0" : "-translate-x-full",
         "md:relative md:translate-x-0",
         open ? "absolute md:relative" : ""
       )}
     >
-      <div className="flex flex-col gap-2 p-4">
-        <div className="py-2">
+      <div className="flex flex-col h-full gap-2 p-4">
+        <div className="flex-grow py-2">
           <h2 className="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-4 px-3">
             MENU PRINCIPAL
           </h2>

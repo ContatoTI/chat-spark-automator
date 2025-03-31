@@ -41,8 +41,15 @@ export const CampaignCalendarView: React.FC<CampaignCalendarViewProps> = ({
   }, {});
 
   // Função para lidar com o início do arraste
-  const handleDragStart = (campaign: Campaign) => {
+  const handleDragStart = (e: React.DragEvent, campaign: Campaign) => {
+    e.stopPropagation();
     setDraggingCampaign(campaign);
+    
+    // Adiciona dados ao evento de drag para identificar a campanha
+    if (e.dataTransfer) {
+      e.dataTransfer.setData('text/plain', JSON.stringify({ id: campaign.id }));
+      e.dataTransfer.effectAllowed = 'move';
+    }
   };
 
   // Função para lidar com o término do arraste
@@ -51,8 +58,12 @@ export const CampaignCalendarView: React.FC<CampaignCalendarViewProps> = ({
   };
 
   // Função para lidar com o soltar em uma data
-  const handleDropOnDate = async (date: Date) => {
+  const handleDropOnDate = async (e: React.DragEvent, date: Date) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
     if (!draggingCampaign || !draggingCampaign.id) return;
+    
     try {
       // Atualizar a data da campanha
       const updatedCampaign = {
@@ -114,21 +125,23 @@ export const CampaignCalendarView: React.FC<CampaignCalendarViewProps> = ({
           e.currentTarget.classList.add('bg-slate-100', 'dark:bg-slate-800/50');
         }} 
         onDragLeave={e => {
+          e.preventDefault();
           e.currentTarget.classList.remove('bg-slate-100', 'dark:bg-slate-800/50');
         }} 
         onDrop={e => {
-          e.preventDefault();
           e.currentTarget.classList.remove('bg-slate-100', 'dark:bg-slate-800/50');
-          handleDropOnDate(day);
+          handleDropOnDate(e, day);
         }}
       >
         {dayCampaigns.length > 0 ? (
-          // Se houver campanhas, o dia inteiro será preenchido com a cor
           <div 
             className={cn(
-              "absolute inset-0 p-1 flex flex-col h-full w-full", 
+              "absolute inset-0 flex flex-col h-full w-full p-1", 
               getCampaignBgColor(dayCampaigns[0].status)
             )}
+            draggable={true}
+            onDragStart={e => handleDragStart(e, dayCampaigns[0])}
+            onDragEnd={handleDragEnd}
           >
             <div className="flex justify-end">
               <div className={cn(
@@ -156,7 +169,7 @@ export const CampaignCalendarView: React.FC<CampaignCalendarViewProps> = ({
                     e.stopPropagation();
                     onEdit(dayCampaigns[0]);
                   }} 
-                  className="text-inherit hover:text-blue-500 transition-colors"
+                  className="text-inherit hover:text-primary transition-colors"
                 >
                   <Edit className="h-4 w-4" />
                   <span className="sr-only">Editar</span>
@@ -171,7 +184,6 @@ export const CampaignCalendarView: React.FC<CampaignCalendarViewProps> = ({
             </div>
           </div>
         ) : (
-          // Se não houver campanhas, apenas o número do dia é mostrado
           <div className="absolute top-1 right-1 font-medium text-sm">
             {day.getDate()}
           </div>
