@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Campaign } from "@/lib/api/campaigns";
 import { Calendar } from "@/components/ui/calendar";
@@ -6,6 +7,7 @@ import { Edit } from "lucide-react";
 import { toast } from "sonner";
 import { updateCampaign } from "@/lib/api/campaigns";
 import { cn } from "@/lib/utils";
+
 interface CampaignCalendarViewProps {
   campaigns: Campaign[];
   onEdit: (campaign: Campaign) => void;
@@ -14,6 +16,7 @@ interface CampaignCalendarViewProps {
   onDuplicate: (campaign: Campaign) => void;
   isSending: boolean;
 }
+
 export const CampaignCalendarView: React.FC<CampaignCalendarViewProps> = ({
   campaigns,
   onEdit,
@@ -102,68 +105,104 @@ export const CampaignCalendarView: React.FC<CampaignCalendarViewProps> = ({
     const dateStr = day.toDateString();
     const dayCampaigns = campaignsByDate[dateStr] || [];
     const isCurrentDay = isToday(day);
-    return <div onDragOver={e => {
-      e.preventDefault();
-      e.currentTarget.classList.add('bg-slate-100', 'dark:bg-slate-800/50');
-    }} onDragLeave={e => {
-      e.currentTarget.classList.remove('bg-slate-100', 'dark:bg-slate-800/50');
-    }} onDrop={e => {
-      e.preventDefault();
-      e.currentTarget.classList.remove('bg-slate-100', 'dark:bg-slate-800/50');
-      handleDropOnDate(day);
-    }} className="este elemento est\xE1 muito estreito, precisa ficar do tamanho do quadrado de data, tem algo errado, corrija por favor, precisa ficar parecido com a imagem que te passei, essa cor amarela precisa preencher todo o quadrado e as informa\xE7\xF5es tamb\xE9m precisar ser pocisionadas ao longo do quadrado de data">
-        {dayCampaigns.length > 0 ?
-      // Se houver campanhas, o dia inteiro será preenchido com a cor
-      <div className="Isto precisa ficar quadrado ocupando todo o espa\xE7o do quadrado de dia, n\xE3o pode ficar vertical desse jeito. precisa fica igual ao da imagem que eu te mandei. Corrija por favor, tem algo quebrado neste elemento">
+    
+    return (
+      <div 
+        className="h-full w-full relative"
+        onDragOver={e => {
+          e.preventDefault();
+          e.currentTarget.classList.add('bg-slate-100', 'dark:bg-slate-800/50');
+        }} 
+        onDragLeave={e => {
+          e.currentTarget.classList.remove('bg-slate-100', 'dark:bg-slate-800/50');
+        }} 
+        onDrop={e => {
+          e.preventDefault();
+          e.currentTarget.classList.remove('bg-slate-100', 'dark:bg-slate-800/50');
+          handleDropOnDate(day);
+        }}
+      >
+        {dayCampaigns.length > 0 ? (
+          // Se houver campanhas, o dia inteiro será preenchido com a cor
+          <div 
+            className={cn(
+              "absolute inset-0 p-1 flex flex-col h-full w-full", 
+              getCampaignBgColor(dayCampaigns[0].status)
+            )}
+          >
             <div className="flex justify-end">
-              <div className={cn("w-6 h-6 flex items-center justify-center text-sm font-medium rounded-full mb-1", isCurrentDay ? "bg-white/80 text-primary" : "text-inherit")}>
+              <div className={cn(
+                "w-6 h-6 flex items-center justify-center text-sm font-medium rounded-full", 
+                isCurrentDay ? "bg-white/80 text-primary" : "text-inherit"
+              )}>
                 {day.getDate()}
               </div>
             </div>
             
-            <div className="flex-1 flex flex-col justify-between">
-              <div className="font-medium">
+            <div className="flex-1 flex flex-col justify-between mt-1">
+              <div className="font-medium text-sm truncate">
                 {dayCampaigns[0].nome}
               </div>
               
               <div className="flex justify-between items-center mt-1">
                 <div className="text-xs">
                   {new Date(dayCampaigns[0].data_disparo).toLocaleTimeString('pt-BR', {
-                hour: '2-digit',
-                minute: '2-digit'
-              })}
+                    hour: '2-digit',
+                    minute: '2-digit'
+                  })}
                 </div>
-                <button onClick={e => {
-              e.stopPropagation();
-              onEdit(dayCampaigns[0]);
-            }} className="text-inherit hover:text-blue-500 transition-colors">
+                <button 
+                  onClick={e => {
+                    e.stopPropagation();
+                    onEdit(dayCampaigns[0]);
+                  }} 
+                  className="text-inherit hover:text-blue-500 transition-colors"
+                >
                   <Edit className="h-4 w-4" />
                   <span className="sr-only">Editar</span>
                 </button>
               </div>
               
-              {dayCampaigns.length > 1 && <div className="text-xs mt-1 font-medium">
+              {dayCampaigns.length > 1 && (
+                <div className="text-xs mt-1 font-medium">
                   +{dayCampaigns.length - 1} mais
-                </div>}
+                </div>
+              )}
             </div>
-          </div> :
-      // Se não houver campanhas, apenas o número do dia é mostrado
-      <div className="absolute top-1 right-1 font-medium text-sm z-10">
+          </div>
+        ) : (
+          // Se não houver campanhas, apenas o número do dia é mostrado
+          <div className="absolute top-1 right-1 font-medium text-sm">
             {day.getDate()}
-          </div>}
-      </div>;
+          </div>
+        )}
+      </div>
+    );
   };
-  return <div className="space-y-4">
+
+  return (
+    <div className="space-y-4">
       <Card className="overflow-hidden rounded-md">
-        <Calendar mode="single" month={currentDate} onMonthChange={setCurrentDate} selected={undefined} className="w-full" showOutsideDays={true} fixedWeeks={true} ISOWeek={false} formatters={{
-        formatDay: date => {
-          // Render customized days
-          return renderDay(date);
-        }
-      }} />
+        <Calendar 
+          mode="single" 
+          month={currentDate} 
+          onMonthChange={setCurrentDate} 
+          selected={undefined} 
+          className="w-full" 
+          showOutsideDays={true} 
+          fixedWeeks={true} 
+          ISOWeek={false} 
+          formatters={{
+            formatDay: date => {
+              // Render customized days
+              return renderDay(date);
+            }
+          }} 
+        />
       </Card>
       <div className="text-center text-sm text-muted-foreground">
         Arraste e solte as campanhas para reagendá-las
       </div>
-    </div>;
+    </div>
+  );
 };

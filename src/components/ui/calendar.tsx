@@ -35,8 +35,8 @@ function Calendar({
         head_cell:
           "text-muted-foreground rounded-md w-full font-normal text-[0.8rem] py-2",
         row: "flex w-full mt-0",
-        cell: "h-auto min-h-[100px] w-full text-center text-sm p-0 relative border-t border-r last:border-r-0 focus-within:relative focus-within:z-20",
-        day: "h-9 w-9 p-0 font-normal aria-selected:opacity-100",
+        cell: "h-24 min-h-[96px] w-full text-center text-sm p-0 relative border-t border-r last:border-r-0 focus-within:relative focus-within:z-20",
+        day: "h-full w-full p-0 font-normal aria-selected:opacity-100",
         day_range_end: "day-range-end",
         day_selected:
           "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",
