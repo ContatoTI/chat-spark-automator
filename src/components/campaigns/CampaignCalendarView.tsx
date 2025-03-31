@@ -102,7 +102,7 @@ export const CampaignCalendarView: React.FC<CampaignCalendarViewProps> = ({
     const dateStr = day.toDateString();
     const dayCampaigns = campaignsByDate[dateStr] || [];
     const isCurrentDay = isToday(day);
-    return <div className={cn("relative h-full w-full min-h-[110px] p-0", isCurrentDay ? "bg-yellow-100/70 dark:bg-yellow-900/20" : "")} onDragOver={e => {
+    return <div onDragOver={e => {
       e.preventDefault();
       e.currentTarget.classList.add('bg-slate-100', 'dark:bg-slate-800/50');
     }} onDragLeave={e => {
@@ -111,7 +111,7 @@ export const CampaignCalendarView: React.FC<CampaignCalendarViewProps> = ({
       e.preventDefault();
       e.currentTarget.classList.remove('bg-slate-100', 'dark:bg-slate-800/50');
       handleDropOnDate(day);
-    }}>
+    }} className="este elemento est\xE1 muito estreito, precisa ficar do tamanho do quadrado de data, tem algo errado, corrija por favor, precisa ficar parecido com a imagem que te passei, essa cor amarela precisa preencher todo o quadrado e as informa\xE7\xF5es tamb\xE9m precisar ser pocisionadas ao longo do quadrado de data">
         {dayCampaigns.length > 0 ?
       // Se houver campanhas, o dia inteiro será preenchido com a cor
       <div className="Isto precisa ficar quadrado ocupando todo o espa\xE7o do quadrado de dia, n\xE3o pode ficar vertical desse jeito. precisa fica igual ao da imagem que eu te mandei. Corrija por favor, tem algo quebrado neste elemento">
