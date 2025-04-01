@@ -176,13 +176,13 @@ export const EditCampaignDialog: React.FC<EditCampaignDialogProps> = ({
   // Calculate status based on the rules provided
   const calculateStatus = (enviados: number, limite: number, dataDisparo: Date | null): string => {
     if (enviados === 0 && dataDisparo) {
-      return "scheduled";
+      return "agendada";
     } else if (enviados > 0 && enviados < limite) {
-      return "sending";
+      return "em_andamento";
     } else if (enviados >= limite) {
-      return "completed";
+      return "concluida";
     } else {
-      return "draft";
+      return "rascunho";
     }
   };
   
@@ -492,7 +492,7 @@ export const EditCampaignDialog: React.FC<EditCampaignDialogProps> = ({
                           {scheduleDate ? format(scheduleDate, "dd/MM/yyyy") : <span>Escolha uma data</span>}
                         </Button>
                       </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0">
+                      <PopoverContent className="w-auto p-0" align="start">
                         <CalendarComponent
                           mode="single"
                           selected={scheduleDate}
@@ -500,6 +500,10 @@ export const EditCampaignDialog: React.FC<EditCampaignDialogProps> = ({
                           initialFocus
                           disabled={(date) => date < new Date()}
                           className="p-3 pointer-events-auto"
+                          classNames={{
+                            root: "w-auto h-auto",
+                            months: "w-auto"
+                          }}
                         />
                       </PopoverContent>
                     </Popover>

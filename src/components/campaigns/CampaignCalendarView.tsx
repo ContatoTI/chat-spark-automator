@@ -67,25 +67,29 @@ export const CampaignCalendarView: React.FC<CampaignCalendarViewProps> = ({
     if (!draggingCampaign || !draggingCampaign.id) return;
     
     try {
-      // Criar uma nova data para evitar problemas de referência
-      const targetDate = new Date(Date.UTC(
-        date.getFullYear(),
-        date.getMonth(),
-        date.getDate(),
-        12, 0, 0
-      ));
+      // Clone the date to avoid modifying the original
+      const targetDate = new Date(date);
       
       // Manter a hora original se existir
       if (draggingCampaign.data_disparo) {
         const originalDate = new Date(draggingCampaign.data_disparo);
-        targetDate.setUTCHours(originalDate.getUTCHours());
-        targetDate.setUTCMinutes(originalDate.getUTCMinutes());
-        targetDate.setUTCSeconds(originalDate.getUTCSeconds());
+        targetDate.setHours(
+          originalDate.getHours(),
+          originalDate.getMinutes(),
+          originalDate.getSeconds(),
+          originalDate.getMilliseconds()
+        );
+      } else {
+        // Set to noon if no previous time
+        targetDate.setHours(12, 0, 0, 0);
       }
       
+      // Make sure we use local timezone for display but store as ISO
       const targetISOString = targetDate.toISOString();
       
-      console.log(`Reagendando para a data: ${date.toISOString()} -> ${targetISOString}`);
+      console.log(`Reagendando para a data: ${date.toLocaleDateString()} -> ${targetDate.toLocaleDateString()}`);
+      console.log(`Original date: ${date.toISOString()}`);
+      console.log(`Adjusted date: ${targetISOString}`);
       
       // Atualizar a data da campanha
       const updatedCampaign = {
