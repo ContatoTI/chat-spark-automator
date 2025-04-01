@@ -74,23 +74,32 @@ const StatCard: React.FC<StatCardProps> = ({
 
 // Função para buscar estatísticas de contatos do Supabase
 const fetchContactsStats = async () => {
+  console.log("Fetching contacts stats...");
   try {
     // Buscar número total de contatos da tabela AppW_Contatos
     const { count: total, error: totalError } = await supabase
       .from('AppW_Contatos')
       .select('*', { count: 'exact', head: true });
 
-    if (totalError) throw totalError;
+    if (totalError) {
+      console.error("Error fetching total contacts:", totalError);
+      throw totalError;
+    }
+
+    console.log("Total contacts count:", total);
 
     // Buscar número de contatos inválidos
     const { count: invalid, error: invalidError } = await supabase
       .from('AppW_Contatos')
       .select('*', { count: 'exact', head: true })
-      .eq('Invalido', 'Invalido');
+      .eq('Invalido', true);
 
-    if (invalidError) throw invalidError;
+    if (invalidError) {
+      console.error("Error fetching invalid contacts:", invalidError);
+      throw invalidError;
+    }
 
-    console.log("Estatísticas de contatos:", { total, invalid });
+    console.log("Invalid contacts count:", invalid);
     
     return {
       total: total || 0,
@@ -142,7 +151,7 @@ export const DashboardStats: React.FC = () => {
           title="Inválidos"
           value={isLoading ? 0 : contactsStats?.invalid || 0}
           icon={AlertTriangle}
-          description="Contatos com Invalido='Invalido'"
+          description="Contatos com Invalido=true"
           isLoading={isLoading}
         />
       </div>

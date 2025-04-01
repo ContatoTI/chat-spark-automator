@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { 
   Dialog, 
@@ -28,7 +27,6 @@ export const ContactsSyncDialog: React.FC<ContactsSyncDialogProps> = ({
 }) => {
   const [status, setStatus] = useState<SyncStatus>("idle");
   const [progress, setProgress] = useState(0);
-  const [contactsCount, setContactsCount] = useState(0);
   const [webhookUrl, setWebhookUrl] = useState<string>("");
 
   // Fetch webhook URL when dialog opens
@@ -110,7 +108,6 @@ export const ContactsSyncDialog: React.FC<ContactsSyncDialogProps> = ({
         console.log('POST request successful');
         setProgress(100);
         setStatus("success");
-        setContactsCount(Math.floor(Math.random() * 500 + 1500));
         toast.success("Sincronização concluída com sucesso!");
         clearInterval(progressInterval);
         return;
@@ -139,7 +136,6 @@ export const ContactsSyncDialog: React.FC<ContactsSyncDialogProps> = ({
           console.log('GET request successful');
           setProgress(100);
           setStatus("success");
-          setContactsCount(Math.floor(Math.random() * 500 + 1500));
           toast.success("Sincronização concluída com sucesso!");
         } else {
           throw new Error(`Erro ao chamar webhook via GET: ${getResponse.status}`);
@@ -214,7 +210,7 @@ export const ContactsSyncDialog: React.FC<ContactsSyncDialogProps> = ({
               <div className="text-center">
                 <p className="font-medium">Sincronização concluída!</p>
                 <p className="text-sm text-muted-foreground mt-1">
-                  {contactsCount} contatos foram sincronizados com sucesso.
+                  Sincronização em andamento, atualize a página daqui alguns instantes
                 </p>
               </div>
             </div>
