@@ -10,6 +10,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Skeleton } from "../ui/skeleton";
 import { supabase } from "@/lib/supabase";
 import { Button } from "../ui/button";
+import { toast } from "sonner";
 
 interface StatCardProps {
   title: string;
@@ -123,6 +124,7 @@ export const DashboardStats: React.FC = () => {
 
   const handleRefresh = () => {
     refetch();
+    toast.info("Atualizando estatísticas...");
   };
 
   return (
@@ -133,9 +135,10 @@ export const DashboardStats: React.FC = () => {
           size="sm" 
           onClick={handleRefresh}
           className="flex items-center gap-1"
+          disabled={isLoading}
         >
-          <RefreshCw className="h-4 w-4" />
-          Atualizar
+          <RefreshCw className={cn("h-4 w-4", isLoading && "animate-spin")} />
+          {isLoading ? "Atualizando..." : "Atualizar"}
         </Button>
       </div>
       
