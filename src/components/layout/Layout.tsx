@@ -14,7 +14,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
   return (
     <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-900 transition-colors duration-300">
       <TopBar setSidebarOpen={setSidebarOpen} sidebarOpen={sidebarOpen} />
-      <div className="flex flex-1 h-[calc(100vh-4rem)] overflow-hidden">
+      <div className="flex flex-1 overflow-hidden" style={{ height: "calc(100vh - 4rem)" }}>
         <Sidebar open={sidebarOpen} />
         <main
           className={cn(

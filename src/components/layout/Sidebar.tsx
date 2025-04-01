@@ -30,11 +30,11 @@ const SidebarLink: React.FC<SidebarLinkProps> = ({ to, icon: Icon, label, active
         "flex items-center gap-3 px-3 py-2 rounded-md transition-all duration-200",
         "hover:bg-slate-100 dark:hover:bg-slate-800",
         active 
-          ? "bg-primary/10 text-primary font-medium" 
+          ? "bg-secondary/20 text-secondary font-medium" 
           : "text-slate-600 dark:text-slate-400"
       )}
     >
-      <Icon className="h-5 w-5" />
+      <Icon className={cn("h-5 w-5", active && "text-secondary")} />
       <span>{label}</span>
     </Link>
   );
@@ -54,6 +54,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ open }) => {
         "md:relative md:translate-x-0",
         open ? "fixed md:relative left-0 top-16 bottom-0 md:top-auto" : ""
       )}
+      style={{ height: "calc(100vh - 4rem)" }}
     >
       <div className="flex flex-col h-full gap-2 p-4">
         <div className="flex-grow py-2">
