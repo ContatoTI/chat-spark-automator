@@ -21,7 +21,8 @@ import {
   Send,
   Calendar,
   Settings,
-  Users
+  Users,
+  Type
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -50,7 +51,6 @@ export const EditCampaignDialog: React.FC<EditCampaignDialogProps> = ({
   const [message2, setMessage2] = useState("");
   const [message3, setMessage3] = useState("");
   const [message4, setMessage4] = useState("");
-  const [selectedTab, setSelectedTab] = useState<"text" | "media">("text");
   const [mediaType, setMediaType] = useState<string | null>(null);
   const [mediaUrl, setMediaUrl] = useState<string>("");
   const [scheduleDate, setScheduleDate] = useState<Date | undefined>(undefined);
@@ -67,7 +67,6 @@ export const EditCampaignDialog: React.FC<EditCampaignDialogProps> = ({
       setMessage2(campaign.mensagem02 || "");
       setMessage3(campaign.mensagem03 || "");
       setMessage4(campaign.mensagem04 || "");
-      setSelectedTab(campaign.tipo_midia ? "media" : "text");
       setMediaType(campaign.tipo_midia);
       setMediaUrl(campaign.url_midia || "");
       
@@ -99,7 +98,6 @@ export const EditCampaignDialog: React.FC<EditCampaignDialogProps> = ({
       setMessage2("");
       setMessage3("");
       setMessage4("");
-      setSelectedTab("text");
       setMediaType(null);
       setMediaUrl("");
       setScheduleDate(undefined);
@@ -190,7 +188,7 @@ export const EditCampaignDialog: React.FC<EditCampaignDialogProps> = ({
   
   const handleMediaSelection = (type: string) => {
     setMediaType(type);
-    if (!mediaUrl) {
+    if (type !== 'text' && !mediaUrl) {
       setMediaUrl("");
     }
   };
@@ -298,187 +296,116 @@ export const EditCampaignDialog: React.FC<EditCampaignDialogProps> = ({
               </div>
               
               <div className="space-y-4">
-                <div className="flex gap-2 border-b">
-                  <button
+                <div className="grid grid-cols-5 gap-4">
+                  <div 
                     className={cn(
-                      "flex items-center gap-2 px-3 py-2 text-sm font-medium",
-                      "border-b-2 transition-colors",
-                      selectedTab === "text"
-                        ? "border-primary text-primary"
-                        : "border-transparent text-muted-foreground hover:text-foreground"
+                      "flex flex-col items-center justify-center gap-2 p-4 border border-dashed rounded-md cursor-pointer transition-colors",
+                      mediaType === 'text' ? "bg-primary/10 border-primary" : "hover:bg-muted/50"
                     )}
-                    onClick={() => setSelectedTab("text")}
+                    onClick={() => handleMediaSelection('text')}
                   >
-                    Texto
-                  </button>
-                  <button
+                    <Type className={cn("h-8 w-8", mediaType === 'text' ? "text-primary" : "text-muted-foreground")} />
+                    <span className="text-sm font-medium">Texto</span>
+                  </div>
+                  <div 
                     className={cn(
-                      "flex items-center gap-2 px-3 py-2 text-sm font-medium",
-                      "border-b-2 transition-colors",
-                      selectedTab === "media"
-                        ? "border-primary text-primary"
-                        : "border-transparent text-muted-foreground hover:text-foreground"
+                      "flex flex-col items-center justify-center gap-2 p-4 border border-dashed rounded-md cursor-pointer transition-colors",
+                      mediaType === 'image' ? "bg-primary/10 border-primary" : "hover:bg-muted/50"
                     )}
-                    onClick={() => setSelectedTab("media")}
+                    onClick={() => handleMediaSelection('image')}
                   >
-                    Mídia
-                  </button>
+                    <ImageIcon className={cn("h-8 w-8", mediaType === 'image' ? "text-primary" : "text-muted-foreground")} />
+                    <span className="text-sm font-medium">Imagem</span>
+                  </div>
+                  <div 
+                    className={cn(
+                      "flex flex-col items-center justify-center gap-2 p-4 border border-dashed rounded-md cursor-pointer transition-colors",
+                      mediaType === 'document' ? "bg-primary/10 border-primary" : "hover:bg-muted/50"
+                    )}
+                    onClick={() => handleMediaSelection('document')}
+                  >
+                    <File className={cn("h-8 w-8", mediaType === 'document' ? "text-primary" : "text-muted-foreground")} />
+                    <span className="text-sm font-medium">Documento</span>
+                  </div>
+                  <div 
+                    className={cn(
+                      "flex flex-col items-center justify-center gap-2 p-4 border border-dashed rounded-md cursor-pointer transition-colors",
+                      mediaType === 'video' ? "bg-primary/10 border-primary" : "hover:bg-muted/50"
+                    )}
+                    onClick={() => handleMediaSelection('video')}
+                  >
+                    <Video className={cn("h-8 w-8", mediaType === 'video' ? "text-primary" : "text-muted-foreground")} />
+                    <span className="text-sm font-medium">Vídeo</span>
+                  </div>
+                  <div 
+                    className={cn(
+                      "flex flex-col items-center justify-center gap-2 p-4 border border-dashed rounded-md cursor-pointer transition-colors",
+                      mediaType === 'link' ? "bg-primary/10 border-primary" : "hover:bg-muted/50"
+                    )}
+                    onClick={() => handleMediaSelection('link')}
+                  >
+                    <Link className={cn("h-8 w-8", mediaType === 'link' ? "text-primary" : "text-muted-foreground")} />
+                    <span className="text-sm font-medium">Link</span>
+                  </div>
                 </div>
                 
-                {selectedTab === "text" && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="message-text-1">Mensagem 1 (Principal)</Label>
-                      <Textarea
-                        id="message-text-1"
-                        placeholder="Digite sua mensagem principal aqui..."
-                        value={message1}
-                        onChange={(e) => setMessage1(e.target.value)}
-                        className="min-h-[120px]"
-                      />
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <Label htmlFor="message-text-2">Mensagem 2 (Opcional)</Label>
-                      <Textarea
-                        id="message-text-2"
-                        placeholder="Digite sua mensagem secundária aqui..."
-                        value={message2}
-                        onChange={(e) => setMessage2(e.target.value)}
-                        className="min-h-[120px]"
-                      />
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <Label htmlFor="message-text-3">Mensagem 3 (Opcional)</Label>
-                      <Textarea
-                        id="message-text-3"
-                        placeholder="Digite sua mensagem adicional aqui..."
-                        value={message3}
-                        onChange={(e) => setMessage3(e.target.value)}
-                        className="min-h-[120px]"
-                      />
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <Label htmlFor="message-text-4">Mensagem 4 (Opcional)</Label>
-                      <Textarea
-                        id="message-text-4"
-                        placeholder="Digite sua mensagem final aqui..."
-                        value={message4}
-                        onChange={(e) => setMessage4(e.target.value)}
-                        className="min-h-[120px]"
-                      />
-                    </div>
+                {mediaType && mediaType !== 'text' && (
+                  <div className="space-y-2">
+                    <Label htmlFor="media-url">URL da Mídia {mediaType !== 'link' && "(Opcional)"}</Label>
+                    <Input
+                      id="media-url"
+                      placeholder={`Adicione a URL da ${mediaType === 'image' ? 'imagem' : mediaType === 'video' ? 'vídeo' : mediaType === 'document' ? 'documento' : 'link'}`}
+                      value={mediaUrl}
+                      onChange={(e) => setMediaUrl(e.target.value)}
+                    />
                   </div>
                 )}
                 
-                {selectedTab === "media" && (
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-4 gap-4">
-                      <div 
-                        className={cn(
-                          "flex flex-col items-center justify-center gap-2 p-4 border border-dashed rounded-md cursor-pointer transition-colors",
-                          mediaType === 'image' ? "bg-primary/10 border-primary" : "hover:bg-muted/50"
-                        )}
-                        onClick={() => handleMediaSelection('image')}
-                      >
-                        <ImageIcon className={cn("h-8 w-8", mediaType === 'image' ? "text-primary" : "text-muted-foreground")} />
-                        <span className="text-sm font-medium">Imagem</span>
-                      </div>
-                      <div 
-                        className={cn(
-                          "flex flex-col items-center justify-center gap-2 p-4 border border-dashed rounded-md cursor-pointer transition-colors",
-                          mediaType === 'document' ? "bg-primary/10 border-primary" : "hover:bg-muted/50"
-                        )}
-                        onClick={() => handleMediaSelection('document')}
-                      >
-                        <File className={cn("h-8 w-8", mediaType === 'document' ? "text-primary" : "text-muted-foreground")} />
-                        <span className="text-sm font-medium">Documento</span>
-                      </div>
-                      <div 
-                        className={cn(
-                          "flex flex-col items-center justify-center gap-2 p-4 border border-dashed rounded-md cursor-pointer transition-colors",
-                          mediaType === 'video' ? "bg-primary/10 border-primary" : "hover:bg-muted/50"
-                        )}
-                        onClick={() => handleMediaSelection('video')}
-                      >
-                        <Video className={cn("h-8 w-8", mediaType === 'video' ? "text-primary" : "text-muted-foreground")} />
-                        <span className="text-sm font-medium">Vídeo</span>
-                      </div>
-                      <div 
-                        className={cn(
-                          "flex flex-col items-center justify-center gap-2 p-4 border border-dashed rounded-md cursor-pointer transition-colors",
-                          mediaType === 'link' ? "bg-primary/10 border-primary" : "hover:bg-muted/50"
-                        )}
-                        onClick={() => handleMediaSelection('link')}
-                      >
-                        <Link className={cn("h-8 w-8", mediaType === 'link' ? "text-primary" : "text-muted-foreground")} />
-                        <span className="text-sm font-medium">Link</span>
-                      </div>
-                    </div>
-                    
-                    {mediaType && (
-                      <>
-                        <div className="space-y-2">
-                          <Label htmlFor="media-url">URL da Mídia (Opcional)</Label>
-                          <Input
-                            id="media-url"
-                            placeholder={`Adicione a URL da ${mediaType === 'image' ? 'imagem' : mediaType === 'video' ? 'vídeo' : mediaType === 'document' ? 'documento' : 'link'}`}
-                            value={mediaUrl}
-                            onChange={(e) => setMediaUrl(e.target.value)}
-                          />
-                        </div>
-                        
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div className="space-y-2">
-                            <Label htmlFor="message-text-1">Mensagem 1 (Principal)</Label>
-                            <Textarea
-                              id="message-text-1"
-                              placeholder="Digite sua mensagem principal aqui..."
-                              value={message1}
-                              onChange={(e) => setMessage1(e.target.value)}
-                              className="min-h-[120px]"
-                            />
-                          </div>
-                          
-                          <div className="space-y-2">
-                            <Label htmlFor="message-text-2">Mensagem 2 (Opcional)</Label>
-                            <Textarea
-                              id="message-text-2"
-                              placeholder="Digite sua mensagem secundária aqui..."
-                              value={message2}
-                              onChange={(e) => setMessage2(e.target.value)}
-                              className="min-h-[120px]"
-                            />
-                          </div>
-                          
-                          <div className="space-y-2">
-                            <Label htmlFor="message-text-3">Mensagem 3 (Opcional)</Label>
-                            <Textarea
-                              id="message-text-3"
-                              placeholder="Digite sua mensagem adicional aqui..."
-                              value={message3}
-                              onChange={(e) => setMessage3(e.target.value)}
-                              className="min-h-[120px]"
-                            />
-                          </div>
-                          
-                          <div className="space-y-2">
-                            <Label htmlFor="message-text-4">Mensagem 4 (Opcional)</Label>
-                            <Textarea
-                              id="message-text-4"
-                              placeholder="Digite sua mensagem final aqui..."
-                              value={message4}
-                              onChange={(e) => setMessage4(e.target.value)}
-                              className="min-h-[120px]"
-                            />
-                          </div>
-                        </div>
-                      </>
-                    )}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="message-text-1">Mensagem 1 (Principal)</Label>
+                    <Textarea
+                      id="message-text-1"
+                      placeholder="Digite sua mensagem principal aqui..."
+                      value={message1}
+                      onChange={(e) => setMessage1(e.target.value)}
+                      className="min-h-[120px]"
+                    />
                   </div>
-                )}
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="message-text-2">Mensagem 2 (Opcional)</Label>
+                    <Textarea
+                      id="message-text-2"
+                      placeholder="Digite sua mensagem secundária aqui..."
+                      value={message2}
+                      onChange={(e) => setMessage2(e.target.value)}
+                      className="min-h-[120px]"
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="message-text-3">Mensagem 3 (Opcional)</Label>
+                    <Textarea
+                      id="message-text-3"
+                      placeholder="Digite sua mensagem adicional aqui..."
+                      value={message3}
+                      onChange={(e) => setMessage3(e.target.value)}
+                      className="min-h-[120px]"
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="message-text-4">Mensagem 4 (Opcional)</Label>
+                    <Textarea
+                      id="message-text-4"
+                      placeholder="Digite sua mensagem final aqui..."
+                      value={message4}
+                      onChange={(e) => setMessage4(e.target.value)}
+                      className="min-h-[120px]"
+                    />
+                  </div>
+                </div>
               </div>
             </div>
           )}
@@ -585,7 +512,7 @@ export const EditCampaignDialog: React.FC<EditCampaignDialogProps> = ({
                   <h4 className="font-medium">Resumo da Campanha</h4>
                   <div className="flex flex-wrap gap-x-6 gap-y-2">
                     <p className="text-sm">Nome: {campaignName}</p>
-                    <p className="text-sm">Tipo: {mediaType ? `Mídia (${mediaType})` : "Texto"}</p>
+                    <p className="text-sm">Tipo: {mediaType ? `${mediaType === 'text' ? 'Texto' : mediaType === 'image' ? 'Imagem' : mediaType === 'document' ? 'Documento' : mediaType === 'video' ? 'Vídeo' : 'Link'}` : "Não definido"}</p>
                     <p className="text-sm">Status: {
                       enviados === 0 && (scheduleDate && scheduleTime) ? "Agendada" : 
                       (enviados > 0 && enviados < limiteDisparos) ? "Em andamento" : 

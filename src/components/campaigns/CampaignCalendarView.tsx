@@ -67,25 +67,35 @@ export const CampaignCalendarView: React.FC<CampaignCalendarViewProps> = ({
     if (!draggingCampaign || !draggingCampaign.id) return;
     
     try {
-      // Criar uma cópia da data para manipulação adequada e evitar problemas de timezone
-      const targetDate = new Date(date);
+      // Criar uma nova data para evitar problemas de referência
+      const targetDate = new Date(Date.UTC(
+        date.getFullYear(),
+        date.getMonth(),
+        date.getDate(),
+        12, 0, 0
+      ));
+      
       // Manter a hora original se existir
       if (draggingCampaign.data_disparo) {
         const originalDate = new Date(draggingCampaign.data_disparo);
-        targetDate.setHours(originalDate.getHours());
-        targetDate.setMinutes(originalDate.getMinutes());
-        targetDate.setSeconds(originalDate.getSeconds());
+        targetDate.setUTCHours(originalDate.getUTCHours());
+        targetDate.setUTCMinutes(originalDate.getUTCMinutes());
+        targetDate.setUTCSeconds(originalDate.getUTCSeconds());
       }
+      
+      const targetISOString = targetDate.toISOString();
+      
+      console.log(`Reagendando para a data: ${date.toISOString()} -> ${targetISOString}`);
       
       // Atualizar a data da campanha
       const updatedCampaign = {
         ...draggingCampaign,
-        data_disparo: targetDate.toISOString()
+        data_disparo: targetISOString
       };
 
       // Chamar API para atualizar a campanha
       await updateCampaign(draggingCampaign.id, {
-        data_disparo: targetDate.toISOString()
+        data_disparo: targetISOString
       });
 
       // Invalidar queries para forçar recarregamento dos dados
