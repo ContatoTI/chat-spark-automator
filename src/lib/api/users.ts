@@ -9,7 +9,7 @@ export interface User {
   last_sign_in_at?: string;
 }
 
-// Função simplificada para buscar usuários apenas da tabela appw_users
+// Função para buscar usuários da tabela appw_users
 export const fetchUsers = async (): Promise<User[]> => {
   console.log("Buscando usuários da tabela appw_users");
   
@@ -21,6 +21,41 @@ export const fetchUsers = async (): Promise<User[]> => {
     if (error) {
       console.error("Erro ao buscar usuários:", error);
       throw new Error(`Falha ao buscar usuários: ${error.message}`);
+    }
+    
+    // Se não houver usuários, criar um admin padrão
+    if (!data || data.length === 0) {
+      console.log("Nenhum usuário encontrado. Criando administrador padrão...");
+      
+      try {
+        const adminId = crypto.randomUUID();
+        const defaultAdmin = {
+          user_id: adminId,
+          email: 'admin@exemplo.com',
+          password: 'admin123', // Em produção, isso deveria ser um hash
+          role: 'admin',
+          created_at: new Date().toISOString()
+        };
+        
+        const { error: insertError } = await supabase
+          .from('appw_users')
+          .insert([defaultAdmin]);
+          
+        if (insertError) {
+          console.error("Erro ao criar admin padrão:", insertError);
+          return [];
+        }
+        
+        return [{
+          id: adminId,
+          email: 'admin@exemplo.com',
+          created_at: defaultAdmin.created_at,
+          role: 'admin'
+        }];
+      } catch (createError) {
+        console.error("Erro ao criar usuário admin padrão:", createError);
+        return [];
+      }
     }
     
     // Transformar os dados para o formato esperado
@@ -40,7 +75,7 @@ export const fetchUsers = async (): Promise<User[]> => {
   }
 };
 
-// Função simplificada para criar usuário apenas na tabela appw_users
+// Função para criar usuário na tabela appw_users
 export const createUser = async (email: string, password: string, role: string): Promise<void> => {
   console.log("Criando usuário:", { email, role });
   
