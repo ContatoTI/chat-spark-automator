@@ -7,6 +7,8 @@ import { LoadingState } from "@/components/settings/LoadingState";
 import { ErrorState } from "@/components/settings/ErrorState";
 import { useSettingsForm } from "@/hooks/useSettingsForm";
 import { toast } from "sonner";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { AlertCircle } from "lucide-react";
 
 const Settings = () => {
   const { settings, isLoading, error, refetch } = useSettingsForm();
@@ -29,24 +31,33 @@ const Settings = () => {
     );
   }
 
-  // Se não houver dados (embora agora inicializamos com padrões)
+  // Se não houver dados, exiba uma mensagem especial sobre as políticas de RLS
   if (!settings) {
-    toast.error("Não foi possível carregar as configurações", {
-      description: "Verifique se as tabelas do banco de dados foram criadas corretamente"
-    });
-    
     return (
       <Layout>
-        <div className="flex flex-col items-center justify-center p-8">
-          <h2 className="text-xl font-semibold mb-4">Configurações indisponíveis</h2>
-          <p className="text-muted-foreground mb-4">
-            Não foi possível carregar as configurações do sistema.
-          </p>
+        <div className="flex flex-col items-center justify-center p-8 max-w-3xl mx-auto">
+          <Alert variant="warning" className="mb-6">
+            <AlertCircle className="h-5 w-5 mr-2" />
+            <AlertTitle className="text-lg font-semibold mb-2">Configurações não encontradas</AlertTitle>
+            <AlertDescription className="text-sm">
+              <p className="mb-2">
+                Nenhuma configuração foi encontrada no banco de dados. Devido às políticas de segurança (RLS), 
+                o sistema não pode criar automaticamente as configurações iniciais.
+              </p>
+              <p className="mb-2">
+                Um administrador do sistema deve inicializar a tabela <strong>AppW_Options</strong> com 
+                valores padrão através do painel do Supabase ou usando SQL direto.
+              </p>
+              <p>
+                Verifique a documentação ou contate o suporte técnico para obter o script SQL necessário.
+              </p>
+            </AlertDescription>
+          </Alert>
           <button
             onClick={() => refetch()}
             className="inline-flex items-center justify-center px-4 py-2 bg-primary text-primary-foreground rounded-md"
           >
-            Tentar novamente
+            Verificar novamente
           </button>
         </div>
       </Layout>

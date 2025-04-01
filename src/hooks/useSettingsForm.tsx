@@ -20,7 +20,31 @@ export const useSettingsForm = () => {
     retryDelay: 1000,
     // Não armazenamos em cache por muito tempo, pois as configurações
     // podem ser alteradas por outros usuários
-    staleTime: 30000 
+    staleTime: 30000,
+    // Adicionar uma função de manipulação de erros detalhada
+    meta: {
+      onError: (error: unknown) => {
+        const errorMessage = error instanceof Error
+          ? error.message
+          : 'Ocorreu um erro desconhecido ao carregar configurações';
+        
+        console.error("Erro detalhado ao carregar configurações:", error);
+        
+        if (errorMessage.includes('RLS')) {
+          toast({
+            variant: "destructive",
+            title: "Erro de permissão",
+            description: "Você não tem permissão para acessar as configurações. Contate o administrador.",
+          });
+        } else {
+          toast({
+            variant: "destructive",
+            title: "Erro ao carregar configurações",
+            description: errorMessage,
+          });
+        }
+      }
+    }
   });
 
   useEffect(() => {

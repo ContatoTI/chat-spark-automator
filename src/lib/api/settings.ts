@@ -1,4 +1,3 @@
-
 import { supabase } from '@/lib/supabase';
 
 export interface OptionRow {
@@ -11,10 +10,6 @@ export interface OptionRow {
 export interface DisparoOptions {
   instancia: string;
   Ativo: boolean;
-  // Campos movidos para a tabela AppW_Campanhas
-  // Producao: boolean;
-  // Limite_disparos: number;
-  // Enviados: number;
   horario_limite: number;
   long_wait_min: number;
   long_wait_max: number;
@@ -28,14 +23,9 @@ export interface DisparoOptions {
   webhook_contatos: string;
 }
 
-// Mapeamento entre nomes de opções na tabela e propriedades no objeto DisparoOptions
 const optionMapping: Record<string, { field: 'text' | 'numeric' | 'boolean', key: keyof DisparoOptions }> = {
   instancia: { field: 'text', key: 'instancia' },
   ativo: { field: 'boolean', key: 'Ativo' },
-  // Removidos pois foram movidos para a tabela AppW_Campanhas
-  // producao: { field: 'boolean', key: 'Producao' },
-  // limite_disparos: { field: 'numeric', key: 'Limite_disparos' },
-  // enviados: { field: 'numeric', key: 'Enviados' },
   horario_limite: { field: 'numeric', key: 'horario_limite' },
   long_wait_min: { field: 'numeric', key: 'long_wait_min' },
   long_wait_max: { field: 'numeric', key: 'long_wait_max' },
@@ -56,10 +46,6 @@ function convertRowsToDisparoOptions(rows: OptionRow[]): DisparoOptions {
   const options: DisparoOptions = {
     instancia: '',
     Ativo: true,
-    // Removidos pois foram movidos para a tabela AppW_Campanhas
-    // Producao: false,
-    // Limite_disparos: 1000,
-    // Enviados: 0,
     horario_limite: 17,
     long_wait_min: 50,
     long_wait_max: 240,
@@ -73,7 +59,6 @@ function convertRowsToDisparoOptions(rows: OptionRow[]): DisparoOptions {
     webhook_contatos: '',
   };
 
-  // Para cada linha, aplica o valor ao campo correspondente
   rows.forEach(row => {
     const mapping = Object.entries(optionMapping).find(([key]) => key === row.option);
     if (mapping) {
@@ -129,11 +114,9 @@ export const fetchDisparoOptions = async (): Promise<DisparoOptions> => {
       throw new Error(`Erro ao buscar configurações: ${error.message}`);
     }
 
-    // Se não há dados, inicializar a tabela com valores padrão
     if (!data || data.length === 0) {
-      console.log("Nenhuma opção encontrada. Inicializando valores padrão...");
+      console.log("Nenhuma opção encontrada. Retornando valores padrão...");
       
-      // Valores padrão para inicialização
       const defaultOptions: DisparoOptions = {
         instancia: 'Padrão',
         Ativo: true,
@@ -149,15 +132,10 @@ export const fetchDisparoOptions = async (): Promise<DisparoOptions> => {
         webhook_disparo: '',
         webhook_contatos: '',
       };
-
-      // Inserir valores padrão no banco de dados
-      await insertDefaultOptions(defaultOptions);
       
-      // Retornar os valores padrão
       return defaultOptions;
     }
 
-    // Converte as linhas da tabela para o formato DisparoOptions
     return convertRowsToDisparoOptions(data as OptionRow[]);
   } catch (error) {
     console.error('Erro ao buscar configurações:', error);
@@ -166,65 +144,29 @@ export const fetchDisparoOptions = async (): Promise<DisparoOptions> => {
 };
 
 /**
- * Insere as opções padrão na tabela AppW_Options
- */
-const insertDefaultOptions = async (options: DisparoOptions): Promise<void> => {
-  try {
-    const optionsToInsert = Object.entries(optionMapping).map(([optionName, { field, key }]) => {
-      const value = options[key];
-      const option: OptionRow = {
-        option: optionName,
-        text: field === 'text' ? value as string : null,
-        numeric: field === 'numeric' ? value as number : null,
-        boolean: field === 'boolean' ? value as boolean : null,
-      };
-      return option;
-    });
-
-    const { error } = await supabase
-      .from('AppW_Options')
-      .insert(optionsToInsert);
-
-    if (error) {
-      throw new Error(`Erro ao inserir configurações padrão: ${error.message}`);
-    }
-  } catch (error) {
-    console.error('Erro ao inserir configurações padrão:', error);
-    throw error;
-  }
-};
-
-/**
- * Atualiza as opções de configuração na nova tabela AppW_Options
+ * Atualiza as opções de configuração na tabela AppW_Options
+ * Usando apenas operações UPDATE para evitar problemas com RLS
  */
 export const updateDisparoOptions = async (options: DisparoOptions): Promise<void> => {
   try {
-    // Primeiro verificar se existem registros
-    const { data, error: checkError } = await supabase
+    const { data: existingOptions, error: fetchError } = await supabase
       .from('AppW_Options')
-      .select('option')
-      .limit(1);
+      .select('option');
     
-    // Se não houver registros, inserir todos
-    if (checkError || !data || data.length === 0) {
-      await insertDefaultOptions(options);
-      return;
+    if (fetchError) {
+      throw new Error(`Erro ao verificar opções existentes: ${fetchError.message}`);
     }
     
-    // Converte o objeto para atualizações individuais
+    if (!existingOptions || existingOptions.length === 0) {
+      throw new Error('Não é possível atualizar as configurações: nenhuma opção encontrada no banco de dados. Contate o administrador do sistema.');
+    }
+    
+    const existingOptionsMap = new Set(existingOptions.map(row => row.option));
+    
     const updateList = convertDisparoOptionsToUpdates(options);
     
-    // Realiza uma atualização para cada opção
     for (const { option, updates } of updateList) {
-      // Verificar se a opção existe
-      const { data: existingOption } = await supabase
-        .from('AppW_Options')
-        .select('option')
-        .eq('option', option)
-        .maybeSingle();
-      
-      if (existingOption) {
-        // Atualizar se existir
+      if (existingOptionsMap.has(option)) {
         const { error } = await supabase
           .from('AppW_Options')
           .update(updates)
@@ -234,14 +176,7 @@ export const updateDisparoOptions = async (options: DisparoOptions): Promise<voi
           throw new Error(`Erro ao atualizar configuração ${option}: ${error.message}`);
         }
       } else {
-        // Inserir se não existir
-        const { error } = await supabase
-          .from('AppW_Options')
-          .insert(updates);
-
-        if (error) {
-          throw new Error(`Erro ao inserir configuração ${option}: ${error.message}`);
-        }
+        console.warn(`Configuração "${option}" não existe no banco de dados e não pode ser criada devido às restrições de RLS.`);
       }
     }
   } catch (error) {
