@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { 
   Card, 
@@ -10,7 +9,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { RefreshCw, Check, X, AlertCircle } from 'lucide-react';
 import { verifyDatabaseCompatibility } from '@/lib/checkDatabaseCompatibility';
-import { supabase } from '@/lib/supabase';
+import { supabase, supabaseUrl } from '@/lib/supabase';
 
 export const DatabaseDiagnostic = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -26,9 +25,6 @@ export const DatabaseDiagnostic = () => {
     try {
       const compatibility = await verifyDatabaseCompatibility();
       setResults(compatibility);
-      
-      // Get the URL from our supabase.ts file instead of directly from the client
-      const supabaseUrl = supabase?.supabaseUrl || 'https://supa.falcontruck.com.br/';
       
       setSupabaseInfo({
         url: supabaseUrl,
