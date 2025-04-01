@@ -102,8 +102,8 @@ const fetchContactsStats = async () => {
     console.log("Invalid contacts count:", invalid);
     
     return {
-      total: total || 0,
-      invalid: invalid || 0
+      total: total ?? 0,
+      invalid: invalid ?? 0
     };
   } catch (error) {
     console.error("Erro ao buscar estatísticas de contatos:", error);
@@ -142,14 +142,14 @@ export const DashboardStats: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <StatCard
           title="Número de Contatos"
-          value={isLoading ? 0 : contactsStats?.total || 0}
+          value={contactsStats?.total ?? 0}
           icon={Users}
           description="Total de contatos na base"
           isLoading={isLoading}
         />
         <StatCard
           title="Inválidos"
-          value={isLoading ? 0 : contactsStats?.invalid || 0}
+          value={contactsStats?.invalid ?? 0}
           icon={AlertTriangle}
           description="Contatos com Invalido=true"
           isLoading={isLoading}
