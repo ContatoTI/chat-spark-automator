@@ -27,9 +27,11 @@ export const DatabaseDiagnostic = () => {
       const compatibility = await verifyDatabaseCompatibility();
       setResults(compatibility);
       
-      // Obter a URL diretamente da instância supabase
+      // Get the URL from our supabase.ts file instead of directly from the client
+      const supabaseUrl = supabase?.supabaseUrl || 'https://supa.falcontruck.com.br/';
+      
       setSupabaseInfo({
-        url: supabase.supabaseUrl,
+        url: supabaseUrl,
         version: 'v2',
         connected: Object.values(compatibility.tablesExist).some(value => value)
       });
