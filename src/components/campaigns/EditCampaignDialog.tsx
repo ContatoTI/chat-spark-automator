@@ -91,6 +91,8 @@ export const EditCampaignDialog: React.FC<EditCampaignDialogProps> = ({
       finalDateTime.setHours(hours, minutes, 0, 0);
     }
     
+    const status = calculateStatus(enviados, limiteDisparos, finalDateTime);
+    
     const updatedCampaign: Partial<Campaign> = {
       nome: campaignName,
       mensagem01: message1,
@@ -100,7 +102,7 @@ export const EditCampaignDialog: React.FC<EditCampaignDialogProps> = ({
       tipo_midia: mediaType,
       url_midia: mediaUrl || null,
       data_disparo: finalDateTime ? finalDateTime.toISOString() : null,
-      status: calculateStatus(enviados, limiteDisparos, finalDateTime),
+      status: status,
       producao: producao,
       limite_disparos: limiteDisparos
     };

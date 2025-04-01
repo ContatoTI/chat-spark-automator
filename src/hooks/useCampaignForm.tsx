@@ -160,6 +160,6 @@ export const useCampaignForm = (campaign: Campaign | null, open: boolean) => {
     calculateStatus,
     handleMediaSelection,
     generateTimeOptions,
-    isValid: campaignName.trim() && message1.trim()
+    isValid: Boolean(campaignName.trim() && message1.trim())
   };
 };
