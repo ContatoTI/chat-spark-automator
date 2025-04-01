@@ -48,11 +48,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ open }) => {
   return (
     <aside
       className={cn(
-        "bg-white dark:bg-slate-950 border-r transition-all duration-300 ease-in-out",
+        "bg-white dark:bg-slate-950 border-r border-slate-200 dark:border-slate-800 transition-all duration-300 ease-in-out",
         "z-20 h-full w-64 overflow-y-auto flex-shrink-0",
         open ? "translate-x-0" : "-translate-x-full",
         "md:relative md:translate-x-0",
-        open ? "absolute md:relative" : ""
+        open ? "fixed md:relative left-0 top-16 bottom-0 md:top-auto" : ""
       )}
     >
       <div className="flex flex-col h-full gap-2 p-4">
@@ -95,7 +95,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ open }) => {
         </div>
         
         {/* Adicionar botão de logout no final do sidebar */}
-        <div className="mt-auto">
+        <div className="mt-auto pb-4">
           <button
             onClick={() => logout()}
             className="flex w-full items-center gap-3 px-3 py-2 rounded-md text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all duration-200"

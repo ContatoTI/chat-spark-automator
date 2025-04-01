@@ -2,6 +2,7 @@
 import React from "react";
 import { Menu, X } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { ThemeToggle } from "./ThemeToggle";
 
 interface TopBarProps {
   setSidebarOpen: React.Dispatch<React.SetStateAction<boolean>>;
@@ -29,6 +30,7 @@ export const TopBar: React.FC<TopBarProps> = ({ setSidebarOpen, sidebarOpen }) =
       </div>
       
       <div className="flex items-center gap-4">
+        <ThemeToggle />
         {user && (
           <div className="text-sm text-slate-600 dark:text-slate-400">
             <span className="font-medium">{user.email}</span>
