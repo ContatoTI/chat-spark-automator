@@ -27,9 +27,9 @@ export const DatabaseDiagnostic = () => {
       const compatibility = await verifyDatabaseCompatibility();
       setResults(compatibility);
       
-      // Verificar a URL e status de conexão
+      // Obter a URL diretamente da instância supabase
       setSupabaseInfo({
-        url: supabase.getUrl(),
+        url: supabase.supabaseUrl,
         version: 'v2',
         connected: Object.values(compatibility.tablesExist).some(value => value)
       });
