@@ -48,8 +48,12 @@ export const fetchFtpConfig = async (): Promise<FtpConfig | null> => {
   }
 };
 
-// Fetch webhook URL for getting media files
+// Fetch webhook URL for getting media files - agora retornará a URL fixa
 export const fetchMediaWebhookUrl = async (): Promise<string | null> => {
+  // Retornando diretamente a URL do webhook fornecida
+  return "https://dinastia-n8n-editor.ssdx0m.easypanel.host/webhook-test/getdocs";
+  
+  /* Código original comentado
   try {
     const { data, error } = await supabase
       .from('AppW_Options')
@@ -67,4 +71,5 @@ export const fetchMediaWebhookUrl = async (): Promise<string | null> => {
     console.error('Error fetching webhook URL:', error);
     return null;
   }
+  */
 };

@@ -2,7 +2,6 @@
 import { toast } from "sonner";
 import { MediaFile, FtpConfig } from './types';
 import { fetchFtpConfig, fetchMediaWebhookUrl } from './config';
-import { getMockFiles } from './mockData';
 
 // List files using webhook
 export const listFiles = async (type: 'image' | 'video' | 'document'): Promise<MediaFile[]> => {
@@ -22,11 +21,11 @@ export const listFiles = async (type: 'image' | 'video' | 'document'): Promise<M
     }
     
     try {
-      console.log(`Calling webhook at: ${webhookUrl}?type=${type}`);
-      
-      // Adicionar o tipo de arquivo como parâmetro da URL
+      // Construindo a URL do webhook com o parâmetro de tipo
       const url = new URL(webhookUrl);
       url.searchParams.append('type', type);
+      
+      console.log(`Chamando webhook em: ${url.toString()}`);
       
       const response = await fetch(url.toString(), {
         method: 'GET',
@@ -36,16 +35,16 @@ export const listFiles = async (type: 'image' | 'video' | 'document'): Promise<M
       });
       
       if (!response.ok) {
-        console.error(`Webhook error: ${response.status} ${response.statusText}`);
+        console.error(`Erro no webhook: ${response.status} ${response.statusText}`);
         throw new Error(`Erro ao buscar arquivos: ${response.statusText}`);
       }
       
       const data = await response.json();
-      console.log("Webhook response:", data);
+      console.log("Resposta do webhook:", data);
       
       if (!Array.isArray(data)) {
         toast.error("Formato de resposta inválido do webhook");
-        console.error("Invalid webhook response format:", data);
+        console.error("Formato de resposta inválido:", data);
         return [];
       }
       
@@ -60,14 +59,14 @@ export const listFiles = async (type: 'image' | 'video' | 'document'): Promise<M
         thumbnailUrl: type === 'image' ? item.url : undefined,
       }));
     } catch (error) {
-      console.error('Error calling webhook:', error);
+      console.error('Erro ao chamar webhook:', error);
+      toast.error("Erro ao buscar arquivos do servidor. Por favor, tente novamente mais tarde.");
       
-      // Se houver erro na chamada do webhook, usar o código mockado como fallback
-      console.warn('Fallback to mock data due to webhook error');
-      return getMockFiles(type, ftpConfig);
+      // Não vamos mais usar dados mockados como fallback
+      return [];
     }
   } catch (error) {
-    console.error('Error listing files:', error);
+    console.error('Erro ao listar arquivos:', error);
     toast.error("Erro ao listar arquivos.");
     return [];
   }

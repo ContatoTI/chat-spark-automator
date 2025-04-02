@@ -1,3 +1,4 @@
+
 import React from "react";
 import {
   Dialog,
@@ -32,10 +33,10 @@ export function MediaLibraryDialog({
       setIsChecking(true);
       fetchMediaWebhookUrl().then(url => {
         setWebhookUrl(url);
-        console.log("Webhook URL loaded:", url);
+        console.log("URL do webhook carregada:", url);
         setIsChecking(false);
       }).catch(error => {
-        console.error("Error loading webhook URL:", error);
+        console.error("Erro ao carregar URL do webhook:", error);
         setWebhookUrl(null);
         setIsChecking(false);
       });

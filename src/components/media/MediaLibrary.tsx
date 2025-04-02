@@ -31,12 +31,12 @@ export function MediaLibrary({ onSelect, onClose, currentType }: MediaLibraryPro
       setIsLoading(true);
       setError(null);
       try {
-        console.log(`Loading ${activeTab} files...`);
+        console.log(`Carregando arquivos do tipo '${activeTab}'...`);
         const mediaFiles = await listFiles(activeTab);
-        console.log(`Loaded ${mediaFiles.length} ${activeTab} files`);
+        console.log(`Carregados ${mediaFiles.length} arquivos do tipo '${activeTab}'`);
         setFiles(mediaFiles);
       } catch (err) {
-        console.error('Error loading files:', err);
+        console.error('Erro ao carregar arquivos:', err);
         const errorMessage = err instanceof Error ? err.message : "Erro desconhecido ao carregar arquivos";
         setError(errorMessage);
         toast.error("Erro ao carregar arquivos da biblioteca de mídia.");
@@ -75,7 +75,7 @@ export function MediaLibrary({ onSelect, onClose, currentType }: MediaLibraryPro
         toast.success("Arquivo enviado com sucesso!");
       }
     } catch (err) {
-      console.error('Upload error:', err);
+      console.error('Erro no upload:', err);
       toast.error("Erro ao fazer upload do arquivo.");
     } finally {
       setIsUploading(false);
