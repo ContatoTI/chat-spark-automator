@@ -111,6 +111,25 @@ export function GeneralSettings({ form }: GeneralSettingsProps) {
             )}
           />
         </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <FormField
+            control={form.control}
+            name="webhook_get_images"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Webhook Biblioteca de Mídia</FormLabel>
+                <FormControl>
+                  <Input {...field} />
+                </FormControl>
+                <FormDescription>
+                  URL do webhook para buscar arquivos da biblioteca de mídia
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
         
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
           <FormField
@@ -133,8 +152,6 @@ export function GeneralSettings({ form }: GeneralSettingsProps) {
               </FormItem>
             )}
           />
-          
-          {/* Removido o campo Producao, pois foi movido para a tabela AppW_Campanhas */}
         </div>
       </CardContent>
     </Card>

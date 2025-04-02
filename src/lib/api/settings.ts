@@ -1,3 +1,4 @@
+
 import { supabase } from '@/lib/supabase';
 
 export interface OptionRow {
@@ -21,6 +22,7 @@ export interface DisparoOptions {
   apikey: string;
   webhook_disparo: string;
   webhook_contatos: string;
+  webhook_get_images: string;
   ftp_url: string;
   ftp_user: string;
   ftp_port: number;
@@ -41,6 +43,7 @@ const optionMapping: Record<string, { field: 'text' | 'numeric' | 'boolean', key
   apikey: { field: 'text', key: 'apikey' },
   webhook_disparo: { field: 'text', key: 'webhook_disparo' },
   webhook_contatos: { field: 'text', key: 'webhook_contatos' },
+  webhook_get_images: { field: 'text', key: 'webhook_get_images' },
   ftp_url: { field: 'text', key: 'ftp_url' },
   ftp_user: { field: 'text', key: 'ftp_user' },
   ftp_port: { field: 'numeric', key: 'ftp_port' },

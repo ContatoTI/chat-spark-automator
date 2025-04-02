@@ -59,16 +59,43 @@ export const fetchFtpConfig = async (): Promise<FtpConfig | null> => {
       password: ftpConfig.password,
       port: ftpConfig.port || 21
     };
-    
   } catch (error) {
     console.error('Error fetching FTP config:', error);
     return null;
   }
 };
 
-// Mock function to list files (in a real app, this would use a serverless function to communicate with the FTP server)
+// Fetch webhook URL for getting media files
+export const fetchMediaWebhookUrl = async (): Promise<string | null> => {
+  try {
+    const { data, error } = await supabase
+      .from('AppW_Options')
+      .select('*')
+      .eq('option', 'webhook_get_images')
+      .single();
+    
+    if (error || !data || !data.text) {
+      console.error('Error fetching webhook URL:', error);
+      return null;
+    }
+    
+    return data.text;
+  } catch (error) {
+    console.error('Error fetching webhook URL:', error);
+    return null;
+  }
+};
+
+// List files using webhook
 export const listFiles = async (type: 'image' | 'video' | 'document'): Promise<MediaFile[]> => {
   try {
+    const webhookUrl = await fetchMediaWebhookUrl();
+    
+    if (!webhookUrl) {
+      toast.error("URL do webhook não encontrada. Configure o webhook nas configurações do sistema.");
+      return [];
+    }
+    
     const ftpConfig = await fetchFtpConfig();
     
     if (!ftpConfig) {
@@ -76,50 +103,91 @@ export const listFiles = async (type: 'image' | 'video' | 'document'): Promise<M
       return [];
     }
     
-    // In a real implementation, this would call an edge function to list files from FTP
-    // For this example, we'll mock the response based on file type
-    
-    // Simulating API delay
-    await new Promise(resolve => setTimeout(resolve, 800));
-    
-    // Generate mock data based on file type
-    const folderPath = type === 'image' ? 'imagens/' : 
-                       type === 'video' ? 'videos/' : 
-                       'documentos/';
-    
-    const fileExtensions = type === 'image' ? ['jpg', 'png', 'jpeg'] :
-                          type === 'video' ? ['mp4', 'mov', 'avi'] :
-                          ['pdf', 'doc', 'docx', 'xlsx', 'txt'];
-    
-    const mockFiles: MediaFile[] = [];
-    const count = Math.floor(Math.random() * 5) + 3; // 3-7 files
-    
-    for (let i = 1; i <= count; i++) {
-      const ext = fileExtensions[Math.floor(Math.random() * fileExtensions.length)];
-      const fileName = `arquivo_${i}.${ext}`;
+    try {
+      // Adicionar o tipo de arquivo como parâmetro da URL
+      const url = new URL(webhookUrl);
+      url.searchParams.append('type', type);
       
-      mockFiles.push({
-        name: fileName,
-        path: `${folderPath}${fileName}`,
-        url: `https://${ftpConfig.host}/${folderPath}${fileName}`,
-        type,
-        size: Math.floor(Math.random() * 5000000) + 100000, // 100KB to 5MB
-        createdAt: new Date(Date.now() - Math.random() * 10000000000).toISOString(), // Random date in the past
-        thumbnailUrl: type === 'image' 
-          ? `https://${ftpConfig.host}/${folderPath}${fileName}` 
-          : undefined
+      const response = await fetch(url.toString(), {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
       });
+      
+      if (!response.ok) {
+        throw new Error(`Erro ao buscar arquivos: ${response.statusText}`);
+      }
+      
+      const data = await response.json();
+      
+      if (!Array.isArray(data)) {
+        toast.error("Formato de resposta inválido do webhook");
+        return [];
+      }
+      
+      // Converter a resposta do webhook para o formato MediaFile
+      return data.map((item) => ({
+        name: item.name || 'Arquivo sem nome',
+        path: item.path || '',
+        url: item.url || '',
+        type,
+        size: item.size || 0,
+        createdAt: item.createdAt || new Date().toISOString(),
+        thumbnailUrl: type === 'image' ? item.url : undefined,
+      }));
+    } catch (error) {
+      console.error('Error calling webhook:', error);
+      
+      // Se houver erro na chamada do webhook, usar o código mockado como fallback
+      console.warn('Fallback to mock data due to webhook error');
+      return getMockFiles(type, ftpConfig);
     }
-    
-    return mockFiles;
   } catch (error) {
     console.error('Error listing files:', error);
-    toast.error("Erro ao listar arquivos do FTP.");
+    toast.error("Erro ao listar arquivos.");
     return [];
   }
 };
 
-// Mock function to upload a file (in a real app, this would use a serverless function)
+// Mock function as fallback when webhook fails
+const getMockFiles = (type: 'image' | 'video' | 'document', ftpConfig: FtpConfig): MediaFile[] => {
+  // Simulating API delay
+  // await new Promise(resolve => setTimeout(resolve, 800));
+  
+  // Generate mock data based on file type
+  const folderPath = type === 'image' ? 'imagens/' : 
+                    type === 'video' ? 'videos/' : 
+                    'documentos/';
+  
+  const fileExtensions = type === 'image' ? ['jpg', 'png', 'jpeg'] :
+                        type === 'video' ? ['mp4', 'mov', 'avi'] :
+                        ['pdf', 'doc', 'docx', 'xlsx', 'txt'];
+  
+  const mockFiles: MediaFile[] = [];
+  const count = Math.floor(Math.random() * 5) + 3; // 3-7 files
+  
+  for (let i = 1; i <= count; i++) {
+    const ext = fileExtensions[Math.floor(Math.random() * fileExtensions.length)];
+    const fileName = `arquivo_${i}.${ext}`;
+    
+    mockFiles.push({
+      name: fileName,
+      path: `${folderPath}${fileName}`,
+      url: `https://${ftpConfig.host}/${folderPath}${fileName}`,
+      type,
+      size: Math.floor(Math.random() * 5000000) + 100000, // 100KB to 5MB
+      createdAt: new Date(Date.now() - Math.random() * 10000000000).toISOString(), // Random date in the past
+      thumbnailUrl: type === 'image' 
+        ? `https://${ftpConfig.host}/${folderPath}${fileName}` 
+        : undefined
+    });
+  }
+  
+  return mockFiles;
+};
+
+// Upload file function (in a real app, this would use a serverless function)
 export const uploadFile = async (
   file: File, 
   type: 'image' | 'video' | 'document'

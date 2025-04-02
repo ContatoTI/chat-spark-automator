@@ -42,7 +42,7 @@ export function MediaGrid({ files, isLoading, onSelect, type }: MediaGridProps) 
     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
       {files.map((file) => (
         <Card 
-          key={file.path} 
+          key={file.path || file.url} 
           className={cn(
             "cursor-pointer hover:border-primary transition-colors overflow-hidden",
             "group focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
@@ -58,9 +58,16 @@ export function MediaGrid({ files, isLoading, onSelect, type }: MediaGridProps) 
         >
           <div className="relative aspect-square">
             {file.type === 'image' ? (
-              <div 
-                className="w-full h-full bg-cover bg-center" 
-                style={{ backgroundImage: `url(${file.thumbnailUrl || file.url})` }}
+              <img 
+                src={file.url}
+                alt={file.name}
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  // Fallback se a imagem não carregar
+                  const target = e.target as HTMLImageElement;
+                  target.onerror = null;
+                  target.src = '/placeholder.svg';
+                }}
               />
             ) : file.type === 'video' ? (
               <div className="w-full h-full flex items-center justify-center bg-slate-800">

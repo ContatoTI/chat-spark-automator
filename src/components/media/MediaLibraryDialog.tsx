@@ -8,6 +8,10 @@ import {
 } from "@/components/ui/dialog";
 import { MediaLibrary } from "./MediaLibrary";
 import { MediaFile } from "@/lib/api/mediaLibrary";
+import { fetchMediaWebhookUrl } from "@/lib/api/mediaLibrary";
+import { useEffect, useState } from "react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertCircle } from "lucide-react";
 
 interface MediaLibraryDialogProps {
   open: boolean;
@@ -22,6 +26,24 @@ export function MediaLibraryDialog({
   onSelect,
   currentType,
 }: MediaLibraryDialogProps) {
+  const [webhookUrl, setWebhookUrl] = useState<string | null>(null);
+  const [isChecking, setIsChecking] = useState(false);
+
+  useEffect(() => {
+    if (open) {
+      setIsChecking(true);
+      fetchMediaWebhookUrl().then(url => {
+        setWebhookUrl(url);
+        console.log("Webhook URL loaded:", url);
+        setIsChecking(false);
+      }).catch(error => {
+        console.error("Error loading webhook URL:", error);
+        setWebhookUrl(null);
+        setIsChecking(false);
+      });
+    }
+  }, [open]);
+
   const handleSelect = (mediaFile: MediaFile) => {
     onSelect(mediaFile);
     onOpenChange(false);
@@ -33,6 +55,16 @@ export function MediaLibraryDialog({
         <DialogHeader>
           <DialogTitle>Biblioteca de Mídia</DialogTitle>
         </DialogHeader>
+        
+        {!isChecking && webhookUrl === null && (
+          <Alert variant="destructive" className="mb-4">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              Webhook para biblioteca de mídia não configurado. Por favor, configure-o nas configurações do sistema.
+            </AlertDescription>
+          </Alert>
+        )}
+        
         <MediaLibrary
           onSelect={handleSelect}
           onClose={() => onOpenChange(false)}
