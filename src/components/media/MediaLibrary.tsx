@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Image, Video, File, Upload, Loader2, AlertCircle } from "lucide-react";
@@ -45,35 +46,35 @@ export function MediaLibrary({ onSelect, onClose, currentType }: MediaLibraryPro
     initWebhook();
   }, []);
   
-  useEffect(() => {
-    const loadFiles = async () => {
-      setIsLoading(true);
-      setError(null);
-      
-      console.log(`[MediaLibrary] Carregando arquivos do tipo '${activeTab}'...`);
-      console.log(`[MediaLibrary] Usando webhook URL: ${webhookUrl}`);
-      
-      try {
-        const startTime = performance.now();
-        console.log(`[MediaLibrary] Iniciando chamada para listFiles() - ${new Date().toISOString()}`);
-        
-        const mediaFiles = await listFiles(activeTab);
-        
-        const endTime = performance.now();
-        console.log(`[MediaLibrary] Chamada finalizada em ${Math.round(endTime - startTime)}ms - ${new Date().toISOString()}`);
-        console.log(`[MediaLibrary] Carregados ${mediaFiles.length} arquivos do tipo '${activeTab}'`);
-        
-        setFiles(mediaFiles);
-      } catch (err) {
-        console.error('[MediaLibrary] Erro ao carregar arquivos:', err);
-        const errorMessage = err instanceof Error ? err.message : "Erro desconhecido ao carregar arquivos";
-        setError(errorMessage);
-        toast.error("Erro ao carregar arquivos da biblioteca de mídia.");
-      } finally {
-        setIsLoading(false);
-      }
-    };
+  const loadFiles = async () => {
+    setIsLoading(true);
+    setError(null);
     
+    console.log(`[MediaLibrary] Carregando arquivos do tipo '${activeTab}'...`);
+    console.log(`[MediaLibrary] Usando webhook URL: ${webhookUrl}`);
+    
+    try {
+      const startTime = performance.now();
+      console.log(`[MediaLibrary] Iniciando chamada para listFiles() - ${new Date().toISOString()}`);
+      
+      const mediaFiles = await listFiles(activeTab);
+      
+      const endTime = performance.now();
+      console.log(`[MediaLibrary] Chamada finalizada em ${Math.round(endTime - startTime)}ms - ${new Date().toISOString()}`);
+      console.log(`[MediaLibrary] Carregados ${mediaFiles.length} arquivos do tipo '${activeTab}'`);
+      
+      setFiles(mediaFiles);
+    } catch (err) {
+      console.error('[MediaLibrary] Erro ao carregar arquivos:', err);
+      const errorMessage = err instanceof Error ? err.message : "Erro desconhecido ao carregar arquivos";
+      setError(errorMessage);
+      toast.error("Erro ao carregar arquivos da biblioteca de mídia.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
+  useEffect(() => {
     loadFiles();
   }, [activeTab, webhookUrl]);
   
@@ -99,7 +100,8 @@ export function MediaLibrary({ onSelect, onClose, currentType }: MediaLibraryPro
     try {
       uploadFile(file, activeTab).then(uploadedFile => {
         if (uploadedFile) {
-          setFiles(prev => [uploadedFile, ...prev]);
+          // After successful upload, refresh the file list
+          loadFiles();
           toast.success("Arquivo enviado com sucesso!");
         }
         setIsUploading(false);
@@ -125,24 +127,7 @@ export function MediaLibrary({ onSelect, onClose, currentType }: MediaLibraryPro
   };
   
   const handleRetryLoad = async () => {
-    setIsLoading(true);
-    setError(null);
-    
-    console.log(`[MediaLibrary] Recarregando arquivos do tipo '${activeTab}'...`);
-    
-    try {
-      const mediaFiles = await listFiles(activeTab);
-      console.log(`[MediaLibrary] Recarregados ${mediaFiles.length} arquivos do tipo '${activeTab}'`);
-      setFiles(mediaFiles);
-      toast.success("Arquivos atualizados com sucesso!");
-    } catch (err) {
-      console.error('[MediaLibrary] Erro ao recarregar arquivos:', err);
-      const errorMessage = err instanceof Error ? err.message : "Erro desconhecido ao carregar arquivos";
-      setError(errorMessage);
-      toast.error("Erro ao recarregar arquivos da biblioteca de mídia.");
-    } finally {
-      setIsLoading(false);
-    }
+    loadFiles();
   };
   
   const filteredFiles = searchTerm 

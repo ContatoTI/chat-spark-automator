@@ -32,6 +32,12 @@ export const useCampaignForm = (campaign: Campaign | null, open: boolean) => {
       // Set date and time separately if data_disparo exists
       if (campaign.data_disparo) {
         const date = new Date(campaign.data_disparo);
+        
+        console.log("Data original no Supabase:", campaign.data_disparo);
+        console.log("Data convertida:", date.toISOString());
+        console.log("Data local:", date.toLocaleDateString());
+        
+        // Use local date to prevent timezone issues
         setScheduleDate(date);
         
         // Format time as HH:MM with 30-minute intervals

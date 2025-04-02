@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -11,10 +11,16 @@ import {
   Link, 
   Video,
   Type,
-  FolderOpen
+  FolderOpen,
+  User
 } from "lucide-react";
 import { MediaLibraryDialog } from "@/components/media/MediaLibraryDialog";
 import { MediaFile } from "@/lib/api/mediaLibrary";
+import { 
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface MessageTabProps {
   campaignName: string;
@@ -52,8 +58,59 @@ export const MessageTab: React.FC<MessageTabProps> = ({
 }) => {
   const [mediaLibraryOpen, setMediaLibraryOpen] = useState(false);
   
+  const message1Ref = useRef<HTMLTextAreaElement>(null);
+  const message2Ref = useRef<HTMLTextAreaElement>(null);
+  const message3Ref = useRef<HTMLTextAreaElement>(null);
+  const message4Ref = useRef<HTMLTextAreaElement>(null);
+  const [activeTextarea, setActiveTextarea] = useState<"message1" | "message2" | "message3" | "message4" | null>(null);
+  
   const handleMediaFileSelect = (file: MediaFile) => {
     setMediaUrl(file.url);
+  };
+
+  const insertVariable = (variable: string) => {
+    let textArea: HTMLTextAreaElement | null = null;
+    let setValue: (value: string) => void = () => {};
+    let currentValue = "";
+    
+    switch (activeTextarea) {
+      case "message1":
+        textArea = message1Ref.current;
+        setValue = setMessage1;
+        currentValue = message1;
+        break;
+      case "message2":
+        textArea = message2Ref.current;
+        setValue = setMessage2;
+        currentValue = message2;
+        break;
+      case "message3":
+        textArea = message3Ref.current;
+        setValue = setMessage3;
+        currentValue = message3;
+        break;
+      case "message4":
+        textArea = message4Ref.current;
+        setValue = setMessage4;
+        currentValue = message4;
+        break;
+      default:
+        return;
+    }
+
+    if (textArea) {
+      const startPos = textArea.selectionStart;
+      const endPos = textArea.selectionEnd;
+      
+      const newValue = currentValue.substring(0, startPos) + variable + currentValue.substring(endPos);
+      setValue(newValue);
+
+      // Set cursor position after the inserted variable
+      setTimeout(() => {
+        textArea?.focus();
+        textArea?.setSelectionRange(startPos + variable.length, startPos + variable.length);
+      }, 0);
+    }
   };
 
   return (
@@ -148,48 +205,76 @@ export const MessageTab: React.FC<MessageTabProps> = ({
           </div>
         )}
         
+        <div className="flex items-center gap-2 mb-2">
+          <Label>Variáveis:</Label>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="flex items-center gap-1" 
+                onClick={() => insertVariable("<nome>")}
+              >
+                <User className="h-3 w-3" />
+                Nome
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              Inserir nome do cliente
+            </TooltipContent>
+          </Tooltip>
+        </div>
+        
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label htmlFor="message-text-1">Mensagem 1 (Principal)</Label>
             <Textarea
+              ref={message1Ref}
               id="message-text-1"
               placeholder="Digite sua mensagem principal aqui..."
               value={message1}
               onChange={(e) => setMessage1(e.target.value)}
               className="min-h-[120px]"
+              onFocus={() => setActiveTextarea("message1")}
             />
           </div>
           
           <div className="space-y-2">
             <Label htmlFor="message-text-2">Mensagem 2 (Opcional)</Label>
             <Textarea
+              ref={message2Ref}
               id="message-text-2"
               placeholder="Digite sua mensagem secundária aqui..."
               value={message2}
               onChange={(e) => setMessage2(e.target.value)}
               className="min-h-[120px]"
+              onFocus={() => setActiveTextarea("message2")}
             />
           </div>
           
           <div className="space-y-2">
             <Label htmlFor="message-text-3">Mensagem 3 (Opcional)</Label>
             <Textarea
+              ref={message3Ref}
               id="message-text-3"
               placeholder="Digite sua mensagem adicional aqui..."
               value={message3}
               onChange={(e) => setMessage3(e.target.value)}
               className="min-h-[120px]"
+              onFocus={() => setActiveTextarea("message3")}
             />
           </div>
           
           <div className="space-y-2">
             <Label htmlFor="message-text-4">Mensagem 4 (Opcional)</Label>
             <Textarea
+              ref={message4Ref}
               id="message-text-4"
               placeholder="Digite sua mensagem final aqui..."
               value={message4}
               onChange={(e) => setMessage4(e.target.value)}
               className="min-h-[120px]"
+              onFocus={() => setActiveTextarea("message4")}
             />
           </div>
         </div>

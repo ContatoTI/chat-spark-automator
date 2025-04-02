@@ -1,7 +1,8 @@
 
 import React from "react";
 import { format } from "date-fns";
-import { Calendar as CalendarIcon } from "lucide-react";
+import { ptBR } from "date-fns/locale";
+import { Calendar as CalendarIcon, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -44,26 +45,29 @@ export const ScheduleTab: React.FC<ScheduleTabProps> = ({
         </div>
         <div className="flex flex-col items-end gap-2">
           <div className="grid w-full max-w-sm items-center gap-1.5">
-            <Label htmlFor="schedule-time">Horário</Label>
-            <Select
-              value={scheduleTime}
-              onValueChange={setScheduleTime}
-            >
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Selecione o horário" />
-              </SelectTrigger>
-              <SelectContent>
-                {timeOptions.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Label htmlFor="schedule-time" className="text-sm">Horário</Label>
+            <div className="flex items-center">
+              <Clock className="mr-2 h-4 w-4 text-muted-foreground" />
+              <Select
+                value={scheduleTime}
+                onValueChange={setScheduleTime}
+              >
+                <SelectTrigger className="w-[140px]">
+                  <SelectValue placeholder="Selecionar horário" />
+                </SelectTrigger>
+                <SelectContent>
+                  {timeOptions.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
           
           <div className="grid w-full max-w-sm items-center gap-1.5">
-            <Label htmlFor="schedule-date">Data</Label>
+            <Label htmlFor="schedule-date" className="text-sm">Data</Label>
             <Popover>
               <PopoverTrigger asChild>
                 <Button
@@ -75,7 +79,7 @@ export const ScheduleTab: React.FC<ScheduleTabProps> = ({
                   )}
                 >
                   <CalendarIcon className="mr-2 h-4 w-4" />
-                  {scheduleDate ? format(scheduleDate, "dd/MM/yyyy") : <span>Escolha uma data</span>}
+                  {scheduleDate ? format(scheduleDate, "dd/MM/yyyy", { locale: ptBR }) : <span>Escolha uma data</span>}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="start">
@@ -86,10 +90,7 @@ export const ScheduleTab: React.FC<ScheduleTabProps> = ({
                   initialFocus
                   disabled={(date) => date < new Date()}
                   className="p-3 pointer-events-auto"
-                  classNames={{
-                    root: "w-auto h-auto",
-                    months: "w-auto"
-                  }}
+                  locale={ptBR}
                 />
               </PopoverContent>
             </Popover>
@@ -114,7 +115,7 @@ export const ScheduleTab: React.FC<ScheduleTabProps> = ({
             <p className="text-sm">Enviados: {enviados}</p>
             {scheduleDate && scheduleTime && (
               <p className="text-sm">
-                Data de envio: {format(scheduleDate, "dd/MM/yyyy")} às {scheduleTime}
+                Data de envio: {format(scheduleDate, "dd/MM/yyyy", { locale: ptBR })} às {scheduleTime}
               </p>
             )}
           </div>

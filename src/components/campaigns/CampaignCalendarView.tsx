@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { updateCampaign } from "@/lib/api/campaigns";
 import { cn } from "@/lib/utils";
 import { useQueryClient } from "@tanstack/react-query";
+import { ptBR } from "date-fns/locale";
 
 interface CampaignCalendarViewProps {
   campaigns: Campaign[];
@@ -232,7 +233,8 @@ export const CampaignCalendarView: React.FC<CampaignCalendarViewProps> = ({
           className="w-full" 
           showOutsideDays={true} 
           fixedWeeks={true} 
-          ISOWeek={false} 
+          ISOWeek={false}
+          locale={ptBR}
           formatters={{
             formatDay: date => {
               // Render customized days

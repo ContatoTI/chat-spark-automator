@@ -1,4 +1,3 @@
-
 import React from "react";
 import { 
   Dialog, 
@@ -83,12 +82,25 @@ export const EditCampaignDialog: React.FC<EditCampaignDialogProps> = ({
       return;
     }
     
-    // Combine date and time for data_disparo
+    // Combine date and time for data_disparo, ensuring no timezone adjustment
     let finalDateTime = null;
     if (scheduleDate && scheduleTime) {
       const [hours, minutes] = scheduleTime.split(':').map(Number);
-      finalDateTime = new Date(scheduleDate);
-      finalDateTime.setHours(hours, minutes, 0, 0);
+      
+      // Create date with year, month, day
+      finalDateTime = new Date(
+        scheduleDate.getFullYear(), 
+        scheduleDate.getMonth(), 
+        scheduleDate.getDate(),
+        hours, 
+        minutes, 
+        0, 
+        0
+      );
+      
+      // Format as ISO string but keep it in local timezone
+      console.log("Data selecionada:", finalDateTime.toISOString());
+      console.log("Data local:", finalDateTime.toLocaleDateString());
     }
     
     const status = calculateStatus(enviados, limiteDisparos, finalDateTime);
