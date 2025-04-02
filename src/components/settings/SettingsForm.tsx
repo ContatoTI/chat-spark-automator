@@ -38,6 +38,7 @@ export function SettingsForm({ initialSettings }: SettingsFormProps) {
       webhook_disparo: "",
       webhook_contatos: "",
       webhook_get_images: "",
+      webhook_up_docs: "", // Added missing field
       ftp_url: "",
       ftp_user: "",
       ftp_port: 21,

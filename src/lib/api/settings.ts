@@ -1,4 +1,3 @@
-
 import { supabase } from '@/lib/supabase';
 
 export interface OptionRow {
@@ -71,6 +70,7 @@ function convertRowsToDisparoOptions(rows: OptionRow[]): DisparoOptions {
     webhook_disparo: '',
     webhook_contatos: '',
     webhook_get_images: '',
+    webhook_up_docs: '', // Added missing field
     ftp_url: '',
     ftp_user: '',
     ftp_port: 21,
@@ -150,7 +150,7 @@ export const fetchDisparoOptions = async (): Promise<DisparoOptions> => {
         webhook_disparo: '',
         webhook_contatos: '',
         webhook_get_images: '',
-        webhook_up_docs: '', // Valor padrão para o novo campo
+        webhook_up_docs: '', // Added missing field
         ftp_url: '',
         ftp_user: '',
         ftp_port: 21,
