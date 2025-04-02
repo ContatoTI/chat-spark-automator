@@ -48,28 +48,11 @@ export const fetchFtpConfig = async (): Promise<FtpConfig | null> => {
   }
 };
 
-// Fetch webhook URL for getting media files - agora retornará a URL fixa
-export const fetchMediaWebhookUrl = async (): Promise<string | null> => {
-  // Retornando diretamente a URL do webhook fornecida
-  return "https://dinastia-n8n-editor.ssdx0m.easypanel.host/webhook-test/getdocs";
-  
-  /* Código original comentado
-  try {
-    const { data, error } = await supabase
-      .from('AppW_Options')
-      .select('*')
-      .eq('option', 'webhook_get_images')
-      .single();
-    
-    if (error || !data || !data.text) {
-      console.error('Error fetching webhook URL:', error);
-      return null;
-    }
-    
-    return data.text;
-  } catch (error) {
-    console.error('Error fetching webhook URL:', error);
-    return null;
-  }
-  */
+// WebhookURL constante para garantir que sempre usamos a URL correta
+export const MEDIA_WEBHOOK_URL = "https://dinastia-n8n-editor.ssdx0m.easypanel.host/webhook-test/getdocs";
+
+// Fetch webhook URL for getting media files - agora sempre retorna a URL fixa
+export const fetchMediaWebhookUrl = async (): Promise<string> => {
+  console.log('Usando webhook URL fixa:', MEDIA_WEBHOOK_URL);
+  return MEDIA_WEBHOOK_URL;
 };

@@ -30,13 +30,22 @@ export function MediaLibrary({ onSelect, onClose, currentType }: MediaLibraryPro
     const loadFiles = async () => {
       setIsLoading(true);
       setError(null);
+      
+      console.log(`[MediaLibrary] Carregando arquivos do tipo '${activeTab}'...`);
+      
       try {
-        console.log(`Carregando arquivos do tipo '${activeTab}'...`);
+        const startTime = performance.now();
+        console.log(`[MediaLibrary] Iniciando chamada para listFiles() - ${new Date().toISOString()}`);
+        
         const mediaFiles = await listFiles(activeTab);
-        console.log(`Carregados ${mediaFiles.length} arquivos do tipo '${activeTab}'`);
+        
+        const endTime = performance.now();
+        console.log(`[MediaLibrary] Chamada finalizada em ${Math.round(endTime - startTime)}ms - ${new Date().toISOString()}`);
+        console.log(`[MediaLibrary] Carregados ${mediaFiles.length} arquivos do tipo '${activeTab}'`);
+        
         setFiles(mediaFiles);
       } catch (err) {
-        console.error('Erro ao carregar arquivos:', err);
+        console.error('[MediaLibrary] Erro ao carregar arquivos:', err);
         const errorMessage = err instanceof Error ? err.message : "Erro desconhecido ao carregar arquivos";
         setError(errorMessage);
         toast.error("Erro ao carregar arquivos da biblioteca de mídia.");
@@ -75,7 +84,7 @@ export function MediaLibrary({ onSelect, onClose, currentType }: MediaLibraryPro
         toast.success("Arquivo enviado com sucesso!");
       }
     } catch (err) {
-      console.error('Erro no upload:', err);
+      console.error('[MediaLibrary] Erro no upload:', err);
       toast.error("Erro ao fazer upload do arquivo.");
     } finally {
       setIsUploading(false);
@@ -83,6 +92,28 @@ export function MediaLibrary({ onSelect, onClose, currentType }: MediaLibraryPro
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
+    }
+  };
+  
+  // Adicionar função para recarregar os arquivos manualmente
+  const handleRetryLoad = async () => {
+    setIsLoading(true);
+    setError(null);
+    
+    console.log(`[MediaLibrary] Recarregando arquivos do tipo '${activeTab}'...`);
+    
+    try {
+      const mediaFiles = await listFiles(activeTab);
+      console.log(`[MediaLibrary] Recarregados ${mediaFiles.length} arquivos do tipo '${activeTab}'`);
+      setFiles(mediaFiles);
+      toast.success("Arquivos atualizados com sucesso!");
+    } catch (err) {
+      console.error('[MediaLibrary] Erro ao recarregar arquivos:', err);
+      const errorMessage = err instanceof Error ? err.message : "Erro desconhecido ao carregar arquivos";
+      setError(errorMessage);
+      toast.error("Erro ao recarregar arquivos da biblioteca de mídia.");
+    } finally {
+      setIsLoading(false);
     }
   };
   
@@ -94,7 +125,7 @@ export function MediaLibrary({ onSelect, onClose, currentType }: MediaLibraryPro
   return (
     <div className="space-y-4">
       <Tabs defaultValue={activeTab} value={activeTab} onValueChange={(v) => setActiveTab(v as 'image' | 'video' | 'document')}>
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between flex-wrap gap-2">
           <TabsList>
             <TabsTrigger value="image" className="flex items-center gap-2">
               <Image className="h-4 w-4" />
@@ -110,7 +141,23 @@ export function MediaLibrary({ onSelect, onClose, currentType }: MediaLibraryPro
             </TabsTrigger>
           </TabsList>
           
-          <div>
+          <div className="flex gap-2">
+            <Button 
+              onClick={handleRetryLoad} 
+              variant="outline"
+              size="sm"
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <Loader2 className="h-4 w-4 animate-spin mr-1" />
+              ) : (
+                <svg className="h-4 w-4 mr-1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3M12 3L16 7M12 3L8 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              )}
+              Recarregar
+            </Button>
+            
             <input
               type="file"
               ref={fileInputRef}
@@ -157,6 +204,11 @@ export function MediaLibrary({ onSelect, onClose, currentType }: MediaLibraryPro
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>
               {error}
+              <div className="mt-2 text-xs">
+                <strong>Detalhes técnicos:</strong> Falha na comunicação com o webhook. Possível erro CORS ou servidor indisponível.
+                <br />
+                URL: {MEDIA_WEBHOOK_URL}?type={activeTab}
+              </div>
             </AlertDescription>
           </Alert>
         )}
