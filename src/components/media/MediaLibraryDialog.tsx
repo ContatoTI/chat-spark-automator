@@ -48,14 +48,15 @@ export function MediaLibraryDialog({
     console.log(`[MediaLibraryDialog] Testando conexão com webhook: ${currentWebhookUrl}`);
     
     try {
-      // Tentativa simples de acesso para testar se o webhook está acessível
+      // Teste mais confiável: fazer um POST real porém apenas para testar a conexão
       const startTime = performance.now();
       const response = await fetch(currentWebhookUrl, { 
-        method: 'HEAD',
-        mode: 'cors',
+        method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-        }
+        },
+        body: JSON.stringify({ category: 'imagens', test: true }),
+        mode: 'cors',
       });
       const endTime = performance.now();
       
@@ -76,7 +77,7 @@ export function MediaLibraryDialog({
       console.error('[MediaLibraryDialog] Erro ao testar conexão com webhook:', error);
       setConnectionTest({ 
         status: 'error', 
-        message: error instanceof Error ? error.message : 'Erro desconhecido' 
+        message: "Servidor indisponível ou problema de conexão" 
       });
     }
   };
@@ -98,12 +99,10 @@ export function MediaLibraryDialog({
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>
               <div>
-                <strong>Problema de conexão com o webhook:</strong> {connectionTest.message}
+                <strong>Problema de conexão com o servidor:</strong> {connectionTest.message}
               </div>
               <div className="mt-2 text-xs">
-                Webhook URL: {webhookUrl}
-                <br />
-                Verifique se o servidor está acessível ou se há problemas de CORS.
+                URL do servidor: {webhookUrl}
               </div>
             </AlertDescription>
           </Alert>

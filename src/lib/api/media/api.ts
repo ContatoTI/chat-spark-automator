@@ -11,22 +11,31 @@ export const listFiles = async (type: 'image' | 'video' | 'document'): Promise<M
     // Obtenha o URL do webhook
     const webhookUrl = getMediaWebhookUrl();
     
-    // Construindo a URL do webhook com o parâmetro de tipo
-    const url = new URL(webhookUrl);
-    url.searchParams.append('type', type);
+    // Map the type to the expected category parameter
+    const categoryMap = {
+      'image': 'imagens',
+      'video': 'videos',
+      'document': 'documentos'
+    };
     
-    console.log(`[MediaAPI] Chamando webhook em: ${url.toString()}`);
+    const category = categoryMap[type];
+    
+    // Construindo a URL base do webhook (sem parâmetros de consulta)
+    const url = webhookUrl;
+    
+    console.log(`[MediaAPI] Chamando webhook em: ${url} com categoria: ${category}`);
     
     try {
       console.log('[MediaAPI] Iniciando fetch para o webhook...');
       
-      const response = await fetch(url.toString(), {
-        method: 'GET',
+      const response = await fetch(url, {
+        method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*', // Tentativa de resolver CORS
+          'Access-Control-Allow-Origin': '*',
         },
-        mode: 'cors', // Explicitamente definindo modo CORS
+        body: JSON.stringify({ category }),
+        mode: 'cors',
       });
       
       console.log(`[MediaAPI] Resposta recebida: status=${response.status}, ok=${response.ok}`);
@@ -67,7 +76,7 @@ export const listFiles = async (type: 'image' | 'video' | 'document'): Promise<M
       const errorMessage = error instanceof Error ? error.message : String(error);
       if (errorMessage.includes('CORS') || errorMessage.includes('fetch')) {
         console.error('[MediaAPI] Possível erro de CORS ou problema de rede:', errorMessage);
-        toast.error("Erro de CORS ao acessar o webhook. Verifique se o servidor permite solicitações do frontend.");
+        toast.error("Erro de conexão. Verifique se o servidor está acessível.");
       } else {
         toast.error("Erro ao buscar arquivos do servidor. Por favor, tente novamente mais tarde.");
       }

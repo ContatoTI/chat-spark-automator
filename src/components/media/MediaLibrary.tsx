@@ -97,15 +97,26 @@ export function MediaLibrary({ onSelect, onClose, currentType }: MediaLibraryPro
     
     setIsUploading(true);
     try {
-      const uploadedFile = await uploadFile(file, activeTab);
-      if (uploadedFile) {
-        setFiles(prev => [uploadedFile, ...prev]);
-        toast.success("Arquivo enviado com sucesso!");
-      }
+      uploadFile(file, activeTab).then(uploadedFile => {
+        if (uploadedFile) {
+          setFiles(prev => [uploadedFile, ...prev]);
+          toast.success("Arquivo enviado com sucesso!");
+        }
+        setIsUploading(false);
+        if (fileInputRef.current) {
+          fileInputRef.current.value = '';
+        }
+      }).catch(err => {
+        console.error('[MediaLibrary] Erro no upload:', err);
+        toast.error("Erro ao fazer upload do arquivo.");
+        setIsUploading(false);
+        if (fileInputRef.current) {
+          fileInputRef.current.value = '';
+        }
+      });
     } catch (err) {
       console.error('[MediaLibrary] Erro no upload:', err);
       toast.error("Erro ao fazer upload do arquivo.");
-    } finally {
       setIsUploading(false);
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
@@ -159,7 +170,7 @@ export function MediaLibrary({ onSelect, onClose, currentType }: MediaLibraryPro
           
           <div className="flex gap-2">
             <Button 
-              onClick={handleRetryLoad} 
+              onClick={() => handleRetryLoad()} 
               variant="outline"
               size="sm"
               disabled={isLoading}
@@ -221,9 +232,9 @@ export function MediaLibrary({ onSelect, onClose, currentType }: MediaLibraryPro
             <AlertDescription>
               {error}
               <div className="mt-2 text-xs">
-                <strong>Detalhes técnicos:</strong> Falha na comunicação com o webhook. Possível erro CORS ou servidor indisponível.
+                <strong>Detalhes técnicos:</strong> Falha na comunicação com o servidor.
                 <br />
-                URL: {webhookUrl}?type={activeTab}
+                URL: {webhookUrl}
               </div>
             </AlertDescription>
           </Alert>
