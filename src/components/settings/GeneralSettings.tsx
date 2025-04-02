@@ -6,6 +6,7 @@ import { Switch } from "@/components/ui/switch";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { UseFormReturn } from "react-hook-form";
 import { DisparoOptions } from "@/lib/api/settings";
+import { TestWebhookButton } from "./TestWebhookButton";
 
 interface GeneralSettingsProps {
   form: UseFormReturn<DisparoOptions>;
@@ -83,9 +84,12 @@ export function GeneralSettings({ form }: GeneralSettingsProps) {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Webhook Disparo</FormLabel>
-                <FormControl>
-                  <Input {...field} />
-                </FormControl>
+                <div className="flex gap-2">
+                  <FormControl className="flex-1">
+                    <Input {...field} />
+                  </FormControl>
+                  <TestWebhookButton url={field.value} />
+                </div>
                 <FormDescription>
                   URL do webhook para campanhas de disparo
                 </FormDescription>
@@ -100,9 +104,12 @@ export function GeneralSettings({ form }: GeneralSettingsProps) {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Webhook Contatos</FormLabel>
-                <FormControl>
-                  <Input {...field} />
-                </FormControl>
+                <div className="flex gap-2">
+                  <FormControl className="flex-1">
+                    <Input {...field} />
+                  </FormControl>
+                  <TestWebhookButton url={field.value} />
+                </div>
                 <FormDescription>
                   URL do webhook para sincronização de contatos
                 </FormDescription>
@@ -119,9 +126,12 @@ export function GeneralSettings({ form }: GeneralSettingsProps) {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Webhook Biblioteca de Mídia</FormLabel>
-                <FormControl>
-                  <Input {...field} />
-                </FormControl>
+                <div className="flex gap-2">
+                  <FormControl className="flex-1">
+                    <Input {...field} />
+                  </FormControl>
+                  <TestWebhookButton url={field.value} />
+                </div>
                 <FormDescription>
                   URL do webhook para buscar arquivos da biblioteca de mídia
                 </FormDescription>
@@ -136,9 +146,12 @@ export function GeneralSettings({ form }: GeneralSettingsProps) {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Webhook para Upload</FormLabel>
-                <FormControl>
-                  <Input {...field} />
-                </FormControl>
+                <div className="flex gap-2">
+                  <FormControl className="flex-1">
+                    <Input {...field} />
+                  </FormControl>
+                  <TestWebhookButton url={field.value} />
+                </div>
                 <FormDescription>
                   URL do webhook para envio de arquivos da biblioteca de mídia
                 </FormDescription>

@@ -7,3 +7,4 @@
 export type { DisparoOptions, OptionRow } from './types';
 export { DEFAULT_OPTIONS } from './types';
 export { fetchDisparoOptions, updateDisparoOptions } from './api';
+export { testWebhook } from './webhook';
