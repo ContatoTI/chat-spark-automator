@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { MediaGrid } from "./MediaGrid";
-import { MediaFile, listFiles, uploadFile } from "@/lib/api/mediaLibrary";
+import { MediaFile, listFiles, uploadFile, MEDIA_WEBHOOK_URL } from "@/lib/api/mediaLibrary";
 import { toast } from "sonner";
 
 interface MediaLibraryProps {
