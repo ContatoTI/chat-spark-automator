@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Form } from "@/components/ui/form";
 import { useForm } from "react-hook-form";
@@ -38,7 +37,7 @@ export function SettingsForm({ initialSettings }: SettingsFormProps) {
       webhook_disparo: "",
       webhook_contatos: "",
       webhook_get_images: "",
-      webhook_up_docs: "", // Added missing field
+      webhook_up_docs: "",
       ftp_url: "",
       ftp_user: "",
       ftp_port: 21,
@@ -46,7 +45,6 @@ export function SettingsForm({ initialSettings }: SettingsFormProps) {
     },
   });
 
-  // Update form when settings are loaded
   React.useEffect(() => {
     if (initialSettings) {
       form.reset(initialSettings);

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Campaign } from "@/lib/api/campaigns";
 import { toast } from "sonner";
@@ -18,7 +17,6 @@ export const useCampaignForm = (campaign: Campaign | null, open: boolean) => {
   const [producao, setProducao] = useState(false);
   const [limiteDisparos, setLimiteDisparos] = useState(1000);
   
-  // Load campaign data when campaign changes or dialog opens
   useEffect(() => {
     if (campaign && open) {
       setCampaignName(campaign.nome);
@@ -29,7 +27,6 @@ export const useCampaignForm = (campaign: Campaign | null, open: boolean) => {
       setMediaType(campaign.tipo_midia);
       setMediaUrl(campaign.url_midia || "");
       
-      // Set date and time separately if data_disparo exists
       if (campaign.data_disparo) {
         const date = new Date(campaign.data_disparo);
         
@@ -37,10 +34,8 @@ export const useCampaignForm = (campaign: Campaign | null, open: boolean) => {
         console.log("Data convertida:", date.toISOString());
         console.log("Data local:", date.toLocaleDateString());
         
-        // Use local date to prevent timezone issues
         setScheduleDate(date);
         
-        // Format time as HH:MM with 30-minute intervals
         const hours = date.getHours();
         const minutes = date.getMinutes() >= 30 ? "30" : "00";
         setScheduleTime(`${hours.toString().padStart(2, '0')}:${minutes}`);
@@ -56,7 +51,6 @@ export const useCampaignForm = (campaign: Campaign | null, open: boolean) => {
     }
   }, [campaign, open]);
   
-  // Reset form when dialog closes
   useEffect(() => {
     if (!open) {
       setCampaignName("");
@@ -95,7 +89,6 @@ export const useCampaignForm = (campaign: Campaign | null, open: boolean) => {
     }
   };
 
-  // Calculate status based on the rules provided
   const calculateStatus = (enviados: number, limite: number, dataDisparo: Date | null): string => {
     if (enviados === 0 && dataDisparo) {
       return "agendada";
@@ -115,7 +108,6 @@ export const useCampaignForm = (campaign: Campaign | null, open: boolean) => {
     }
   };
   
-  // Generate time options in 30-minute intervals
   const generateTimeOptions = (): { value: string, label: string }[] => {
     const options = [];
     
