@@ -1,15 +1,18 @@
 
 import { toast } from "sonner";
 import { MediaFile, FtpConfig } from './types';
-import { fetchFtpConfig, MEDIA_WEBHOOK_URL } from './config';
+import { fetchFtpConfig, getMediaWebhookUrl } from './config';
 
 // List files using webhook
 export const listFiles = async (type: 'image' | 'video' | 'document'): Promise<MediaFile[]> => {
   console.log(`[MediaAPI] Iniciando listFiles para tipo: ${type}`);
   
   try {
+    // Obtenha o URL do webhook
+    const webhookUrl = getMediaWebhookUrl();
+    
     // Construindo a URL do webhook com o parâmetro de tipo
-    const url = new URL(MEDIA_WEBHOOK_URL);
+    const url = new URL(webhookUrl);
     url.searchParams.append('type', type);
     
     console.log(`[MediaAPI] Chamando webhook em: ${url.toString()}`);

@@ -7,7 +7,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { MediaLibrary } from "./MediaLibrary";
-import { MediaFile, MEDIA_WEBHOOK_URL } from "@/lib/api/mediaLibrary";
+import { MediaFile, getMediaWebhookUrl } from "@/lib/api/mediaLibrary";
 import { useEffect, useState } from "react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
@@ -28,10 +28,13 @@ export function MediaLibraryDialog({
   const [connectionTest, setConnectionTest] = useState<{ status: 'pending' | 'success' | 'error', message?: string }>({
     status: 'pending'
   });
+  const [webhookUrl, setWebhookUrl] = useState<string>(getMediaWebhookUrl());
 
   useEffect(() => {
     if (open) {
       console.log('[MediaLibraryDialog] Diálogo de mídia aberto');
+      // Atualizar o URL do webhook antes de testar a conexão
+      setWebhookUrl(getMediaWebhookUrl());
       checkWebhookConnection();
     }
   }, [open]);
@@ -39,13 +42,15 @@ export function MediaLibraryDialog({
   const checkWebhookConnection = async () => {
     if (!open) return;
     
+    const currentWebhookUrl = getMediaWebhookUrl();
+    setWebhookUrl(currentWebhookUrl);
     setConnectionTest({ status: 'pending' });
-    console.log(`[MediaLibraryDialog] Testando conexão com webhook: ${MEDIA_WEBHOOK_URL}`);
+    console.log(`[MediaLibraryDialog] Testando conexão com webhook: ${currentWebhookUrl}`);
     
     try {
       // Tentativa simples de acesso para testar se o webhook está acessível
       const startTime = performance.now();
-      const response = await fetch(MEDIA_WEBHOOK_URL, { 
+      const response = await fetch(currentWebhookUrl, { 
         method: 'HEAD',
         mode: 'cors',
         headers: {
@@ -96,7 +101,7 @@ export function MediaLibraryDialog({
                 <strong>Problema de conexão com o webhook:</strong> {connectionTest.message}
               </div>
               <div className="mt-2 text-xs">
-                Webhook URL: {MEDIA_WEBHOOK_URL}
+                Webhook URL: {webhookUrl}
                 <br />
                 Verifique se o servidor está acessível ou se há problemas de CORS.
               </div>

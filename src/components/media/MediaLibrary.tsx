@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Image, Video, File, Upload, Loader2, AlertCircle } from "lucide-react";
@@ -6,7 +5,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { MediaGrid } from "./MediaGrid";
-import { MediaFile, listFiles, uploadFile, MEDIA_WEBHOOK_URL } from "@/lib/api/mediaLibrary";
+import { 
+  MediaFile, 
+  listFiles, 
+  uploadFile, 
+  getMediaWebhookUrl,
+  initMediaWebhookUrl 
+} from "@/lib/api/mediaLibrary";
 import { toast } from "sonner";
 
 interface MediaLibraryProps {
@@ -22,16 +27,31 @@ export function MediaLibrary({ onSelect, onClose, currentType }: MediaLibraryPro
   const [isUploading, setIsUploading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [webhookUrl, setWebhookUrl] = useState<string>(getMediaWebhookUrl());
   
   const fileInputRef = React.useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const initWebhook = async () => {
+      try {
+        const url = await initMediaWebhookUrl();
+        console.log(`[MediaLibrary] Webhook URL inicializado: ${url}`);
+        setWebhookUrl(url);
+      } catch (err) {
+        console.error('[MediaLibrary] Erro ao inicializar webhook URL:', err);
+      }
+    };
+    
+    initWebhook();
+  }, []);
   
-  // Load files for the active tab
   useEffect(() => {
     const loadFiles = async () => {
       setIsLoading(true);
       setError(null);
       
       console.log(`[MediaLibrary] Carregando arquivos do tipo '${activeTab}'...`);
+      console.log(`[MediaLibrary] Usando webhook URL: ${webhookUrl}`);
       
       try {
         const startTime = performance.now();
@@ -55,13 +75,12 @@ export function MediaLibrary({ onSelect, onClose, currentType }: MediaLibraryPro
     };
     
     loadFiles();
-  }, [activeTab]);
+  }, [activeTab, webhookUrl]);
   
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     
-    // Validate file type
     if (activeTab === 'image' && !file.type.startsWith('image/')) {
       toast.error("O arquivo selecionado não é uma imagem.");
       return;
@@ -88,14 +107,12 @@ export function MediaLibrary({ onSelect, onClose, currentType }: MediaLibraryPro
       toast.error("Erro ao fazer upload do arquivo.");
     } finally {
       setIsUploading(false);
-      // Clear the input
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
     }
   };
   
-  // Adicionar função para recarregar os arquivos manualmente
   const handleRetryLoad = async () => {
     setIsLoading(true);
     setError(null);
@@ -117,7 +134,6 @@ export function MediaLibrary({ onSelect, onClose, currentType }: MediaLibraryPro
     }
   };
   
-  // Filter files by search term
   const filteredFiles = searchTerm 
     ? files.filter(file => file.name.toLowerCase().includes(searchTerm.toLowerCase()))
     : files;
@@ -207,7 +223,7 @@ export function MediaLibrary({ onSelect, onClose, currentType }: MediaLibraryPro
               <div className="mt-2 text-xs">
                 <strong>Detalhes técnicos:</strong> Falha na comunicação com o webhook. Possível erro CORS ou servidor indisponível.
                 <br />
-                URL: {MEDIA_WEBHOOK_URL}?type={activeTab}
+                URL: {webhookUrl}?type={activeTab}
               </div>
             </AlertDescription>
           </Alert>

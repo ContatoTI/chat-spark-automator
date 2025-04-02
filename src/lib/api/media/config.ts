@@ -1,4 +1,3 @@
-
 import { supabase } from '@/lib/supabase';
 import { FtpConfig } from './types';
 
@@ -48,11 +47,53 @@ export const fetchFtpConfig = async (): Promise<FtpConfig | null> => {
   }
 };
 
-// WebhookURL constante para garantir que sempre usamos a URL correta
-export const MEDIA_WEBHOOK_URL = "https://dinastia-n8n-editor.ssdx0m.easypanel.host/webhook-test/getdocs";
+// URL padrão caso não seja encontrada no banco de dados
+export const DEFAULT_MEDIA_WEBHOOK_URL = "https://dinastia-n8n-webhook.ssdx0m.easypanel.host/webhook/getdocs";
 
-// Fetch webhook URL for getting media files - agora sempre retorna a URL fixa
+// Fetch webhook URL for getting media files from the database
 export const fetchMediaWebhookUrl = async (): Promise<string> => {
-  console.log('Usando webhook URL fixa:', MEDIA_WEBHOOK_URL);
+  try {
+    console.log('[config] Buscando webhook_get_images do banco de dados...');
+    
+    const { data: webhookOption, error } = await supabase
+      .from('AppW_Options')
+      .select('text')
+      .eq('option', 'webhook_get_images')
+      .single();
+    
+    if (error) {
+      console.error('[config] Erro ao buscar webhook_get_images:', error);
+      console.log('[config] Usando URL padrão:', DEFAULT_MEDIA_WEBHOOK_URL);
+      return DEFAULT_MEDIA_WEBHOOK_URL;
+    }
+    
+    if (!webhookOption || !webhookOption.text) {
+      console.log('[config] webhook_get_images não encontrado no banco de dados. Usando URL padrão:', DEFAULT_MEDIA_WEBHOOK_URL);
+      return DEFAULT_MEDIA_WEBHOOK_URL;
+    }
+    
+    console.log('[config] webhook_get_images encontrado:', webhookOption.text);
+    return webhookOption.text;
+  } catch (error) {
+    console.error('[config] Erro ao buscar webhook_get_images:', error);
+    console.log('[config] Usando URL padrão:', DEFAULT_MEDIA_WEBHOOK_URL);
+    return DEFAULT_MEDIA_WEBHOOK_URL;
+  }
+};
+
+// Função para obter o URL do webhook para ser usado imediatamente
+// Não exportamos esta variável diretamente, pois seu valor deve ser obtido de forma assíncrona
+let MEDIA_WEBHOOK_URL: string | null = null;
+
+// Inicializa o URL do webhook
+export const initMediaWebhookUrl = async (): Promise<string> => {
+  if (!MEDIA_WEBHOOK_URL) {
+    MEDIA_WEBHOOK_URL = await fetchMediaWebhookUrl();
+  }
   return MEDIA_WEBHOOK_URL;
+};
+
+// Obtém o URL atual (se já inicializado) ou usa o padrão
+export const getMediaWebhookUrl = (): string => {
+  return MEDIA_WEBHOOK_URL || DEFAULT_MEDIA_WEBHOOK_URL;
 };
