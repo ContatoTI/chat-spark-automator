@@ -59,17 +59,18 @@ export const useSyncContacts = (isOpen: boolean) => {
       timestamp: new Date().toISOString()
     };
     
-    // Simulate progress regardless of webhook status
+    // Slower progress simulation
     const progressInterval = setInterval(() => {
       setProgress((prev) => {
-        const newProgress = prev + Math.random() * 10;
+        // Slower increment for progress animation
+        const newProgress = prev + Math.random() * 4;
         if (newProgress >= 95) {
           clearInterval(progressInterval);
           return 95; // Leave the last 5% for the actual webhook response
         }
         return newProgress;
       });
-    }, 300);
+    }, 500); // Longer interval for slower progress
     
     try {
       // Try POST request first
@@ -87,9 +88,22 @@ export const useSyncContacts = (isOpen: boolean) => {
       // If POST works, set success
       if (postResponse.ok) {
         console.log('POST request successful');
+        
+        // Use response message if available
+        let responseData = {};
+        try {
+          responseData = await postResponse.json();
+        } catch (e) {
+          console.log('No JSON response from webhook');
+        }
+        
         setProgress(100);
         setStatus("success");
-        toast.success("Sincronização concluída com sucesso!");
+        
+        // Use webhook response message if available, otherwise use default
+        const message = responseData.message || "Sincronização concluída";
+        toast.success(message);
+        
         clearInterval(progressInterval);
         return;
       }
@@ -115,9 +129,21 @@ export const useSyncContacts = (isOpen: boolean) => {
         
         if (getResponse.ok) {
           console.log('GET request successful');
+          
+          // Use response message if available
+          let responseData = {};
+          try {
+            responseData = await getResponse.json();
+          } catch (e) {
+            console.log('No JSON response from webhook');
+          }
+          
           setProgress(100);
           setStatus("success");
-          toast.success("Sincronização concluída com sucesso!");
+          
+          // Use webhook response message if available, otherwise use default
+          const message = responseData.message || "Sincronização concluída";
+          toast.success(message);
         } else {
           throw new Error(`Erro ao chamar webhook via GET: ${getResponse.status}`);
         }

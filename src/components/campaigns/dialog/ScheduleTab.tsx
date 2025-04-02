@@ -2,7 +2,7 @@
 import React from "react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Calendar as CalendarIcon, Clock } from "lucide-react";
+import { CalendarIcon, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -72,9 +72,9 @@ export const ScheduleTab: React.FC<ScheduleTabProps> = ({
               <PopoverTrigger asChild>
                 <Button
                   id="schedule-date"
-                  variant={"outline"}
+                  variant="outline"
                   className={cn(
-                    "w-full justify-start text-left font-normal",
+                    "w-[180px] justify-start text-left font-normal",
                     !scheduleDate && "text-muted-foreground"
                   )}
                 >
@@ -82,15 +82,15 @@ export const ScheduleTab: React.FC<ScheduleTabProps> = ({
                   {scheduleDate ? format(scheduleDate, "dd/MM/yyyy", { locale: ptBR }) : <span>Escolha uma data</span>}
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
+              <PopoverContent className="w-auto p-0" align="end">
                 <Calendar
                   mode="single"
                   selected={scheduleDate}
                   onSelect={setScheduleDate}
                   initialFocus
                   disabled={(date) => date < new Date()}
-                  className="p-3 pointer-events-auto"
                   locale={ptBR}
+                  className="rounded-md border p-3 pointer-events-auto"
                 />
               </PopoverContent>
             </Popover>

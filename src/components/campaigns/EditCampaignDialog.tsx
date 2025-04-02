@@ -1,3 +1,4 @@
+
 import React from "react";
 import { 
   Dialog, 
@@ -82,28 +83,20 @@ export const EditCampaignDialog: React.FC<EditCampaignDialogProps> = ({
       return;
     }
     
-    // Combine date and time for data_disparo, ensuring no timezone adjustment
-    let finalDateTime = null;
+    // Format date as YYYY-MM-DD string without timezone conversion
+    let formattedDate = null;
     if (scheduleDate && scheduleTime) {
-      const [hours, minutes] = scheduleTime.split(':').map(Number);
+      // Get year, month, day parts from the date
+      const year = scheduleDate.getFullYear();
+      const month = String(scheduleDate.getMonth() + 1).padStart(2, '0');
+      const day = String(scheduleDate.getDate()).padStart(2, '0');
       
-      // Create date with year, month, day
-      finalDateTime = new Date(
-        scheduleDate.getFullYear(), 
-        scheduleDate.getMonth(), 
-        scheduleDate.getDate(),
-        hours, 
-        minutes, 
-        0, 
-        0
-      );
-      
-      // Format as ISO string but keep it in local timezone
-      console.log("Data selecionada:", finalDateTime.toISOString());
-      console.log("Data local:", finalDateTime.toLocaleDateString());
+      // Create formatted date string in YYYY-MM-DD format
+      formattedDate = `${year}-${month}-${day} ${scheduleTime}:00`;
+      console.log("Data formatada sem timezone:", formattedDate);
     }
     
-    const status = calculateStatus(enviados, limiteDisparos, finalDateTime);
+    const status = calculateStatus(enviados, limiteDisparos, scheduleDate);
     
     const updatedCampaign: Partial<Campaign> = {
       nome: campaignName,
@@ -113,7 +106,7 @@ export const EditCampaignDialog: React.FC<EditCampaignDialogProps> = ({
       mensagem04: message4 || null,
       tipo_midia: mediaType,
       url_midia: mediaUrl || null,
-      data_disparo: finalDateTime ? finalDateTime.toISOString() : null,
+      data_disparo: formattedDate, // Store as string without timezone information
       status: status,
       producao: producao,
       limite_disparos: limiteDisparos

@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Campaign } from "@/lib/api/campaigns";
 import { toast } from "sonner";
@@ -28,17 +29,50 @@ export const useCampaignForm = (campaign: Campaign | null, open: boolean) => {
       setMediaUrl(campaign.url_midia || "");
       
       if (campaign.data_disparo) {
-        const date = new Date(campaign.data_disparo);
-        
         console.log("Data original no Supabase:", campaign.data_disparo);
-        console.log("Data convertida:", date.toISOString());
-        console.log("Data local:", date.toLocaleDateString());
+
+        // Parse the date string directly
+        let dateParts;
         
-        setScheduleDate(date);
+        // Handle different date formats that might come from the database
+        if (campaign.data_disparo.includes('T')) {
+          // ISO format: 2023-04-17T12:30:00.000Z
+          const isoDate = new Date(campaign.data_disparo);
+          const year = isoDate.getFullYear();
+          const month = isoDate.getMonth();
+          const day = isoDate.getDate();
+          
+          // Create a new date with local timezone
+          const localDate = new Date(year, month, day);
+          setScheduleDate(localDate);
+          
+          // Get time from ISO string
+          const hours = isoDate.getHours();
+          const minutes = isoDate.getMinutes() >= 30 ? "30" : "00";
+          setScheduleTime(`${hours.toString().padStart(2, '0')}:${minutes}`);
+        } 
+        else if (campaign.data_disparo.includes(' ')) {
+          // Format: 2023-04-17 12:30:00
+          dateParts = campaign.data_disparo.split(' ');
+          const [datePart, timePart] = dateParts;
+          
+          const [year, month, day] = datePart.split('-').map(Number);
+          setScheduleDate(new Date(year, month - 1, day));
+          
+          const timeComponents = timePart.split(':');
+          setScheduleTime(`${timeComponents[0]}:${timeComponents[1]}`);
+        } 
+        else {
+          // Simple date format: 2023-04-17
+          dateParts = campaign.data_disparo.split('-');
+          if (dateParts.length === 3) {
+            const [year, month, day] = dateParts.map(Number);
+            setScheduleDate(new Date(year, month - 1, day));
+            setScheduleTime("09:00"); // Default time
+          }
+        }
         
-        const hours = date.getHours();
-        const minutes = date.getMinutes() >= 30 ? "30" : "00";
-        setScheduleTime(`${hours.toString().padStart(2, '0')}:${minutes}`);
+        console.log("Data convertida para exibição:", scheduleDate);
       } else {
         setScheduleDate(undefined);
         setScheduleTime("");
