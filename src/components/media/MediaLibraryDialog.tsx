@@ -56,6 +56,7 @@ export function MediaLibraryDialog({
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ category: 'imagens', test: true }),
+        mode: 'cors',
       });
       const endTime = performance.now();
       

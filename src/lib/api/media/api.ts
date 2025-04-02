@@ -20,17 +20,22 @@ export const listFiles = async (type: 'image' | 'video' | 'document'): Promise<M
     
     const category = categoryMap[type];
     
-    console.log(`[MediaAPI] Chamando webhook em: ${webhookUrl} com categoria: ${category}`);
+    // Construindo a URL base do webhook (sem parâmetros de consulta)
+    const url = webhookUrl;
+    
+    console.log(`[MediaAPI] Chamando webhook em: ${url} com categoria: ${category}`);
     
     try {
       console.log('[MediaAPI] Iniciando fetch para o webhook...');
       
-      const response = await fetch(webhookUrl, {
+      const response = await fetch(url, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*',
         },
         body: JSON.stringify({ category }),
+        mode: 'cors',
       });
       
       console.log(`[MediaAPI] Resposta recebida: status=${response.status}, ok=${response.ok}`);
