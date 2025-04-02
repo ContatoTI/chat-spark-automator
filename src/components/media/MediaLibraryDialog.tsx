@@ -1,4 +1,3 @@
-
 import React from "react";
 import {
   Dialog,
@@ -7,8 +6,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { MediaLibrary } from "./MediaLibrary";
-import { MediaFile } from "@/lib/api/mediaLibrary";
-import { fetchMediaWebhookUrl } from "@/lib/api/mediaLibrary";
+import { MediaFile, fetchMediaWebhookUrl } from "@/lib/api/mediaLibrary";
 import { useEffect, useState } from "react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
