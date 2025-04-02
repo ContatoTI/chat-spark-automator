@@ -37,6 +37,7 @@ export function SettingsForm({ initialSettings }: SettingsFormProps) {
       apikey: "",
       webhook_disparo: "",
       webhook_contatos: "",
+      webhook_get_images: "",
       ftp_url: "",
       ftp_user: "",
       ftp_port: 21,
