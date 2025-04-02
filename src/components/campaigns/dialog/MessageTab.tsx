@@ -1,16 +1,20 @@
 
-import React from "react";
+import React, { useState } from "react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { 
   Image as ImageIcon, 
   File, 
   Link, 
   Video,
-  Type
+  Type,
+  FolderOpen
 } from "lucide-react";
+import { MediaLibraryDialog } from "@/components/media/MediaLibraryDialog";
+import { MediaFile } from "@/lib/api/mediaLibrary";
 
 interface MessageTabProps {
   campaignName: string;
@@ -46,6 +50,12 @@ export const MessageTab: React.FC<MessageTabProps> = ({
   setMediaUrl,
   handleMediaSelection,
 }) => {
+  const [mediaLibraryOpen, setMediaLibraryOpen] = useState(false);
+  
+  const handleMediaFileSelect = (file: MediaFile) => {
+    setMediaUrl(file.url);
+  };
+
   return (
     <div className="space-y-6">
       <div className="space-y-2">
@@ -115,12 +125,26 @@ export const MessageTab: React.FC<MessageTabProps> = ({
         {mediaType && mediaType !== 'text' && (
           <div className="space-y-2">
             <Label htmlFor="media-url">URL da Mídia {mediaType !== 'link' && "(Opcional)"}</Label>
-            <Input
-              id="media-url"
-              placeholder={`Adicione a URL da ${mediaType === 'image' ? 'imagem' : mediaType === 'video' ? 'vídeo' : mediaType === 'document' ? 'documento' : 'link'}`}
-              value={mediaUrl}
-              onChange={(e) => setMediaUrl(e.target.value)}
-            />
+            <div className="flex gap-2">
+              <Input
+                id="media-url"
+                placeholder={`Adicione a URL da ${mediaType === 'image' ? 'imagem' : mediaType === 'video' ? 'vídeo' : mediaType === 'document' ? 'documento' : 'link'}`}
+                value={mediaUrl}
+                onChange={(e) => setMediaUrl(e.target.value)}
+                className="flex-1"
+              />
+              
+              {mediaType !== 'link' && (
+                <Button 
+                  type="button"
+                  variant="outline"
+                  onClick={() => setMediaLibraryOpen(true)}
+                >
+                  <FolderOpen className="h-4 w-4 mr-2" />
+                  Biblioteca
+                </Button>
+              )}
+            </div>
           </div>
         )}
         
@@ -170,6 +194,18 @@ export const MessageTab: React.FC<MessageTabProps> = ({
           </div>
         </div>
       </div>
+      
+      {/* Media Library Dialog */}
+      <MediaLibraryDialog
+        open={mediaLibraryOpen}
+        onOpenChange={setMediaLibraryOpen}
+        onSelect={handleMediaFileSelect}
+        currentType={
+          mediaType === 'image' ? 'image' :
+          mediaType === 'video' ? 'video' :
+          'document'
+        }
+      />
     </div>
   );
 };

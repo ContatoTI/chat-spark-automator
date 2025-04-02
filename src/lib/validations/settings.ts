@@ -1,31 +1,24 @@
 
-import { z } from 'zod';
+import { z } from "zod";
 
 export const settingsSchema = z.object({
-  instancia: z.string().min(1, { message: 'A instância é obrigatória' }),
-  Ativo: z.boolean(),
-  // Campos removidos pois foram movidos para a tabela AppW_Campanhas
-  // Producao: z.boolean(),
-  // Limite_disparos: z.number().int().min(1, { message: 'O limite mínimo é 1' }),
-  // Enviados: z.number().int().min(0, { message: 'O valor mínimo é 0' }),
-  horario_limite: z.number().int().min(0, { message: 'O valor mínimo é 0' }).max(23, { message: 'O valor máximo é 23' }),
-  long_wait_min: z.number().int().min(1, { message: 'O valor mínimo é 1' }),
-  long_wait_max: z.number().int().min(1, { message: 'O valor mínimo é 1' }),
-  ShortWaitMin: z.number().int().min(1, { message: 'O valor mínimo é 1' }),
-  ShortWaitMax: z.number().int().min(1, { message: 'O valor mínimo é 1' }),
-  BatchSizeMim: z.number().int().min(1, { message: 'O valor mínimo é 1' }),
-  BatchSizeMax: z.number().int().min(1, { message: 'O valor mínimo é 1' }),
-  urlAPI: z.string().url({ message: 'URL inválida' }).min(1, { message: 'A URL é obrigatória' }),
-  apikey: z.string().min(1, { message: 'A chave de API é obrigatória' }),
-  webhook_disparo: z.string().url({ message: 'URL inválida' }).or(z.string().length(0)),
-  webhook_contatos: z.string().url({ message: 'URL inválida' }).or(z.string().length(0)),
-}).refine(data => data.long_wait_min <= data.long_wait_max, {
-  message: "O valor mínimo deve ser menor ou igual ao valor máximo",
-  path: ["long_wait_min"],
-}).refine(data => data.ShortWaitMin <= data.ShortWaitMax, {
-  message: "O valor mínimo deve ser menor ou igual ao valor máximo",
-  path: ["ShortWaitMin"],
-}).refine(data => data.BatchSizeMim <= data.BatchSizeMax, {
-  message: "O valor mínimo deve ser menor ou igual ao valor máximo",
-  path: ["BatchSizeMim"],
+  instancia: z.string().optional(),
+  Ativo: z.boolean().default(true),
+  horario_limite: z.coerce.number().min(0).max(23),
+  long_wait_min: z.coerce.number().min(1),
+  long_wait_max: z.coerce.number().min(1),
+  ShortWaitMin: z.coerce.number().min(1),
+  ShortWaitMax: z.coerce.number().min(1),
+  BatchSizeMim: z.coerce.number().min(1),
+  BatchSizeMax: z.coerce.number().min(1),
+  urlAPI: z.string().optional(),
+  apikey: z.string().optional(),
+  webhook_disparo: z.string().optional(),
+  webhook_contatos: z.string().optional(),
+  ftp_url: z.string().optional(),
+  ftp_user: z.string().optional(),
+  ftp_port: z.coerce.number().default(21),
+  ftp_password: z.string().optional(),
 });
+
+export type SettingsFormValues = z.infer<typeof settingsSchema>;

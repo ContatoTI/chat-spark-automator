@@ -21,6 +21,10 @@ export interface DisparoOptions {
   apikey: string;
   webhook_disparo: string;
   webhook_contatos: string;
+  ftp_url: string;
+  ftp_user: string;
+  ftp_port: number;
+  ftp_password: string;
 }
 
 const optionMapping: Record<string, { field: 'text' | 'numeric' | 'boolean', key: keyof DisparoOptions }> = {
@@ -37,6 +41,10 @@ const optionMapping: Record<string, { field: 'text' | 'numeric' | 'boolean', key
   apikey: { field: 'text', key: 'apikey' },
   webhook_disparo: { field: 'text', key: 'webhook_disparo' },
   webhook_contatos: { field: 'text', key: 'webhook_contatos' },
+  ftp_url: { field: 'text', key: 'ftp_url' },
+  ftp_user: { field: 'text', key: 'ftp_user' },
+  ftp_port: { field: 'numeric', key: 'ftp_port' },
+  ftp_password: { field: 'text', key: 'ftp_password' },
 };
 
 /**
@@ -57,6 +65,10 @@ function convertRowsToDisparoOptions(rows: OptionRow[]): DisparoOptions {
     apikey: '',
     webhook_disparo: '',
     webhook_contatos: '',
+    ftp_url: '',
+    ftp_user: '',
+    ftp_port: 0,
+    ftp_password: '',
   };
 
   rows.forEach(row => {
@@ -131,6 +143,10 @@ export const fetchDisparoOptions = async (): Promise<DisparoOptions> => {
         apikey: '',
         webhook_disparo: '',
         webhook_contatos: '',
+        ftp_url: '',
+        ftp_user: '',
+        ftp_port: 0,
+        ftp_password: '',
       };
       
       return defaultOptions;

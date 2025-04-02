@@ -4,13 +4,14 @@ import { Form } from "@/components/ui/form";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { settingsSchema } from "@/lib/validations/settings";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { DisparoOptions, updateDisparoOptions } from "@/lib/api/settings";
 import { GeneralSettings } from "./GeneralSettings";
 import { LimitsSettings } from "./LimitsSettings";
 import { IntervalSettings } from "./IntervalSettings";
 import { BatchSettings } from "./BatchSettings";
+import { FtpSettings } from "./FtpSettings";
 import { SaveButton } from "./SaveButton";
 
 interface SettingsFormProps {
@@ -18,7 +19,6 @@ interface SettingsFormProps {
 }
 
 export function SettingsForm({ initialSettings }: SettingsFormProps) {
-  const { toast } = useToast();
   const queryClient = useQueryClient();
 
   const form = useForm({
@@ -26,10 +26,6 @@ export function SettingsForm({ initialSettings }: SettingsFormProps) {
     defaultValues: {
       instancia: "",
       Ativo: true,
-      // Campos removidos pois foram movidos para a tabela AppW_Campanhas
-      // Producao: true,
-      // Limite_disparos: 1000,
-      // Enviados: 0,
       horario_limite: 17,
       long_wait_min: 50,
       long_wait_max: 240,
@@ -41,6 +37,10 @@ export function SettingsForm({ initialSettings }: SettingsFormProps) {
       apikey: "",
       webhook_disparo: "",
       webhook_contatos: "",
+      ftp_url: "",
+      ftp_user: "",
+      ftp_port: 21,
+      ftp_password: "",
     },
   });
 
@@ -55,17 +55,10 @@ export function SettingsForm({ initialSettings }: SettingsFormProps) {
     mutationFn: updateDisparoOptions,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['disparo-options'] });
-      toast({
-        title: "Configurações atualizadas",
-        description: "As configurações foram salvas com sucesso.",
-      });
+      toast.success("Configurações atualizadas com sucesso!");
     },
     onError: (error) => {
-      toast({
-        variant: "destructive",
-        title: "Erro ao atualizar configurações",
-        description: error instanceof Error ? error.message : "Ocorreu um erro desconhecido",
-      });
+      toast.error(`Erro ao atualizar configurações: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
     },
   });
 
@@ -80,6 +73,7 @@ export function SettingsForm({ initialSettings }: SettingsFormProps) {
         <LimitsSettings form={form} />
         <IntervalSettings form={form} />
         <BatchSettings form={form} />
+        <FtpSettings form={form} />
         <SaveButton isPending={updateSettingsMutation.isPending} />
       </form>
     </Form>
