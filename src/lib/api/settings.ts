@@ -1,4 +1,3 @@
-
 import { supabase } from '@/lib/supabase';
 
 export interface OptionRow {
@@ -147,9 +146,10 @@ export const fetchDisparoOptions = async (): Promise<DisparoOptions> => {
         apikey: '',
         webhook_disparo: '',
         webhook_contatos: '',
+        webhook_get_images: '',
         ftp_url: '',
         ftp_user: '',
-        ftp_port: 0,
+        ftp_port: 21,
         ftp_password: '',
       };
       
