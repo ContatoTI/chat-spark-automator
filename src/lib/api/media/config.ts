@@ -1,3 +1,4 @@
+
 import { supabase } from '@/lib/supabase';
 import { FtpConfig } from './types';
 
@@ -83,17 +84,17 @@ export const fetchMediaWebhookUrl = async (): Promise<string> => {
 
 // Função para obter o URL do webhook para ser usado imediatamente
 // Não exportamos esta variável diretamente, pois seu valor deve ser obtido de forma assíncrona
-let MEDIA_WEBHOOK_URL: string | null = null;
+let _mediaWebhookUrl: string | null = null;
 
 // Inicializa o URL do webhook
 export const initMediaWebhookUrl = async (): Promise<string> => {
-  if (!MEDIA_WEBHOOK_URL) {
-    MEDIA_WEBHOOK_URL = await fetchMediaWebhookUrl();
+  if (!_mediaWebhookUrl) {
+    _mediaWebhookUrl = await fetchMediaWebhookUrl();
   }
-  return MEDIA_WEBHOOK_URL;
+  return _mediaWebhookUrl;
 };
 
 // Obtém o URL atual (se já inicializado) ou usa o padrão
 export const getMediaWebhookUrl = (): string => {
-  return MEDIA_WEBHOOK_URL || DEFAULT_MEDIA_WEBHOOK_URL;
+  return _mediaWebhookUrl || DEFAULT_MEDIA_WEBHOOK_URL;
 };
