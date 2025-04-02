@@ -1,9 +1,10 @@
 
 import React, { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Image, Video, File, Upload, Loader2 } from "lucide-react";
+import { Image, Video, File, Upload, Loader2, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { MediaGrid } from "./MediaGrid";
 import { MediaFile, listFiles, uploadFile } from "@/lib/api/mediaLibrary";
 import { toast } from "sonner";
@@ -20,6 +21,7 @@ export function MediaLibrary({ onSelect, onClose, currentType }: MediaLibraryPro
   const [isLoading, setIsLoading] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [error, setError] = useState<string | null>(null);
   
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   
@@ -27,11 +29,16 @@ export function MediaLibrary({ onSelect, onClose, currentType }: MediaLibraryPro
   useEffect(() => {
     const loadFiles = async () => {
       setIsLoading(true);
+      setError(null);
       try {
+        console.log(`Loading ${activeTab} files...`);
         const mediaFiles = await listFiles(activeTab);
+        console.log(`Loaded ${mediaFiles.length} ${activeTab} files`);
         setFiles(mediaFiles);
-      } catch (error) {
-        console.error('Error loading files:', error);
+      } catch (err) {
+        console.error('Error loading files:', err);
+        const errorMessage = err instanceof Error ? err.message : "Erro desconhecido ao carregar arquivos";
+        setError(errorMessage);
         toast.error("Erro ao carregar arquivos da biblioteca de mídia.");
       } finally {
         setIsLoading(false);
@@ -67,8 +74,8 @@ export function MediaLibrary({ onSelect, onClose, currentType }: MediaLibraryPro
         setFiles(prev => [uploadedFile, ...prev]);
         toast.success("Arquivo enviado com sucesso!");
       }
-    } catch (error) {
-      console.error('Upload error:', error);
+    } catch (err) {
+      console.error('Upload error:', err);
       toast.error("Erro ao fazer upload do arquivo.");
     } finally {
       setIsUploading(false);
@@ -144,6 +151,15 @@ export function MediaLibrary({ onSelect, onClose, currentType }: MediaLibraryPro
             className="max-w-md"
           />
         </div>
+        
+        {error && (
+          <Alert variant="destructive" className="mb-4">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              {error}
+            </AlertDescription>
+          </Alert>
+        )}
         
         <TabsContent value="image" className="mt-0">
           <MediaGrid 

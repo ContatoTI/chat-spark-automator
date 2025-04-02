@@ -104,6 +104,8 @@ export const listFiles = async (type: 'image' | 'video' | 'document'): Promise<M
     }
     
     try {
+      console.log(`Calling webhook at: ${webhookUrl}?type=${type}`);
+      
       // Adicionar o tipo de arquivo como parâmetro da URL
       const url = new URL(webhookUrl);
       url.searchParams.append('type', type);
@@ -116,13 +118,16 @@ export const listFiles = async (type: 'image' | 'video' | 'document'): Promise<M
       });
       
       if (!response.ok) {
+        console.error(`Webhook error: ${response.status} ${response.statusText}`);
         throw new Error(`Erro ao buscar arquivos: ${response.statusText}`);
       }
       
       const data = await response.json();
+      console.log("Webhook response:", data);
       
       if (!Array.isArray(data)) {
         toast.error("Formato de resposta inválido do webhook");
+        console.error("Invalid webhook response format:", data);
         return [];
       }
       

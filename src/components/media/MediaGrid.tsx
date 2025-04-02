@@ -67,6 +67,7 @@ export function MediaGrid({ files, isLoading, onSelect, type }: MediaGridProps) 
                   const target = e.target as HTMLImageElement;
                   target.onerror = null;
                   target.src = '/placeholder.svg';
+                  console.error("Failed to load image:", file.url);
                 }}
               />
             ) : file.type === 'video' ? (
