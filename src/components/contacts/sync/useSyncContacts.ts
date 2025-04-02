@@ -5,6 +5,13 @@ import { supabase } from "@/lib/supabase";
 
 type SyncStatus = "idle" | "syncing" | "success" | "error";
 
+// Define interface for webhook response
+interface WebhookResponse {
+  message?: string;
+  status?: string;
+  [key: string]: any; // Allow for other properties
+}
+
 export const useSyncContacts = (isOpen: boolean) => {
   const [status, setStatus] = useState<SyncStatus>("idle");
   const [progress, setProgress] = useState(0);
@@ -90,7 +97,7 @@ export const useSyncContacts = (isOpen: boolean) => {
         console.log('POST request successful');
         
         // Use response message if available
-        let responseData = {};
+        let responseData: WebhookResponse = {};
         try {
           responseData = await postResponse.json();
         } catch (e) {
@@ -131,7 +138,7 @@ export const useSyncContacts = (isOpen: boolean) => {
           console.log('GET request successful');
           
           // Use response message if available
-          let responseData = {};
+          let responseData: WebhookResponse = {};
           try {
             responseData = await getResponse.json();
           } catch (e) {
