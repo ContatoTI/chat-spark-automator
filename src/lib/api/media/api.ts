@@ -1,7 +1,7 @@
 
 import { toast } from "sonner";
 import { MediaFile, FtpConfig } from './types';
-import { fetchFtpConfig, getMediaWebhookUrl } from './config';
+import { fetchFtpConfig, getMediaWebhookUrl, getUploadWebhookUrl } from './config';
 
 // List files using webhook
 export const listFiles = async (type: 'image' | 'video' | 'document'): Promise<MediaFile[]> => {
@@ -85,40 +85,75 @@ export const listFiles = async (type: 'image' | 'video' | 'document'): Promise<M
   }
 };
 
-// Upload file function
+// Upload file function - Implementação real usando o webhook configurado
 export const uploadFile = async (
   file: File, 
   type: 'image' | 'video' | 'document'
 ): Promise<MediaFile | null> => {
   try {
-    const ftpConfig = await fetchFtpConfig();
+    // Obtenha o URL do webhook de upload
+    const uploadWebhookUrl = getUploadWebhookUrl();
+    console.log(`[MediaAPI] Iniciando upload para ${uploadWebhookUrl}`);
     
-    if (!ftpConfig) {
-      toast.error("Configurações FTP não encontradas. Configure o FTP nas configurações do sistema.");
+    // Map the type to the expected category parameter
+    const categoryMap = {
+      'image': 'imagens',
+      'video': 'videos',
+      'document': 'documentos'
+    };
+    
+    const category = categoryMap[type];
+    
+    // Criar o FormData para enviar o arquivo
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('category', category);
+    formData.append('filename', file.name);
+    
+    // Exibir toast de carregamento
+    toast.loading(`Enviando ${file.name}...`);
+    
+    // Enviar o arquivo para o webhook
+    const response = await fetch(uploadWebhookUrl, {
+      method: 'POST',
+      body: formData,
+    });
+    
+    // Verificar se a resposta foi bem-sucedida
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`[MediaAPI] Erro ao fazer upload: ${response.status}, ${errorText}`);
+      toast.dismiss();
+      toast.error(`Erro ao enviar arquivo: ${response.statusText}`);
       return null;
     }
     
-    // Simulating upload delay
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    // Processar a resposta
+    const result = await response.json();
+    toast.dismiss();
     
-    // In a real implementation, this would call an edge function to upload files to FTP
-    const folderPath = type === 'image' ? 'imagens/' : 
-                     type === 'video' ? 'videos/' : 
-                     'documentos/';
+    if (!result || !result.url) {
+      console.error('[MediaAPI] Resposta de upload inválida:', result);
+      toast.error("Resposta de upload inválida do servidor");
+      return null;
+    }
     
-    // Mock successful upload
+    toast.success(`Arquivo ${file.name} enviado com sucesso!`);
+    
+    // Retornar o arquivo enviado
     return {
       name: file.name,
-      path: `${folderPath}${file.name}`,
-      url: `https://${ftpConfig.host}/${folderPath}${file.name}`,
+      path: result.path || `${category}/${file.name}`,
+      url: result.url,
       type,
       size: file.size,
       createdAt: new Date().toISOString(),
-      thumbnailUrl: type === 'image' ? `https://${ftpConfig.host}/${folderPath}${file.name}` : undefined
+      thumbnailUrl: type === 'image' ? result.url : undefined
     };
   } catch (error) {
-    console.error('Error uploading file:', error);
-    toast.error("Erro ao fazer upload do arquivo para o FTP.");
+    console.error('[MediaAPI] Erro ao fazer upload:', error);
+    toast.dismiss();
+    toast.error("Erro ao fazer upload do arquivo.");
     return null;
   }
 };

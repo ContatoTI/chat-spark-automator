@@ -1,3 +1,4 @@
+
 import { supabase } from '@/lib/supabase';
 
 export interface OptionRow {
@@ -22,6 +23,7 @@ export interface DisparoOptions {
   webhook_disparo: string;
   webhook_contatos: string;
   webhook_get_images: string;
+  webhook_up_docs: string; // Novo campo para webhook de upload
   ftp_url: string;
   ftp_user: string;
   ftp_port: number;
@@ -43,6 +45,7 @@ const optionMapping: Record<string, { field: 'text' | 'numeric' | 'boolean', key
   webhook_disparo: { field: 'text', key: 'webhook_disparo' },
   webhook_contatos: { field: 'text', key: 'webhook_contatos' },
   webhook_get_images: { field: 'text', key: 'webhook_get_images' },
+  webhook_up_docs: { field: 'text', key: 'webhook_up_docs' }, // Mapeamento do novo campo
   ftp_url: { field: 'text', key: 'ftp_url' },
   ftp_user: { field: 'text', key: 'ftp_user' },
   ftp_port: { field: 'numeric', key: 'ftp_port' },
@@ -147,6 +150,7 @@ export const fetchDisparoOptions = async (): Promise<DisparoOptions> => {
         webhook_disparo: '',
         webhook_contatos: '',
         webhook_get_images: '',
+        webhook_up_docs: '', // Valor padrão para o novo campo
         ftp_url: '',
         ftp_user: '',
         ftp_port: 21,

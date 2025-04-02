@@ -3,10 +3,14 @@
 import { MediaFile, FtpConfig } from './media/types';
 import { 
   fetchFtpConfig, 
-  fetchMediaWebhookUrl, 
+  fetchMediaWebhookUrl,
+  fetchUploadWebhookUrl,
   initMediaWebhookUrl,
+  initUploadWebhookUrl,
   getMediaWebhookUrl,
-  DEFAULT_MEDIA_WEBHOOK_URL 
+  getUploadWebhookUrl,
+  DEFAULT_MEDIA_WEBHOOK_URL,
+  DEFAULT_UPLOAD_WEBHOOK_URL
 } from './media/config';
 import { listFiles, uploadFile } from './media/api';
 
@@ -15,14 +19,22 @@ initMediaWebhookUrl().catch(err => {
   console.error('[mediaLibrary] Erro ao inicializar webhook URL:', err);
 });
 
+initUploadWebhookUrl().catch(err => {
+  console.error('[mediaLibrary] Erro ao inicializar upload webhook URL:', err);
+});
+
 export { 
   listFiles, 
   uploadFile, 
   fetchFtpConfig, 
   fetchMediaWebhookUrl,
+  fetchUploadWebhookUrl,
   getMediaWebhookUrl,
+  getUploadWebhookUrl,
   initMediaWebhookUrl,
-  DEFAULT_MEDIA_WEBHOOK_URL
+  initUploadWebhookUrl,
+  DEFAULT_MEDIA_WEBHOOK_URL,
+  DEFAULT_UPLOAD_WEBHOOK_URL
 };
 
 export type { MediaFile, FtpConfig };

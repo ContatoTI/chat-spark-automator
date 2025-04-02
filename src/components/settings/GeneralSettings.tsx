@@ -129,6 +129,23 @@ export function GeneralSettings({ form }: GeneralSettingsProps) {
               </FormItem>
             )}
           />
+          
+          <FormField
+            control={form.control}
+            name="webhook_up_docs"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Webhook para Upload</FormLabel>
+                <FormControl>
+                  <Input {...field} />
+                </FormControl>
+                <FormDescription>
+                  URL do webhook para envio de arquivos da biblioteca de mídia
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
         </div>
         
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
