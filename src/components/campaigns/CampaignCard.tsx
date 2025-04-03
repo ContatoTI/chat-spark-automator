@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Campaign } from "@/lib/api/campaigns";
 import { CampaignStatusBadge } from "./CampaignStatusBadge";
@@ -25,6 +24,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
+import { formatLocalDate } from "@/utils/dateUtils";
 
 interface CampaignCardProps {
   campaign: Campaign;
@@ -43,11 +43,6 @@ export const CampaignCard: React.FC<CampaignCardProps> = ({
   onDuplicate,
   isSending
 }) => {
-  const formatDate = (dateString: string | null) => {
-    if (!dateString) return "-";
-    return new Date(dateString).toLocaleDateString("pt-BR");
-  };
-
   const getMessagePreview = (message: string) => {
     if (!message) return "";
     return message.length > 80 ? `${message.substring(0, 80)}...` : message;
@@ -87,7 +82,7 @@ export const CampaignCard: React.FC<CampaignCardProps> = ({
                   <h4 className="text-sm font-medium text-muted-foreground mb-1">Data:</h4>
                   <p className="flex items-center gap-2">
                     <Calendar className="h-4 w-4" />
-                    {formatDate(campaign.data_disparo)}
+                    {formatLocalDate(campaign.data_disparo)}
                   </p>
                 </div>
                 

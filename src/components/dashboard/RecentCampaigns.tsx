@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { 
   Check, 
@@ -36,6 +35,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useCampaignOperations } from "@/hooks/useCampaignOperations";
 import { useCampaignStatusCalculator } from "@/hooks/useCampaignStatusCalculator";
+import { formatLocalDate } from "@/utils/dateUtils";
 
 type CampaignStatus = "draft" | "scheduled" | "sending" | "completed" | "failed";
 
@@ -102,13 +102,10 @@ export const RecentCampaigns: React.FC = () => {
     return new Date(dateString).toLocaleDateString("pt-BR");
   };
   
-  // Atualiza o status das campanhas
   const processedCampaigns = updateCampaignsStatus(campaigns);
   
-  // Show only the most recent 5 campaigns
   const recentCampaigns = processedCampaigns.slice(0, 5);
   
-  // Function to get message preview (limited to 80 characters)
   const getMessagePreview = (message: string) => {
     if (!message) return "";
     return message.length > 80 ? `${message.substring(0, 80)}...` : message;
@@ -119,20 +116,17 @@ export const RecentCampaigns: React.FC = () => {
     setEditCampaignDialogOpen(true);
   };
 
-  // Function to duplicate campaign
   const handleDuplicateCampaign = (campaign: Campaign) => {
-    // For now, just open the dialog with campaign data for user to modify
     setSelectedCampaign({
       ...campaign,
-      id: null, // Clear ID for new campaign
+      id: null,
       nome: `Cópia de ${campaign.nome}`,
-      enviados: 0, // Reset sent count
-      status: 'rascunho' // Reset status to draft
+      enviados: 0,
+      status: 'rascunho'
     });
     setEditCampaignDialogOpen(true);
   };
 
-  // Calculate progress percentage for the campaign
   const getProgressPercentage = (enviados: number, limite: number) => {
     if (limite <= 0) return 0;
     const percentage = (enviados / limite) * 100;
@@ -210,7 +204,7 @@ export const RecentCampaigns: React.FC = () => {
                   </td>
                   <td className="px-6 py-4 text-muted-foreground flex items-center gap-2">
                     <Calendar className="h-4 w-4" />
-                    {formatDate(campaign.data_disparo)}
+                    {formatLocalDate(campaign.data_disparo)}
                   </td>
                   <td className="px-6 py-4 capitalize">
                     {campaign.tipo_midia || "Texto"}

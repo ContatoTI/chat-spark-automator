@@ -35,6 +35,12 @@ export const ScheduleTab: React.FC<ScheduleTabProps> = ({
   producao,
   timeOptions,
 }) => {
+  // Format date function that doesn't rely on timezone conversion
+  const formatLocalDate = (date: Date | undefined) => {
+    if (!date) return "";
+    return format(date, "dd/MM/yyyy", { locale: ptBR });
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4 p-4 border rounded-md bg-muted/30">
@@ -79,7 +85,7 @@ export const ScheduleTab: React.FC<ScheduleTabProps> = ({
                   )}
                 >
                   <CalendarIcon className="mr-2 h-4 w-4" />
-                  {scheduleDate ? format(scheduleDate, "dd/MM/yyyy", { locale: ptBR }) : <span>Escolha uma data</span>}
+                  {scheduleDate ? formatLocalDate(scheduleDate) : <span>Escolha uma data</span>}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="end">
@@ -115,7 +121,7 @@ export const ScheduleTab: React.FC<ScheduleTabProps> = ({
             <p className="text-sm">Enviados: {enviados}</p>
             {scheduleDate && scheduleTime && (
               <p className="text-sm">
-                Data de envio: {format(scheduleDate, "dd/MM/yyyy", { locale: ptBR })} às {scheduleTime}
+                Data de envio: {formatLocalDate(scheduleDate)} às {scheduleTime}
               </p>
             )}
           </div>

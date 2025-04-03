@@ -31,14 +31,39 @@ export const CampaignCalendarView: React.FC<CampaignCalendarViewProps> = ({
   const [draggingCampaign, setDraggingCampaign] = useState<Campaign | null>(null);
   const queryClient = useQueryClient();
 
+  // Parse date string without timezone conversion
+  const parseLocalDate = (dateString: string | null): Date | null => {
+    if (!dateString) return null;
+    
+    // Format: YYYY-MM-DD or YYYY-MM-DD HH:MM:SS
+    if (dateString.includes(' ')) {
+      // Has date and time
+      const [datePart] = dateString.split(' ');
+      const [year, month, day] = datePart.split('-').map(Number);
+      return new Date(year, month - 1, day, 0, 0, 0);
+    } else if (dateString.includes('T')) {
+      // ISO format
+      const [datePart] = dateString.split('T');
+      const [year, month, day] = datePart.split('-').map(Number);
+      return new Date(year, month - 1, day, 0, 0, 0);
+    } else {
+      // Simple date
+      const [year, month, day] = dateString.split('-').map(Number);
+      return new Date(year, month - 1, day, 0, 0, 0);
+    }
+  };
+
   // Agrupa campanhas por data
   const campaignsByDate = campaigns.reduce<Record<string, Campaign[]>>((acc, campaign) => {
     if (campaign.data_disparo) {
-      const dateStr = new Date(campaign.data_disparo).toDateString();
-      if (!acc[dateStr]) {
-        acc[dateStr] = [];
+      const date = parseLocalDate(campaign.data_disparo);
+      if (date) {
+        const dateStr = date.toDateString();
+        if (!acc[dateStr]) {
+          acc[dateStr] = [];
+        }
+        acc[dateStr].push(campaign);
       }
-      acc[dateStr].push(campaign);
     }
     return acc;
   }, {});
@@ -68,46 +93,44 @@ export const CampaignCalendarView: React.FC<CampaignCalendarViewProps> = ({
     if (!draggingCampaign || !draggingCampaign.id) return;
     
     try {
-      // Clone the date to avoid modifying the original
-      const targetDate = new Date(date);
+      // Format the date as YYYY-MM-DD
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
       
-      // Manter a hora original se existir
+      // Preserve original time if exists
+      let timeString = "12:00:00";
       if (draggingCampaign.data_disparo) {
-        const originalDate = new Date(draggingCampaign.data_disparo);
-        targetDate.setHours(
-          originalDate.getHours(),
-          originalDate.getMinutes(),
-          originalDate.getSeconds(),
-          originalDate.getMilliseconds()
-        );
-      } else {
-        // Set to noon if no previous time
-        targetDate.setHours(12, 0, 0, 0);
+        if (draggingCampaign.data_disparo.includes(' ')) {
+          // Has time part
+          const [_, timePart] = draggingCampaign.data_disparo.split(' ');
+          if (timePart) {
+            timeString = timePart;
+          }
+        }
       }
       
-      // Make sure we use local timezone for display but store as ISO
-      const targetISOString = targetDate.toISOString();
+      // Format as YYYY-MM-DD HH:MM:SS
+      const targetDateString = `${year}-${month}-${day} ${timeString}`;
       
-      console.log(`Reagendando para a data: ${date.toLocaleDateString()} -> ${targetDate.toLocaleDateString()}`);
-      console.log(`Original date: ${date.toISOString()}`);
-      console.log(`Adjusted date: ${targetISOString}`);
+      console.log(`Reagendando para a data: ${targetDateString}`);
       
       // Atualizar a data da campanha
       const updatedCampaign = {
         ...draggingCampaign,
-        data_disparo: targetISOString
+        data_disparo: targetDateString
       };
 
       // Chamar API para atualizar a campanha
       await updateCampaign(draggingCampaign.id, {
-        data_disparo: targetISOString
+        data_disparo: targetDateString
       });
 
       // Invalidar queries para forçar recarregamento dos dados
       queryClient.invalidateQueries({ queryKey: ['campaigns'] });
 
       // Mostrar notificação de sucesso
-      toast.success(`Campanha "${draggingCampaign.nome}" reagendada para ${targetDate.toLocaleDateString("pt-BR")}`);
+      toast.success(`Campanha "${draggingCampaign.nome}" reagendada para ${day}/${month}/${year}`);
 
       // Limpar o estado de arraste
       setDraggingCampaign(null);
@@ -139,6 +162,27 @@ export const CampaignCalendarView: React.FC<CampaignCalendarViewProps> = ({
       default:
         return 'bg-gray-100 text-gray-800 dark:bg-gray-800/70 dark:text-gray-200';
     }
+  };
+
+  // Format time without timezone conversion
+  const formatLocalTime = (dateString: string | null): string => {
+    if (!dateString) return "";
+    
+    if (dateString.includes(' ')) {
+      const [_, timePart] = dateString.split(' ');
+      if (timePart) {
+        const [hours, minutes] = timePart.split(':');
+        return `${hours}:${minutes}`;
+      }
+    } else if (dateString.includes('T')) {
+      const [_, timePart] = dateString.split('T');
+      if (timePart) {
+        const [hours, minutes] = timePart.split(':');
+        return `${hours}:${minutes}`;
+      }
+    }
+    
+    return "12:00";
   };
 
   // Custom day renderer for Calendar
@@ -189,10 +233,7 @@ export const CampaignCalendarView: React.FC<CampaignCalendarViewProps> = ({
               
               <div className="flex justify-between items-center mt-1">
                 <div className="text-xs">
-                  {new Date(dayCampaigns[0].data_disparo).toLocaleTimeString('pt-BR', {
-                    hour: '2-digit',
-                    minute: '2-digit'
-                  })}
+                  {formatLocalTime(dayCampaigns[0].data_disparo)}
                 </div>
                 <button 
                   onClick={e => {
