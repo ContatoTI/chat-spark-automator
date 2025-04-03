@@ -24,6 +24,7 @@ export const ContactsSyncDialog: React.FC<ContactsSyncDialogProps> = ({
   const {
     status,
     progress,
+    webhookMessage,
     startSync,
     resetState
   } = useSyncContacts(open);
@@ -46,7 +47,7 @@ export const ContactsSyncDialog: React.FC<ContactsSyncDialogProps> = ({
         <div className="py-6">
           {status === "idle" && <SyncIdleState />}
           {status === "syncing" && <SyncInProgressState progress={progress} />}
-          {status === "success" && <SyncSuccessState />}
+          {status === "success" && <SyncSuccessState message={webhookMessage} />}
           {status === "error" && <SyncErrorState />}
         </div>
         

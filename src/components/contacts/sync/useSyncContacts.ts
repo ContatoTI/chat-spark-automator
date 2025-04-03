@@ -18,6 +18,7 @@ export const useSyncContacts = (isOpen: boolean) => {
   const [status, setStatus] = useState<SyncStatus>("idle");
   const [progress, setProgress] = useState(0);
   const [webhookUrl, setWebhookUrl] = useState<string>("");
+  const [webhookMessage, setWebhookMessage] = useState<string>("");
   const queryClient = useQueryClient();
 
   // Fetch webhook URL when dialog opens
@@ -77,6 +78,7 @@ export const useSyncContacts = (isOpen: boolean) => {
   const startSync = async () => {
     setStatus("syncing");
     setProgress(0);
+    setWebhookMessage("");
     
     if (!webhookUrl) {
       toast.error("URL do webhook de contatos não encontrada nas configurações");
@@ -130,6 +132,11 @@ export const useSyncContacts = (isOpen: boolean) => {
           if (responseData.contactsCount !== undefined) {
             await updateContactsCount(responseData.contactsCount);
           }
+          
+          // Store the webhook message
+          if (responseData.message) {
+            setWebhookMessage(responseData.message);
+          }
         } catch (e) {
           console.log('No JSON response from webhook');
         }
@@ -175,6 +182,11 @@ export const useSyncContacts = (isOpen: boolean) => {
             if (responseData.contactsCount !== undefined) {
               await updateContactsCount(responseData.contactsCount);
             }
+            
+            // Store the webhook message
+            if (responseData.message) {
+              setWebhookMessage(responseData.message);
+            }
           } catch (e) {
             console.log('No JSON response from webhook');
           }
@@ -205,12 +217,14 @@ export const useSyncContacts = (isOpen: boolean) => {
     if (status === "success" || status === "error") {
       setStatus("idle");
       setProgress(0);
+      setWebhookMessage("");
     }
   };
 
   return {
     status,
     progress,
+    webhookMessage,
     startSync,
     resetState
   };
