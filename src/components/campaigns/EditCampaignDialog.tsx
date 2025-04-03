@@ -7,15 +7,15 @@ import {
   DialogTitle,
   DialogDescription
 } from "@/components/ui/dialog";
-import { toast } from "sonner";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { updateCampaign, Campaign } from "@/lib/api/campaigns";
+import { Campaign } from "@/lib/api/campaigns";
 import { MessageTab } from "./dialog/MessageTab";
 import { SettingsTab } from "./dialog/SettingsTab";
 import { ScheduleTab } from "./dialog/ScheduleTab";
 import { TabNavigation } from "./dialog/TabNavigation";
 import { CampaignDialogFooter } from "./dialog/DialogFooter";
 import { useCampaignForm } from "@/hooks/useCampaignForm";
+import { useEditCampaign } from "@/hooks/useEditCampaign";
+import { formatCampaignForUpdate } from "./utils/campaignFormatters";
 
 interface EditCampaignDialogProps {
   open: boolean;
@@ -28,8 +28,7 @@ export const EditCampaignDialog: React.FC<EditCampaignDialogProps> = ({
   onOpenChange,
   campaign
 }) => {
-  const queryClient = useQueryClient();
-  const enviados = campaign?.enviados || 0;
+  const { updateMutation, isSubmitting } = useEditCampaign(() => onOpenChange(false));
   
   const {
     activeTab,
@@ -64,53 +63,26 @@ export const EditCampaignDialog: React.FC<EditCampaignDialogProps> = ({
     isValid
   } = useCampaignForm(campaign, open);
   
-  const updateMutation = useMutation({
-    mutationFn: ({ id, updatedCampaign }: { id: number, updatedCampaign: Partial<Campaign> }) => 
-      updateCampaign(id, updatedCampaign),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['campaigns'] });
-      toast.success("Campanha atualizada com sucesso!");
-      onOpenChange(false);
-    },
-    onError: (error) => {
-      toast.error(`Erro ao atualizar campanha: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
-    },
-  });
-  
   const handleSubmit = () => {
     if (!campaign?.id) {
       toast.error("ID da campanha não encontrado");
       return;
     }
     
-    // Format date as YYYY-MM-DD string without timezone conversion
-    let formattedDate = null;
-    if (scheduleDate && scheduleTime) {
-      // Get year, month, day parts from the date
-      const year = scheduleDate.getFullYear();
-      const month = String(scheduleDate.getMonth() + 1).padStart(2, '0');
-      const day = String(scheduleDate.getDate()).padStart(2, '0');
-      
-      // Create formatted date string in YYYY-MM-DD format
-      formattedDate = `${year}-${month}-${day} ${scheduleTime}:00`;
-      console.log("Data formatada sem timezone:", formattedDate);
-    }
-    
-    const status = calculateStatus(enviados, limiteDisparos, scheduleDate);
-    
-    const updatedCampaign: Partial<Campaign> = {
-      nome: campaignName,
-      mensagem01: message1,
-      mensagem02: message2 || null,
-      mensagem03: message3 || null,
-      mensagem04: message4 || null,
-      tipo_midia: mediaType,
-      url_midia: mediaUrl || null,
-      data_disparo: formattedDate, // Store as string without timezone information
-      status: status,
-      producao: producao,
-      limite_disparos: limiteDisparos
-    };
+    const updatedCampaign = formatCampaignForUpdate({
+      campaignName,
+      message1,
+      message2,
+      message3,
+      message4,
+      mediaType,
+      mediaUrl,
+      scheduleDate,
+      scheduleTime,
+      producao,
+      limiteDisparos,
+      enviados: campaign.enviados || 0
+    });
     
     updateMutation.mutate({ id: campaign.id, updatedCampaign });
   };
@@ -165,7 +137,7 @@ export const EditCampaignDialog: React.FC<EditCampaignDialogProps> = ({
             <SettingsTab
               limiteDisparos={limiteDisparos}
               setLimiteDisparos={setLimiteDisparos}
-              enviados={enviados}
+              enviados={campaign.enviados || 0}
               producao={producao}
               setProducao={setProducao}
             />
@@ -179,7 +151,7 @@ export const EditCampaignDialog: React.FC<EditCampaignDialogProps> = ({
               setScheduleDate={setScheduleDate}
               scheduleTime={scheduleTime}
               setScheduleTime={setScheduleTime}
-              enviados={enviados}
+              enviados={campaign.enviados || 0}
               limiteDisparos={limiteDisparos}
               producao={producao}
               timeOptions={timeOptions}
@@ -193,9 +165,11 @@ export const EditCampaignDialog: React.FC<EditCampaignDialogProps> = ({
           handleBack={handleBack}
           handleSubmit={handleSubmit}
           onClose={() => onOpenChange(false)}
-          isSubmitting={updateMutation.isPending}
+          isSubmitting={isSubmitting}
         />
       </DialogContent>
     </Dialog>
   );
 };
+
+import { toast } from "sonner";
