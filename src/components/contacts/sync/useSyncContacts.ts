@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
+import { useQueryClient } from "@tanstack/react-query";
 
 type SyncStatus = "idle" | "syncing" | "success" | "error";
 
@@ -9,6 +10,7 @@ type SyncStatus = "idle" | "syncing" | "success" | "error";
 interface WebhookResponse {
   message?: string;
   status?: string;
+  contactsCount?: number;
   [key: string]: any; // Allow for other properties
 }
 
@@ -16,6 +18,7 @@ export const useSyncContacts = (isOpen: boolean) => {
   const [status, setStatus] = useState<SyncStatus>("idle");
   const [progress, setProgress] = useState(0);
   const [webhookUrl, setWebhookUrl] = useState<string>("");
+  const queryClient = useQueryClient();
 
   // Fetch webhook URL when dialog opens
   useEffect(() => {
@@ -45,6 +48,29 @@ export const useSyncContacts = (isOpen: boolean) => {
       }
     } catch (err) {
       console.error('Error in contacts webhook URL fetch:', err);
+    }
+  };
+
+  // Função para atualizar o contador de contatos na tabela AppW_Options
+  const updateContactsCount = async (count: number) => {
+    try {
+      console.log('Atualizando contador de contatos para:', count);
+      const { error } = await supabase
+        .from('AppW_Options')
+        .update({ numeric: count })
+        .eq('option', 'numero_de_contatos');
+      
+      if (error) {
+        console.error('Erro ao atualizar contador de contatos:', error);
+        throw error;
+      }
+      
+      console.log('Contador de contatos atualizado com sucesso');
+      // Invalidar a query de estatísticas para forçar uma atualização
+      queryClient.invalidateQueries({ queryKey: ['contactsStats'] });
+    } catch (err) {
+      console.error('Erro durante atualização do contador de contatos:', err);
+      // Não lançamos o erro aqui para não interromper o fluxo principal
     }
   };
 
@@ -100,6 +126,10 @@ export const useSyncContacts = (isOpen: boolean) => {
         let responseData: WebhookResponse = {};
         try {
           responseData = await postResponse.json();
+          // Se o webhook retornou a contagem de contatos, atualizamos na tabela de opções
+          if (responseData.contactsCount !== undefined) {
+            await updateContactsCount(responseData.contactsCount);
+          }
         } catch (e) {
           console.log('No JSON response from webhook');
         }
@@ -141,6 +171,10 @@ export const useSyncContacts = (isOpen: boolean) => {
           let responseData: WebhookResponse = {};
           try {
             responseData = await getResponse.json();
+            // Se o webhook retornou a contagem de contatos, atualizamos na tabela de opções
+            if (responseData.contactsCount !== undefined) {
+              await updateContactsCount(responseData.contactsCount);
+            }
           } catch (e) {
             console.log('No JSON response from webhook');
           }

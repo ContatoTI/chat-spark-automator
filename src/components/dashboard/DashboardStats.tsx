@@ -1,4 +1,3 @@
-
 import React from "react";
 import { 
   Users, 
@@ -73,23 +72,22 @@ const StatCard: React.FC<StatCardProps> = ({
   );
 };
 
-// Função para buscar estatísticas de contatos do Supabase
 const fetchContactsStats = async () => {
-  console.log("Fetching contacts stats...");
+  console.log("Fetching contacts stats from options...");
   try {
-    // Buscar número total de contatos da tabela AppW_Contatos
-    const { count: total, error: totalError } = await supabase
-      .from('AppW_Contatos')
-      .select('*', { count: 'exact', head: true });
+    const { data: totalData, error: totalError } = await supabase
+      .from('AppW_Options')
+      .select('numeric')
+      .eq('option', 'numero_de_contatos')
+      .single();
 
     if (totalError) {
-      console.error("Error fetching total contacts:", totalError);
+      console.error("Error fetching total contacts count from options:", totalError);
       throw totalError;
     }
 
-    console.log("Total contacts count:", total);
+    console.log("Total contacts from options:", totalData?.numeric);
 
-    // Buscar número de contatos inválidos - onde a coluna "Invalido" contém o valor "Invalido"
     const { count: invalid, error: invalidError } = await supabase
       .from('AppW_Contatos')
       .select('*', { count: 'exact', head: true })
@@ -103,7 +101,7 @@ const fetchContactsStats = async () => {
     console.log("Invalid contacts count:", invalid);
     
     return {
-      total: total ?? 0,
+      total: totalData?.numeric ?? 0,
       invalid: invalid ?? 0
     };
   } catch (error) {
@@ -116,6 +114,7 @@ export const DashboardStats: React.FC = () => {
   const { data: contactsStats, isLoading, error, refetch } = useQuery({
     queryKey: ['contactsStats'],
     queryFn: fetchContactsStats,
+    staleTime: 60000,
   });
 
   if (error) {
