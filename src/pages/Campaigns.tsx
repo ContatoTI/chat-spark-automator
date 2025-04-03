@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
@@ -11,6 +12,7 @@ import { insertSampleCampaigns } from "@/lib/api/campaigns";
 import { CampaignList } from "@/components/campaigns/CampaignList";
 import { useCampaignOperations } from "@/hooks/useCampaignOperations";
 import useCampaignStatusCalculator from "@/hooks/useCampaignStatusCalculator";
+
 const Campaigns = () => {
   const [newCampaignDialogOpen, setNewCampaignDialogOpen] = useState(false);
   const [editCampaignDialogOpen, setEditCampaignDialogOpen] = useState(false);
@@ -33,9 +35,11 @@ const Campaigns = () => {
     updateCampaignsStatus
   } = useCampaignStatusCalculator();
   const campaigns = updateCampaignsStatus(rawCampaigns);
+  
   React.useEffect(() => {
     insertSampleCampaigns().catch(console.error);
   }, []);
+  
   const openEditDialog = (campaign: React.SetStateAction<import("@/lib/api/campaigns").Campaign | null>) => {
     setSelectedCampaign(campaign);
     setEditCampaignDialogOpen(true);
@@ -55,6 +59,7 @@ const Campaigns = () => {
     });
     setNewCampaignDialogOpen(true);
   };
+  
   const filteredCampaigns = campaigns.filter(campaign => {
     const matchesSearch = campaign.nome.toLowerCase().includes(searchQuery.toLowerCase());
 
@@ -79,6 +84,7 @@ const Campaigns = () => {
     const matchesTab = selectedTab === "all" || statusFilter && campaign.status === statusFilter;
     return matchesSearch && matchesTab;
   });
+  
   if (error) {
     return <Layout>
         <div className="flex flex-col gap-8">
@@ -92,6 +98,7 @@ const Campaigns = () => {
         </div>
       </Layout>;
   }
+  
   return <Layout>
       <div className="flex flex-col gap-8">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -102,15 +109,43 @@ const Campaigns = () => {
             </p>
           </div>
           
+          <div className="flex items-center gap-2">
+            <div className="relative">
+              <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" />
+              <Input
+                placeholder="Buscar campanhas..."
+                className="pl-10 w-[250px]"
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+              />
+            </div>
+            <Button onClick={() => setNewCampaignDialogOpen(true)}>
+              <PlusCircle className="h-4 w-4 mr-2" />
+              Nova Campanha
+            </Button>
+          </div>
         </div>
 
-        
-
         <Tabs defaultValue="all" className="w-full" onValueChange={setSelectedTab}>
-          
+          <TabsList className="mb-4">
+            <TabsTrigger value="all">Todas</TabsTrigger>
+            <TabsTrigger value="draft">Rascunhos</TabsTrigger>
+            <TabsTrigger value="scheduled">Agendadas</TabsTrigger>
+            <TabsTrigger value="sending">Em Andamento</TabsTrigger>
+            <TabsTrigger value="completed">Concluídas</TabsTrigger>
+          </TabsList>
           
           <TabsContent value={selectedTab} className="mt-0">
-            <CampaignList campaigns={filteredCampaigns} isLoading={isLoading} onEdit={openEditDialog} onDelete={handleDeleteCampaign} onSendNow={handleSendCampaignNow} onDuplicate={handleDuplicateCampaign} onNewCampaign={() => setNewCampaignDialogOpen(true)} isSending={sendNowMutation.isPending} />
+            <CampaignList 
+              campaigns={filteredCampaigns} 
+              isLoading={isLoading} 
+              onEdit={openEditDialog} 
+              onDelete={handleDeleteCampaign} 
+              onSendNow={handleSendCampaignNow} 
+              onDuplicate={handleDuplicateCampaign} 
+              onNewCampaign={() => setNewCampaignDialogOpen(true)} 
+              isSending={sendNowMutation.isPending} 
+            />
           </TabsContent>
         </Tabs>
       </div>
@@ -120,4 +155,5 @@ const Campaigns = () => {
       <EditCampaignDialog open={editCampaignDialogOpen} onOpenChange={setEditCampaignDialogOpen} campaign={selectedCampaign} />
     </Layout>;
 };
+
 export default Campaigns;

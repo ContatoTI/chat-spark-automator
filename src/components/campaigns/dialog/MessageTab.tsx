@@ -1,4 +1,3 @@
-
 import React, { useState, useRef } from "react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -12,7 +11,8 @@ import {
   Video,
   Type,
   FolderOpen,
-  User
+  User,
+  Variable
 } from "lucide-react";
 import { MediaLibraryDialog } from "@/components/media/MediaLibraryDialog";
 import { MediaFile } from "@/lib/api/mediaLibrary";
@@ -63,12 +63,33 @@ export const MessageTab: React.FC<MessageTabProps> = ({
   const message3Ref = useRef<HTMLTextAreaElement>(null);
   const message4Ref = useRef<HTMLTextAreaElement>(null);
   const [activeTextarea, setActiveTextarea] = useState<"message1" | "message2" | "message3" | "message4" | null>(null);
+  const campaignNameRef = useRef<HTMLInputElement>(null);
   
   const handleMediaFileSelect = (file: MediaFile) => {
     setMediaUrl(file.url);
   };
 
   const insertVariable = (variable: string) => {
+    // If the campaign name field is active, insert the variable there
+    if (document.activeElement === campaignNameRef.current) {
+      const input = campaignNameRef.current;
+      if (input) {
+        const startPos = input.selectionStart || 0;
+        const endPos = input.selectionEnd || 0;
+        const newValue = campaignName.substring(0, startPos) + variable + campaignName.substring(endPos);
+        setCampaignName(newValue);
+        
+        // Set cursor position after the inserted variable
+        setTimeout(() => {
+          input.focus();
+          const newCursorPos = startPos + variable.length;
+          input.setSelectionRange(newCursorPos, newCursorPos);
+        }, 0);
+        return;
+      }
+    }
+    
+    // Otherwise insert into the active textarea
     let textArea: HTMLTextAreaElement | null = null;
     let setValue: (value: string) => void = () => {};
     let currentValue = "";
@@ -117,12 +138,37 @@ export const MessageTab: React.FC<MessageTabProps> = ({
     <div className="space-y-6">
       <div className="space-y-2">
         <Label htmlFor="campaign-name">Nome da Campanha</Label>
-        <Input
-          id="campaign-name"
-          placeholder="Ex: Promoção de Verão"
-          value={campaignName}
-          onChange={(e) => setCampaignName(e.target.value)}
-        />
+        <div className="flex items-center gap-2">
+          <div className="relative flex-grow">
+            <Input
+              id="campaign-name"
+              ref={campaignNameRef}
+              placeholder="Ex: Promoção de Verão"
+              value={campaignName}
+              onChange={(e) => setCampaignName(e.target.value)}
+              className="pr-10"
+            />
+          </div>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button 
+                variant="outline" 
+                size="sm"
+                className="flex items-center gap-1" 
+                onClick={() => insertVariable("<nome>")}
+              >
+                <div className="flex items-center gap-1">
+                  <span className="font-medium">Variáveis:</span>
+                  <User className="h-4 w-4" />
+                  <span>Nome</span>
+                </div>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              Inserir nome do cliente
+            </TooltipContent>
+          </Tooltip>
+        </div>
       </div>
       
       <div className="space-y-4">
@@ -204,26 +250,6 @@ export const MessageTab: React.FC<MessageTabProps> = ({
             </div>
           </div>
         )}
-        
-        <div className="flex items-center gap-2 mb-2">
-          <Label>Variáveis:</Label>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="flex items-center gap-1" 
-                onClick={() => insertVariable("<nome>")}
-              >
-                <User className="h-3 w-3" />
-                Nome
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              Inserir nome do cliente
-            </TooltipContent>
-          </Tooltip>
-        </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
