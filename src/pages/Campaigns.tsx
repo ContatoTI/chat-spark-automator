@@ -107,13 +107,7 @@ const Campaigns = () => {
         
 
         <Tabs defaultValue="all" className="w-full" onValueChange={setSelectedTab}>
-          <TabsList className="mb-4">
-            <TabsTrigger value="all">Todas</TabsTrigger>
-            <TabsTrigger value="draft">Rascunhos</TabsTrigger>
-            <TabsTrigger value="scheduled">Agendadas</TabsTrigger>
-            <TabsTrigger value="sending">Enviando</TabsTrigger>
-            <TabsTrigger value="completed">Concluídas</TabsTrigger>
-          </TabsList>
+          
           
           <TabsContent value={selectedTab} className="mt-0">
             <CampaignList campaigns={filteredCampaigns} isLoading={isLoading} onEdit={openEditDialog} onDelete={handleDeleteCampaign} onSendNow={handleSendCampaignNow} onDuplicate={handleDuplicateCampaign} onNewCampaign={() => setNewCampaignDialogOpen(true)} isSending={sendNowMutation.isPending} />
