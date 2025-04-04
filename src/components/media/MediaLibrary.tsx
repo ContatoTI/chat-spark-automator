@@ -1,17 +1,15 @@
 
 import React, { useState, useEffect } from "react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Image, Video, File, Upload, Loader2, AlertCircle } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { MediaGrid } from "./MediaGrid";
+import { MediaLibraryHeader } from "./MediaLibraryHeader";
+import { MediaLibraryError } from "./MediaLibraryError";
+import { MediaLibraryFooter } from "./MediaLibraryFooter";
+import { useMediaUpload } from "@/hooks/useMediaUpload";
+import { useMediaWebhook } from "@/hooks/useMediaWebhook";
 import { 
   MediaFile, 
-  listFiles, 
-  uploadFile, 
-  getMediaWebhookUrl,
-  initMediaWebhookUrl 
+  listFiles
 } from "@/lib/api/mediaLibrary";
 import { toast } from "sonner";
 
@@ -25,26 +23,10 @@ export function MediaLibrary({ onSelect, onClose, currentType }: MediaLibraryPro
   const [activeTab, setActiveTab] = useState<'image' | 'video' | 'document'>(currentType);
   const [files, setFiles] = useState<MediaFile[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [isUploading, setIsUploading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [webhookUrl, setWebhookUrl] = useState<string>(getMediaWebhookUrl());
   
-  const fileInputRef = React.useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    const initWebhook = async () => {
-      try {
-        const url = await initMediaWebhookUrl();
-        console.log(`[MediaLibrary] Webhook URL inicializado: ${url}`);
-        setWebhookUrl(url);
-      } catch (err) {
-        console.error('[MediaLibrary] Erro ao inicializar webhook URL:', err);
-      }
-    };
-    
-    initWebhook();
-  }, []);
+  const webhookUrl = useMediaWebhook();
   
   const loadFiles = async () => {
     setIsLoading(true);
@@ -78,57 +60,12 @@ export function MediaLibrary({ onSelect, onClose, currentType }: MediaLibraryPro
     loadFiles();
   }, [activeTab, webhookUrl]);
   
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    
-    if (activeTab === 'image' && !file.type.startsWith('image/')) {
-      toast.error("O arquivo selecionado não é uma imagem.");
-      return;
-    } else if (activeTab === 'video' && !file.type.startsWith('video/')) {
-      toast.error("O arquivo selecionado não é um vídeo.");
-      return;
-    } else if (activeTab === 'document' && 
-        !['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-          'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-          'text/plain'].includes(file.type)) {
-      toast.error("O arquivo selecionado não é um documento válido.");
-      return;
-    }
-    
-    setIsUploading(true);
-    try {
-      uploadFile(file, activeTab).then(uploadedFile => {
-        if (uploadedFile) {
-          // After successful upload, refresh the file list
-          loadFiles();
-          toast.success("Arquivo enviado com sucesso!");
-        }
-        setIsUploading(false);
-        if (fileInputRef.current) {
-          fileInputRef.current.value = '';
-        }
-      }).catch(err => {
-        console.error('[MediaLibrary] Erro no upload:', err);
-        toast.error("Erro ao fazer upload do arquivo.");
-        setIsUploading(false);
-        if (fileInputRef.current) {
-          fileInputRef.current.value = '';
-        }
-      });
-    } catch (err) {
-      console.error('[MediaLibrary] Erro no upload:', err);
-      toast.error("Erro ao fazer upload do arquivo.");
-      setIsUploading(false);
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
-      }
-    }
-  };
-  
-  const handleRetryLoad = async () => {
-    loadFiles();
-  };
+  const { 
+    isUploading, 
+    fileInputRef, 
+    handleFileUpload, 
+    triggerFileInput 
+  } = useMediaUpload(activeTab, loadFiles);
   
   const filteredFiles = searchTerm 
     ? files.filter(file => file.name.toLowerCase().includes(searchTerm.toLowerCase()))
@@ -137,93 +74,30 @@ export function MediaLibrary({ onSelect, onClose, currentType }: MediaLibraryPro
   return (
     <div className="space-y-4">
       <Tabs defaultValue={activeTab} value={activeTab} onValueChange={(v) => setActiveTab(v as 'image' | 'video' | 'document')}>
-        <div className="flex items-center justify-between flex-wrap gap-2">
-          <TabsList>
-            <TabsTrigger value="image" className="flex items-center gap-2">
-              <Image className="h-4 w-4" />
-              Imagens
-            </TabsTrigger>
-            <TabsTrigger value="video" className="flex items-center gap-2">
-              <Video className="h-4 w-4" />
-              Vídeos
-            </TabsTrigger>
-            <TabsTrigger value="document" className="flex items-center gap-2">
-              <File className="h-4 w-4" />
-              Documentos
-            </TabsTrigger>
-          </TabsList>
-          
-          <div className="flex gap-2">
-            <Button 
-              onClick={() => handleRetryLoad()} 
-              variant="outline"
-              size="sm"
-              disabled={isLoading}
-            >
-              {isLoading ? (
-                <Loader2 className="h-4 w-4 animate-spin mr-1" />
-              ) : (
-                <svg className="h-4 w-4 mr-1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3M12 3L16 7M12 3L8 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              )}
-              Recarregar
-            </Button>
-            
-            <input
-              type="file"
-              ref={fileInputRef}
-              className="hidden"
-              onChange={handleFileUpload}
-              accept={
-                activeTab === 'image' ? 'image/*' : 
-                activeTab === 'video' ? 'video/*' : 
-                '.pdf,.doc,.docx,.xls,.xlsx,.txt'
-              }
-            />
-            <Button 
-              onClick={() => fileInputRef.current?.click()}
-              disabled={isUploading}
-              size="sm" 
-              className="flex items-center gap-2"
-            >
-              {isUploading ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  Enviando...
-                </>
-              ) : (
-                <>
-                  <Upload className="h-4 w-4" />
-                  Fazer Upload
-                </>
-              )}
-            </Button>
-          </div>
-        </div>
+        <MediaLibraryHeader 
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+          searchTerm={searchTerm}
+          setSearchTerm={setSearchTerm}
+          handleRetryLoad={loadFiles}
+          isLoading={isLoading}
+          handleUploadClick={triggerFileInput}
+          isUploading={isUploading}
+        />
         
-        <div className="my-4">
-          <Input 
-            placeholder="Buscar arquivos..." 
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="max-w-md"
-          />
-        </div>
+        <input
+          type="file"
+          ref={fileInputRef}
+          className="hidden"
+          onChange={handleFileUpload}
+          accept={
+            activeTab === 'image' ? 'image/*' : 
+            activeTab === 'video' ? 'video/*' : 
+            '.pdf,.doc,.docx,.xls,.xlsx,.txt'
+          }
+        />
         
-        {error && (
-          <Alert variant="destructive" className="mb-4">
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>
-              {error}
-              <div className="mt-2 text-xs">
-                <strong>Detalhes técnicos:</strong> Falha na comunicação com o servidor.
-                <br />
-                URL: {webhookUrl}
-              </div>
-            </AlertDescription>
-          </Alert>
-        )}
+        <MediaLibraryError error={error} webhookUrl={webhookUrl} />
         
         <TabsContent value="image" className="mt-0">
           <MediaGrid 
@@ -253,11 +127,7 @@ export function MediaLibrary({ onSelect, onClose, currentType }: MediaLibraryPro
         </TabsContent>
       </Tabs>
       
-      <div className="flex justify-end pt-4 border-t">
-        <Button variant="outline" onClick={onClose} className="mr-2">
-          Cancelar
-        </Button>
-      </div>
+      <MediaLibraryFooter onClose={onClose} />
     </div>
   );
 }
