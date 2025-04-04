@@ -54,7 +54,7 @@ export const TopBar: React.FC<TopBarProps> = ({ setSidebarOpen, sidebarOpen }) =
               </p>
             </div>
             <Avatar className="h-8 w-8 border border-border/40">
-              <AvatarImage src="" alt={user.email || ""} />
+              <AvatarImage src={user.avatar || ""} alt={user.email || ""} />
               <AvatarFallback className="bg-primary text-primary-foreground">
                 {user.email?.charAt(0).toUpperCase() || "U"}
               </AvatarFallback>
