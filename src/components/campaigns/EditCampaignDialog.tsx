@@ -1,4 +1,3 @@
-
 import React from "react";
 import { 
   Dialog, 
@@ -16,6 +15,7 @@ import { CampaignDialogFooter } from "./dialog/DialogFooter";
 import { useCampaignForm } from "@/hooks/useCampaignForm";
 import { useEditCampaign } from "@/hooks/useEditCampaign";
 import { formatCampaignForUpdate } from "./utils/campaignFormatters";
+import { toast } from "sonner";
 
 interface EditCampaignDialogProps {
   open: boolean;
@@ -171,5 +171,3 @@ export const EditCampaignDialog: React.FC<EditCampaignDialogProps> = ({
     </Dialog>
   );
 };
-
-import { toast } from "sonner";
