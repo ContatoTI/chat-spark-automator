@@ -16,13 +16,13 @@ export const ThemeToggle: React.FC = () => {
             variant="ghost" 
             size="icon" 
             onClick={toggleTheme}
-            className="h-9 w-9 rounded-md"
+            className="h-9 w-9 rounded-md text-muted-foreground hover:text-foreground"
             aria-label="Alternar tema"
           >
             {theme === "light" ? (
-              <Moon className="h-[1.2rem] w-[1.2rem] text-slate-700 dark:text-slate-200" />
+              <Moon className="h-[1.2rem] w-[1.2rem]" />
             ) : (
-              <Sun className="h-[1.2rem] w-[1.2rem] text-amber-400" />
+              <Sun className="h-[1.2rem] w-[1.2rem] text-secondary" />
             )}
             <span className="sr-only">Alternar tema</span>
           </Button>

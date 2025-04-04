@@ -20,7 +20,7 @@ export default {
 		},
 		extend: {
 			fontFamily: {
-				sans: ['SF Pro Display', 'Inter', 'system-ui', 'sans-serif'],
+				sans: ['Inter', 'system-ui', 'sans-serif'],
 				mono: ['SF Mono', 'monospace'],
 			},
 			colors: {
@@ -67,12 +67,14 @@ export default {
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
 				},
-				falcon: {
-					blue: '#1B4B8A',
-					yellow: '#FFCC00',
-					lightgray: '#F6F6F7',
-					gray: '#C8C8C9',
-					darkgray: '#222222',
+				chart: {
+					blue: '#2D9CDB',
+					cyan: '#00D2E5',
+					pink: '#FF4D79',
+					purple: '#9B51E0',
+					orange: '#F2994A',
+					green: '#27AE60',
+					yellow: '#F2C94C',
 				},
 				whatsapp: {
 					light: '#25D366',
@@ -140,7 +142,13 @@ export default {
 			boxShadow: {
 				'neomorphic': '10px 10px 20px #d1d1d1, -10px -10px 20px #ffffff',
 				'glass': '0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.01)',
-			}
+				'card': '0 4px 20px rgba(0, 0, 0, 0.15)',
+				'inner': 'inset 0 2px 4px 0 rgba(0, 0, 0, 0.06)',
+			},
+			backgroundImage: {
+				'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
+				'gradient-card': 'linear-gradient(180deg, var(--card) 0%, hsl(var(--muted)/50%) 100%)',
+			},
 		}
 	},
 	plugins: [require("tailwindcss-animate")],

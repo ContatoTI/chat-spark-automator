@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Campaign } from "@/lib/api/campaigns";
 import { CampaignStatusBadge } from "./CampaignStatusBadge";
@@ -49,7 +50,7 @@ export const CampaignCard: React.FC<CampaignCardProps> = ({
   };
 
   return (
-    <Card className="card-hover">
+    <Card className="card-hover overflow-hidden border-border/40">
       <div className="flex flex-col md:flex-row">
         <div className="flex-1">
           <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
@@ -57,7 +58,7 @@ export const CampaignCard: React.FC<CampaignCardProps> = ({
               <div className="flex items-center gap-3">
                 <CardTitle className="text-xl">{campaign.nome}</CardTitle>
                 {campaign.producao && (
-                  <Badge variant="outline" className="bg-amber-100 text-amber-800 border-amber-300">
+                  <Badge variant="outline" className="bg-accent/10 text-accent border-accent/30">
                     <Zap className="h-3.5 w-3.5 mr-1" />
                     Produção
                   </Badge>
@@ -81,7 +82,7 @@ export const CampaignCard: React.FC<CampaignCardProps> = ({
                 <div>
                   <h4 className="text-sm font-medium text-muted-foreground mb-1">Data:</h4>
                   <p className="flex items-center gap-2">
-                    <Calendar className="h-4 w-4" />
+                    <Calendar className="h-4 w-4 text-secondary" />
                     {formatLocalDate(campaign.data_disparo)}
                   </p>
                 </div>
@@ -107,7 +108,7 @@ export const CampaignCard: React.FC<CampaignCardProps> = ({
           </CardContent>
         </div>
         
-        <CardFooter className="flex-col gap-3 justify-center p-6 border-t md:border-t-0 md:border-l">
+        <CardFooter className="flex-col gap-3 justify-center p-6 border-t md:border-t-0 md:border-l bg-muted/20">
           <Button 
             variant="outline" 
             className="w-full"
@@ -121,7 +122,7 @@ export const CampaignCard: React.FC<CampaignCardProps> = ({
             <AlertDialogTrigger asChild>
               <Button
                 variant="outline"
-                className="w-full border-green-500 hover:bg-green-50 text-green-600"
+                className="w-full border-green-500 bg-green-500/10 hover:bg-green-500/20 text-green-600"
                 disabled={isSending}
               >
                 {isSending ? (
@@ -156,7 +157,7 @@ export const CampaignCard: React.FC<CampaignCardProps> = ({
           
           <Button
             variant="outline"
-            className="w-full"
+            className="w-full bg-secondary/10 hover:bg-secondary/20 text-secondary-foreground border-secondary/30"
             onClick={() => onDuplicate(campaign)}
           >
             <Copy className="mr-2 h-4 w-4" />
@@ -167,7 +168,7 @@ export const CampaignCard: React.FC<CampaignCardProps> = ({
             <AlertDialogTrigger asChild>
               <Button
                 variant="outline"
-                className="w-full border-red-500 hover:bg-red-50 text-red-600"
+                className="w-full border-destructive/50 bg-destructive/10 hover:bg-destructive/20 text-destructive"
               >
                 <Trash2 className="mr-2 h-4 w-4" />
                 Excluir
@@ -185,7 +186,7 @@ export const CampaignCard: React.FC<CampaignCardProps> = ({
                 <AlertDialogCancel>Cancelar</AlertDialogCancel>
                 <AlertDialogAction 
                   onClick={() => campaign.id && onDelete(campaign.id)}
-                  className="bg-red-500 hover:bg-red-600"
+                  className="bg-destructive hover:bg-destructive/90"
                 >
                   Excluir
                 </AlertDialogAction>
