@@ -8,8 +8,6 @@ import {
   Settings,
   Users,
   LogOut,
-  BarChart3,
-  Contact
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -60,20 +58,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ open }) => {
     >
       <div className="flex flex-col h-full gap-2 p-4">
         <div className="flex-grow">
-          <div className="py-3 px-3">
-            <div className="bg-sidebar-primary/10 rounded-md p-2.5 mb-6">
-              <div className="text-center">
-                <div className="text-xs text-sidebar-foreground/70 mb-1">Campanha ativa</div>
-                <div className="text-sidebar-primary font-semibold truncate">Promoção de Verão</div>
-                <div className="text-xs mt-1 flex items-center justify-center gap-1.5">
-                  <span className="h-2 w-2 rounded-full bg-green-500"></span>
-                  <span className="text-sidebar-foreground/70">Em execução</span>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          <h2 className="text-[11px] font-semibold text-sidebar-foreground/50 mb-3 px-3 uppercase tracking-wider">
+          <h2 className="text-[11px] font-semibold text-sidebar-foreground/50 mb-3 px-3 uppercase tracking-wider mt-6">
             Menu Principal
           </h2>
           <nav className="flex flex-col gap-1 mb-6">
@@ -88,12 +73,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ open }) => {
               icon={MessageSquare}
               label="Campanhas"
               active={currentPath === "/campaigns"}
-            />
-            <SidebarLink
-              to="/contacts"
-              icon={Contact}
-              label="Contatos"
-              active={currentPath === "/contacts"}
             />
           </nav>
           
@@ -115,12 +94,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ open }) => {
                   icon={Settings}
                   label="Configurações"
                   active={currentPath === "/settings"}
-                />
-                <SidebarLink
-                  to="/reports"
-                  icon={BarChart3}
-                  label="Relatórios"
-                  active={currentPath === "/reports"}
                 />
               </nav>
             </>
