@@ -7,6 +7,7 @@ export interface User {
   created_at: string;
   role: string;
   last_sign_in_at?: string;
+  avatar?: string; // Added avatar property as optional
 }
 
 // Função para buscar usuários da tabela appw_users
