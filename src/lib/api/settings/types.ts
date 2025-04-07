@@ -30,6 +30,7 @@ export interface DisparoOptions {
   ftp_user: string;
   ftp_port: number;
   ftp_password: string;
+  numero_de_contatos?: number;
 }
 
 export const DEFAULT_OPTIONS: DisparoOptions = {
@@ -52,4 +53,5 @@ export const DEFAULT_OPTIONS: DisparoOptions = {
   ftp_user: '',
   ftp_port: 21,
   ftp_password: '',
+  numero_de_contatos: 0,
 };

@@ -1,4 +1,3 @@
-
 import React from "react";
 import { 
   Users, 
@@ -73,13 +72,13 @@ const StatCard: React.FC<StatCardProps> = ({
   );
 };
 
-const fetchContactsStats = async () => {
-  console.log("Fetching contacts stats from options...");
+const fetchContactsStats = async (empresaId = 'empresa-01') => {
+  console.log(`Fetching contacts stats for empresa: ${empresaId}...`);
   try {
-    // Adaptado para o formato horizontal
     const { data: optionsData, error: optionsError } = await supabase
       .from('AppW_Options')
       .select('numero_de_contatos')
+      .eq('empresa_id', empresaId)
       .limit(1);
 
     if (optionsError) {
@@ -90,7 +89,6 @@ const fetchContactsStats = async () => {
     const totalContacts = optionsData?.[0]?.numero_de_contatos ?? 0;
     console.log("Total contacts from options:", totalContacts);
 
-    // A contagem de inválidos ainda continua com a mesma lógica
     const { count: invalid, error: invalidError } = await supabase
       .from('AppW_Contatos')
       .select('*', { count: 'exact', head: true })

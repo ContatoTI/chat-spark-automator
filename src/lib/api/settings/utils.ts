@@ -100,6 +100,10 @@ export function convertRowsToDisparoOptions(rows: any[]): DisparoOptions {
     options.ftp_password = empresaRow.ftp_password;
   }
   
+  if (empresaRow.numero_de_contatos !== undefined && empresaRow.numero_de_contatos !== null) {
+    options.numero_de_contatos = empresaRow.numero_de_contatos;
+  }
+  
   return options;
 }
 
@@ -130,6 +134,7 @@ export function convertDisparoOptionsToUpdates(options: DisparoOptions): Record<
   updates.ftp_user = options.ftp_user;
   updates.ftp_port = options.ftp_port;
   updates.ftp_password = options.ftp_password;
+  updates.numero_de_contatos = options.numero_de_contatos;
   
   return updates;
 }

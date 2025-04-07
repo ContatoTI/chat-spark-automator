@@ -1,12 +1,14 @@
+
 import { supabase } from '@/lib/supabase';
 import { FtpConfig } from './types';
 
 // Busca configurações FTP do AppW_Options no formato horizontal
-export const fetchFtpConfig = async (): Promise<FtpConfig | null> => {
+export const fetchFtpConfig = async (empresaId = 'empresa-01'): Promise<FtpConfig | null> => {
   try {
     const { data, error } = await supabase
       .from('AppW_Options')
       .select('ftp_url, ftp_user, ftp_password, ftp_port')
+      .eq('empresa_id', empresaId)
       .limit(1);
     
     if (error) {
@@ -41,13 +43,14 @@ export const DEFAULT_MEDIA_WEBHOOK_URL = "https://dinastia-n8n-webhook.ssdx0m.ea
 export const DEFAULT_UPLOAD_WEBHOOK_URL = "https://dinastia-n8n-webhook.ssdx0m.easypanel.host/webhook/updocs";
 
 // Busca webhook URL para obter arquivos de mídia do banco de dados
-export const fetchMediaWebhookUrl = async (): Promise<string> => {
+export const fetchMediaWebhookUrl = async (empresaId = 'empresa-01'): Promise<string> => {
   try {
-    console.log('[config] Buscando webhook_get_images do banco de dados...');
+    console.log(`[config] Buscando webhook_get_images do banco de dados para empresa: ${empresaId}...`);
     
     const { data, error } = await supabase
       .from('AppW_Options')
       .select('webhook_get_images')
+      .eq('empresa_id', empresaId)
       .limit(1);
     
     if (error) {
@@ -71,13 +74,14 @@ export const fetchMediaWebhookUrl = async (): Promise<string> => {
 };
 
 // Busca webhook URL para upload de arquivos de mídia do banco de dados
-export const fetchUploadWebhookUrl = async (): Promise<string> => {
+export const fetchUploadWebhookUrl = async (empresaId = 'empresa-01'): Promise<string> => {
   try {
-    console.log('[config] Buscando webhook_up_docs do banco de dados...');
+    console.log(`[config] Buscando webhook_up_docs do banco de dados para empresa: ${empresaId}...`);
     
     const { data, error } = await supabase
       .from('AppW_Options')
       .select('webhook_up_docs')
+      .eq('empresa_id', empresaId)
       .limit(1);
     
     if (error) {
