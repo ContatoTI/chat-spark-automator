@@ -25,23 +25,6 @@ export function GeneralSettings({ form }: GeneralSettingsProps) {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <FormField
             control={form.control}
-            name="instancia"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Instância</FormLabel>
-                <FormControl>
-                  <Input {...field} />
-                </FormControl>
-                <FormDescription>
-                  Nome da instância do WhatsApp
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
             name="urlAPI"
             render={({ field }) => (
               <FormItem>
@@ -56,9 +39,7 @@ export function GeneralSettings({ form }: GeneralSettingsProps) {
               </FormItem>
             )}
           />
-        </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          
           <FormField
             control={form.control}
             name="apikey"

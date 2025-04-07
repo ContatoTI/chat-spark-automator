@@ -10,6 +10,7 @@ import { Skeleton } from "../ui/skeleton";
 import { supabase } from "@/lib/supabase";
 import { Button } from "../ui/button";
 import { toast } from "sonner";
+import { useInstanceStore } from "@/stores/instanceStore";
 
 interface StatCardProps {
   title: string;
@@ -73,7 +74,6 @@ const StatCard: React.FC<StatCardProps> = ({
 };
 
 const fetchContactsStats = async () => {
-  console.log("Fetching contacts stats...");
   const empresaId = 'empresa-01';
   
   try {
@@ -88,8 +88,6 @@ const fetchContactsStats = async () => {
       console.error("Error fetching contacts stats:", error);
       throw error;
     }
-
-    console.log("Contacts stats data:", data);
     
     return {
       total: data?.numero_de_contatos || 0
@@ -101,10 +99,13 @@ const fetchContactsStats = async () => {
 };
 
 export const DashboardStats: React.FC = () => {
+  const { selectedInstance } = useInstanceStore();
+  
   const { data: contactsStats, isLoading, error, refetch } = useQuery({
-    queryKey: ['contactsStats'],
+    queryKey: ['contactsStats', selectedInstance?.id],
     queryFn: () => fetchContactsStats(),
     staleTime: 60000,
+    enabled: !!selectedInstance,
   });
 
   if (error) {
@@ -118,7 +119,10 @@ export const DashboardStats: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-end">
+      <div className="flex justify-between items-center">
+        <h2 className="text-xl font-medium">
+          Estatísticas da Instância: {selectedInstance?.nome_instancia}
+        </h2>
         <Button 
           variant="outline" 
           size="sm" 
