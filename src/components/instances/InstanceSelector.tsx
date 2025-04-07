@@ -3,7 +3,7 @@ import React, { useEffect } from "react";
 import { useInstanceStore } from "@/stores/instanceStore";
 import { fetchInstances } from "@/lib/api/instances";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ReloadIcon } from "@radix-ui/react-icons";
+import { RefreshCw } from "lucide-react";
 
 export const InstanceSelector = () => {
   const { 
@@ -51,7 +51,7 @@ export const InstanceSelector = () => {
   if (isLoading && instances.length === 0) {
     return (
       <div className="flex items-center space-x-2 rounded-md border px-3 py-2">
-        <ReloadIcon className="h-4 w-4 animate-spin" />
+        <RefreshCw className="h-4 w-4 animate-spin" />
         <span>Carregando instâncias...</span>
       </div>
     );

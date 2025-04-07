@@ -24,10 +24,6 @@ export function convertRowsToDisparoOptions(rows: any[]): DisparoOptions {
   const options = { ...DEFAULT_OPTIONS };
   
   // Mapeia diretamente as colunas do banco para as propriedades do objeto
-  if (empresaRow.instancia !== undefined && empresaRow.instancia !== null) {
-    options.instancia = empresaRow.instancia;
-  }
-  
   if (empresaRow.ativo !== undefined && empresaRow.ativo !== null) {
     options.Ativo = empresaRow.ativo;
   }
@@ -115,7 +111,6 @@ export function convertDisparoOptionsToUpdates(options: DisparoOptions): Record<
   const updates: Record<string, any> = {};
   
   // Mapeia as propriedades do objeto para as colunas do banco
-  updates.instancia = options.instancia;
   updates.ativo = options.Ativo;
   updates.horario_limite = options.horario_limite;
   updates.long_wait_min = options.long_wait_min;
