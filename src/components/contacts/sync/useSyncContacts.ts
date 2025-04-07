@@ -30,20 +30,20 @@ export const useSyncContacts = (isOpen: boolean) => {
 
   const fetchWebhookUrl = async () => {
     try {
+      // Adaptado para o formato horizontal
       const { data, error } = await supabase
         .from('AppW_Options')
-        .select('text')
-        .eq('option', 'webhook_contatos')
-        .single();
+        .select('webhook_contatos')
+        .limit(1);
       
       if (error) {
         console.error('Error fetching contacts webhook URL:', error);
         return;
       }
       
-      if (data && data.text) {
-        setWebhookUrl(data.text);
-        console.log('Contacts webhook URL loaded:', data.text);
+      if (data && data.length > 0 && data[0].webhook_contatos) {
+        setWebhookUrl(data[0].webhook_contatos);
+        console.log('Contacts webhook URL loaded:', data[0].webhook_contatos);
       } else {
         console.warn('Contacts webhook URL is empty or null');
       }
@@ -56,14 +56,31 @@ export const useSyncContacts = (isOpen: boolean) => {
   const updateContactsCount = async (count: number) => {
     try {
       console.log('Atualizando contador de contatos para:', count);
-      const { error } = await supabase
-        .from('AppW_Options')
-        .update({ numeric: count })
-        .eq('option', 'numero_de_contatos');
       
-      if (error) {
-        console.error('Erro ao atualizar contador de contatos:', error);
-        throw error;
+      // Verificar se já existe um registro
+      const { data, error: countError } = await supabase
+        .from('AppW_Options')
+        .select('id')
+        .limit(1);
+      
+      if (countError) {
+        console.error('Erro ao verificar registro existente:', countError);
+        return;
+      }
+      
+      if (data && data.length > 0) {
+        // Atualiza o valor no formato horizontal
+        const { error } = await supabase
+          .from('AppW_Options')
+          .update({ numero_de_contatos: count })
+          .eq('id', data[0].id);
+        
+        if (error) {
+          console.error('Erro ao atualizar contador de contatos:', error);
+          return;
+        }
+      } else {
+        console.warn('Nenhum registro encontrado para atualizar o contador de contatos');
       }
       
       console.log('Contador de contatos atualizado com sucesso');

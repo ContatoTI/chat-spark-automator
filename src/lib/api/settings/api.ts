@@ -4,17 +4,22 @@
  */
 
 import { supabase } from '@/lib/supabase';
-import { DisparoOptions, OptionRow, DEFAULT_OPTIONS } from './types';
+import { DisparoOptions, DEFAULT_OPTIONS } from './types';
 import { convertRowsToDisparoOptions, convertDisparoOptionsToUpdates } from './utils';
 
 /**
- * Fetches settings from the AppW_Options table
+ * Busca as configurações da tabela AppW_Options
+ * Adaptada para o novo formato horizontal de dados
  */
 export const fetchDisparoOptions = async (): Promise<DisparoOptions> => {
   try {
+    console.log("Buscando configurações no formato horizontal");
+    
+    // No novo formato, buscamos uma única linha que contém todas as configurações
     const { data, error } = await supabase
       .from('AppW_Options')
-      .select('*');
+      .select('*')
+      .limit(1);
 
     if (error) {
       console.error("Erro ao buscar configurações:", error);
@@ -22,11 +27,12 @@ export const fetchDisparoOptions = async (): Promise<DisparoOptions> => {
     }
 
     if (!data || data.length === 0) {
-      console.log("Nenhuma opção encontrada. Retornando valores padrão...");
+      console.log("Nenhuma configuração encontrada. Retornando valores padrão...");
       return { ...DEFAULT_OPTIONS };
     }
 
-    return convertRowsToDisparoOptions(data as OptionRow[]);
+    console.log("Configurações encontradas:", data);
+    return convertRowsToDisparoOptions(data);
   } catch (error) {
     console.error('Erro ao buscar configurações:', error);
     throw error;
@@ -34,40 +40,47 @@ export const fetchDisparoOptions = async (): Promise<DisparoOptions> => {
 };
 
 /**
- * Updates settings in the AppW_Options table
+ * Atualiza as configurações na tabela AppW_Options
+ * Adaptada para o novo formato horizontal de dados
  */
 export const updateDisparoOptions = async (options: DisparoOptions): Promise<void> => {
   try {
-    const { data: existingOptions, error: fetchError } = await supabase
+    console.log("Atualizando configurações no formato horizontal");
+    
+    // Converte as opções para o formato de atualização
+    const updates = convertDisparoOptionsToUpdates(options);
+    
+    // Verifica se há alguma linha no banco
+    const { data: existingData, error: countError } = await supabase
       .from('AppW_Options')
-      .select('option');
+      .select('*', { count: 'exact', head: true });
     
-    if (fetchError) {
-      throw new Error(`Erro ao verificar opções existentes: ${fetchError.message}`);
+    if (countError) {
+      throw new Error(`Erro ao verificar existência de configurações: ${countError.message}`);
     }
     
-    if (!existingOptions || existingOptions.length === 0) {
-      throw new Error('Não é possível atualizar as configurações: nenhuma opção encontrada no banco de dados. Contate o administrador do sistema.');
-    }
-    
-    const existingOptionsMap = new Set(existingOptions.map(row => row.option));
-    
-    const updateList = convertDisparoOptionsToUpdates(options);
-    
-    for (const { option, updates } of updateList) {
-      if (existingOptionsMap.has(option)) {
-        const { error } = await supabase
-          .from('AppW_Options')
-          .update(updates)
-          .eq('option', option);
-
-        if (error) {
-          throw new Error(`Erro ao atualizar configuração ${option}: ${error.message}`);
-        }
-      } else {
-        console.warn(`Configuração "${option}" não existe no banco de dados e não pode ser criada devido às restrições de RLS.`);
+    if (!existingData || existingData.length === 0) {
+      // Se não houver nenhuma linha, insere uma nova
+      const { error: insertError } = await supabase
+        .from('AppW_Options')
+        .insert([updates]);
+      
+      if (insertError) {
+        throw new Error(`Erro ao inserir configurações: ${insertError.message}`);
+      }
+    } else {
+      // Se já existir uma linha, atualiza ela
+      const { error: updateError } = await supabase
+        .from('AppW_Options')
+        .update(updates)
+        .eq('id', existingData[0].id); // Assume que há um campo id para identificar a linha
+      
+      if (updateError) {
+        throw new Error(`Erro ao atualizar configurações: ${updateError.message}`);
       }
     }
+    
+    console.log("Configurações atualizadas com sucesso");
   } catch (error) {
     console.error('Erro ao atualizar configurações:', error);
     throw error;

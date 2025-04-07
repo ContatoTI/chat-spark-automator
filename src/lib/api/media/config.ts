@@ -1,46 +1,34 @@
-
 import { supabase } from '@/lib/supabase';
 import { FtpConfig } from './types';
 
-// Fetch FTP config from AppW_Options
+// Busca configurações FTP do AppW_Options no formato horizontal
 export const fetchFtpConfig = async (): Promise<FtpConfig | null> => {
   try {
-    const { data: options, error } = await supabase
+    const { data, error } = await supabase
       .from('AppW_Options')
-      .select('*')
-      .in('option', ['ftp_url', 'ftp_user', 'ftp_password', 'ftp_port']);
+      .select('ftp_url, ftp_user, ftp_password, ftp_port')
+      .limit(1);
     
     if (error) {
       throw new Error(`Error fetching FTP config: ${error.message}`);
     }
     
-    if (!options || options.length === 0) {
+    if (!data || data.length === 0) {
       return null;
     }
     
-    const ftpConfig: Partial<FtpConfig> = {};
+    const ftpConfigRow = data[0];
     
-    options.forEach(option => {
-      if (option.option === 'ftp_url' && option.text) {
-        ftpConfig.host = option.text;
-      } else if (option.option === 'ftp_user' && option.text) {
-        ftpConfig.user = option.text;
-      } else if (option.option === 'ftp_password' && option.text) {
-        ftpConfig.password = option.text;
-      } else if (option.option === 'ftp_port' && option.numeric) {
-        ftpConfig.port = option.numeric;
-      }
-    });
-    
-    if (!ftpConfig.host || !ftpConfig.user || !ftpConfig.password) {
+    // Verifica se os campos essenciais existem
+    if (!ftpConfigRow.ftp_url || !ftpConfigRow.ftp_user || !ftpConfigRow.ftp_password) {
       return null;
     }
     
     return {
-      host: ftpConfig.host,
-      user: ftpConfig.user,
-      password: ftpConfig.password,
-      port: ftpConfig.port || 21
+      host: ftpConfigRow.ftp_url,
+      user: ftpConfigRow.ftp_user,
+      password: ftpConfigRow.ftp_password,
+      port: ftpConfigRow.ftp_port || 21
     };
   } catch (error) {
     console.error('Error fetching FTP config:', error);
@@ -52,16 +40,15 @@ export const fetchFtpConfig = async (): Promise<FtpConfig | null> => {
 export const DEFAULT_MEDIA_WEBHOOK_URL = "https://dinastia-n8n-webhook.ssdx0m.easypanel.host/webhook/getdocs";
 export const DEFAULT_UPLOAD_WEBHOOK_URL = "https://dinastia-n8n-webhook.ssdx0m.easypanel.host/webhook/updocs";
 
-// Fetch webhook URL for getting media files from the database
+// Busca webhook URL para obter arquivos de mídia do banco de dados
 export const fetchMediaWebhookUrl = async (): Promise<string> => {
   try {
     console.log('[config] Buscando webhook_get_images do banco de dados...');
     
-    const { data: webhookOption, error } = await supabase
+    const { data, error } = await supabase
       .from('AppW_Options')
-      .select('text')
-      .eq('option', 'webhook_get_images')
-      .single();
+      .select('webhook_get_images')
+      .limit(1);
     
     if (error) {
       console.error('[config] Erro ao buscar webhook_get_images:', error);
@@ -69,13 +56,13 @@ export const fetchMediaWebhookUrl = async (): Promise<string> => {
       return DEFAULT_MEDIA_WEBHOOK_URL;
     }
     
-    if (!webhookOption || !webhookOption.text) {
+    if (!data || data.length === 0 || !data[0].webhook_get_images) {
       console.log('[config] webhook_get_images não encontrado no banco de dados. Usando URL padrão:', DEFAULT_MEDIA_WEBHOOK_URL);
       return DEFAULT_MEDIA_WEBHOOK_URL;
     }
     
-    console.log('[config] webhook_get_images encontrado:', webhookOption.text);
-    return webhookOption.text;
+    console.log('[config] webhook_get_images encontrado:', data[0].webhook_get_images);
+    return data[0].webhook_get_images;
   } catch (error) {
     console.error('[config] Erro ao buscar webhook_get_images:', error);
     console.log('[config] Usando URL padrão:', DEFAULT_MEDIA_WEBHOOK_URL);
@@ -83,16 +70,15 @@ export const fetchMediaWebhookUrl = async (): Promise<string> => {
   }
 };
 
-// Fetch webhook URL for uploading media files from the database
+// Busca webhook URL para upload de arquivos de mídia do banco de dados
 export const fetchUploadWebhookUrl = async (): Promise<string> => {
   try {
     console.log('[config] Buscando webhook_up_docs do banco de dados...');
     
-    const { data: webhookOption, error } = await supabase
+    const { data, error } = await supabase
       .from('AppW_Options')
-      .select('text')
-      .eq('option', 'webhook_up_docs')
-      .single();
+      .select('webhook_up_docs')
+      .limit(1);
     
     if (error) {
       console.error('[config] Erro ao buscar webhook_up_docs:', error);
@@ -100,13 +86,13 @@ export const fetchUploadWebhookUrl = async (): Promise<string> => {
       return DEFAULT_UPLOAD_WEBHOOK_URL;
     }
     
-    if (!webhookOption || !webhookOption.text) {
+    if (!data || data.length === 0 || !data[0].webhook_up_docs) {
       console.log('[config] webhook_up_docs não encontrado no banco de dados. Usando URL padrão:', DEFAULT_UPLOAD_WEBHOOK_URL);
       return DEFAULT_UPLOAD_WEBHOOK_URL;
     }
     
-    console.log('[config] webhook_up_docs encontrado:', webhookOption.text);
-    return webhookOption.text;
+    console.log('[config] webhook_up_docs encontrado:', data[0].webhook_up_docs);
+    return data[0].webhook_up_docs;
   } catch (error) {
     console.error('[config] Erro ao buscar webhook_up_docs:', error);
     console.log('[config] Usando URL padrão para upload:', DEFAULT_UPLOAD_WEBHOOK_URL);
