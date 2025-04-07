@@ -21,7 +21,9 @@ export const InstanceSelector = () => {
     const loadInstances = async () => {
       setIsLoading(true);
       try {
+        console.log("Fetching instances from AppW_Instancias table...");
         const instancesData = await fetchInstances();
+        console.log("Instances fetched:", instancesData);
         setInstances(instancesData);
         
         // If there's no selected instance, set the first one
