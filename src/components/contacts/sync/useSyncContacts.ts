@@ -17,6 +17,7 @@ export const useSyncContacts = (isDialogOpen: boolean): UseSyncContactsReturn =>
   const [status, setStatus] = useState<SyncStatus>("idle");
   const [progress, setProgress] = useState(0);
   const [webhookMessage, setWebhookMessage] = useState<string | null>(null);
+  const empresaId = 'empresa-01';
 
   // Reset state when dialog closes
   useEffect(() => {
@@ -31,7 +32,7 @@ export const useSyncContacts = (isDialogOpen: boolean): UseSyncContactsReturn =>
     setWebhookMessage(null);
   }, []);
 
-  const fetchWebhookUrl = useCallback(async (empresaId = 'empresa-01') => {
+  const fetchWebhookUrl = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from('AppW_Options')
@@ -93,7 +94,7 @@ export const useSyncContacts = (isDialogOpen: boolean): UseSyncContactsReturn =>
   }, [fetchWebhookUrl]);
   
   // Função para atualizar o número de contatos na tabela AppW_Options
-  const updateContactCount = async (empresaId = 'empresa-01') => {
+  const updateContactCount = async () => {
     try {
       // Busca a contagem de contatos
       const { count, error: countError } = await supabase

@@ -1,3 +1,4 @@
+
 import React from "react";
 import { 
   Users, 
@@ -114,7 +115,7 @@ const fetchContactsStats = async (empresaId = 'empresa-01') => {
 export const DashboardStats: React.FC = () => {
   const { data: contactsStats, isLoading, error, refetch } = useQuery({
     queryKey: ['contactsStats'],
-    queryFn: fetchContactsStats,
+    queryFn: () => fetchContactsStats('empresa-01'),
     staleTime: 60000,
   });
 
