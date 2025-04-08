@@ -11,7 +11,7 @@ export interface OptionRow {
 }
 
 export interface DisparoOptions {
-  instancia: string;
+  instancia?: string;
   Ativo: boolean;
   horario_limite: number;
   long_wait_min: number;

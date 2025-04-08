@@ -19,37 +19,39 @@ import NotFound from "./pages/NotFound";
 const queryClient = new QueryClient();
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
+  <React.StrictMode>
+    <QueryClientProvider client={queryClient}>
       <ThemeProvider>
-        <Toaster />
-        <Sonner position="top-right" closeButton />
-        <BrowserRouter>
-          <AuthProvider>
-            <Routes>
-              {/* Rota pública */}
-              <Route path="/login" element={<Login />} />
-              
-              {/* Rotas protegidas que qualquer usuário autenticado pode acessar */}
-              <Route element={<ProtectedRoute />}>
-                <Route path="/" element={<Index />} />
-                <Route path="/campaigns" element={<Campaigns />} />
-              </Route>
-              
-              {/* Rotas que apenas administradores podem acessar */}
-              <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
-                <Route path="/settings" element={<Settings />} />
-                <Route path="/users" element={<Users />} />
-              </Route>
-              
-              {/* Rota de fallback */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </AuthProvider>
-        </BrowserRouter>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner position="top-right" closeButton />
+          <BrowserRouter>
+            <AuthProvider>
+              <Routes>
+                {/* Rota pública */}
+                <Route path="/login" element={<Login />} />
+                
+                {/* Rotas protegidas que qualquer usuário autenticado pode acessar */}
+                <Route element={<ProtectedRoute />}>
+                  <Route path="/" element={<Index />} />
+                  <Route path="/campaigns" element={<Campaigns />} />
+                </Route>
+                
+                {/* Rotas que apenas administradores podem acessar */}
+                <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
+                  <Route path="/settings" element={<Settings />} />
+                  <Route path="/users" element={<Users />} />
+                </Route>
+                
+                {/* Rota de fallback */}
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </AuthProvider>
+          </BrowserRouter>
+        </TooltipProvider>
       </ThemeProvider>
-    </TooltipProvider>
-  </QueryClientProvider>
+    </QueryClientProvider>
+  </React.StrictMode>
 );
 
 export default App;
