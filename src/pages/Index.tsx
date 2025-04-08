@@ -4,13 +4,11 @@ import { Layout } from "@/components/layout/Layout";
 import { DashboardStats } from "@/components/dashboard/DashboardStats";
 import { RecentCampaigns } from "@/components/dashboard/RecentCampaigns";
 import { Button } from "@/components/ui/button";
-import { PlusCircle, RefreshCw } from "lucide-react";
+import { PlusCircle } from "lucide-react";
 import { NewCampaignDialog } from "@/components/campaigns/NewCampaignDialog";
-import { ContactsSyncDialog } from "@/components/contacts/ContactsSyncDialog";
 
 const Dashboard = () => {
   const [newCampaignDialogOpen, setNewCampaignDialogOpen] = useState(false);
-  const [syncDialogOpen, setSyncDialogOpen] = useState(false);
 
   return (
     <Layout>
@@ -19,18 +17,10 @@ const Dashboard = () => {
           <div>
             <h1 className="text-3xl font-semibold tracking-tight">Dashboard</h1>
             <p className="text-muted-foreground mt-1">
-              Gerencie seus contatos e campanhas de WhatsApp
+              Gerencie suas campanhas de WhatsApp
             </p>
           </div>
           <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
-            <Button 
-              variant="outline" 
-              className="w-full sm:w-auto"
-              onClick={() => setSyncDialogOpen(true)}
-            >
-              <RefreshCw className="mr-2 h-4 w-4" />
-              Sincronizar Contatos
-            </Button>
             <Button 
               className="w-full sm:w-auto bg-primary"
               onClick={() => setNewCampaignDialogOpen(true)}
@@ -51,11 +41,6 @@ const Dashboard = () => {
       <NewCampaignDialog 
         open={newCampaignDialogOpen} 
         onOpenChange={setNewCampaignDialogOpen} 
-      />
-      
-      <ContactsSyncDialog 
-        open={syncDialogOpen} 
-        onOpenChange={setSyncDialogOpen} 
       />
     </Layout>
   );
