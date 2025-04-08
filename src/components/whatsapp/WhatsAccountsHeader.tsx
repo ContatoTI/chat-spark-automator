@@ -17,12 +17,14 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, FormField, FormItem, FormControl, FormMessage } from "@/components/ui/form";
 
+// Define the schema to ensure nome_instancia is required
 const formSchema = z.object({
   nome_instancia: z.string().min(3, {
     message: "O nome da instância deve ter pelo menos 3 caracteres"
   })
 });
 
+// Define the type from the schema
 type FormValues = z.infer<typeof formSchema>;
 
 interface WhatsAccountsHeaderProps {
@@ -42,8 +44,10 @@ export function WhatsAccountsHeader({ onCreate, isCreating }: WhatsAccountsHeade
 
   const handleSubmit = async (data: FormValues) => {
     try {
-      // FormValues guarantees nome_instancia is a non-optional string
-      await onCreate(data);
+      // Here we ensure data has a required nome_instancia field
+      await onCreate({
+        nome_instancia: data.nome_instancia
+      });
       setOpen(false);
       form.reset();
     } catch (error) {
