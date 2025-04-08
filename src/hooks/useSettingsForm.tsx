@@ -15,7 +15,7 @@ export const useSettingsForm = () => {
     refetch
   } = useQuery({
     queryKey: ['disparo-options', retryCount],
-    queryFn: () => fetchDisparoOptions('empresa-01'),
+    queryFn: fetchDisparoOptions,
     retry: 1,
     retryDelay: 1000,
     // Não armazenamos em cache por muito tempo, pois as configurações

@@ -1,7 +1,7 @@
-
 import React from "react";
 import { 
   Users, 
+  AlertTriangle,
   RefreshCw
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -73,29 +73,39 @@ const StatCard: React.FC<StatCardProps> = ({
 };
 
 const fetchContactsStats = async () => {
-  console.log("Fetching contacts stats...");
-  const empresaId = 'empresa-01';
-  
+  console.log("Fetching contacts stats from options...");
   try {
-    const { data, error } = await supabase
+    const { data: totalData, error: totalError } = await supabase
       .from('AppW_Options')
-      .select('numero_de_contatos')
-      .eq('empresa_id', empresaId)
-      .limit(1)
+      .select('numeric')
+      .eq('option', 'numero_de_contatos')
       .single();
 
-    if (error) {
-      console.error("Error fetching contacts stats:", error);
-      throw error;
+    if (totalError) {
+      console.error("Error fetching total contacts count from options:", totalError);
+      throw totalError;
     }
 
-    console.log("Contacts stats data:", data);
+    console.log("Total contacts from options:", totalData?.numeric);
+
+    const { count: invalid, error: invalidError } = await supabase
+      .from('AppW_Contatos')
+      .select('*', { count: 'exact', head: true })
+      .eq('Invalido', 'Invalido');
+
+    if (invalidError) {
+      console.error("Error fetching invalid contacts:", invalidError);
+      throw invalidError;
+    }
+
+    console.log("Invalid contacts count:", invalid);
     
     return {
-      total: data?.numero_de_contatos || 0
+      total: totalData?.numeric ?? 0,
+      invalid: invalid ?? 0
     };
   } catch (error) {
-    console.error("Error in fetchContactsStats:", error);
+    console.error("Erro ao buscar estatísticas de contatos:", error);
     throw error;
   }
 };
@@ -103,7 +113,7 @@ const fetchContactsStats = async () => {
 export const DashboardStats: React.FC = () => {
   const { data: contactsStats, isLoading, error, refetch } = useQuery({
     queryKey: ['contactsStats'],
-    queryFn: () => fetchContactsStats(),
+    queryFn: fetchContactsStats,
     staleTime: 60000,
   });
 
@@ -131,12 +141,19 @@ export const DashboardStats: React.FC = () => {
         </Button>
       </div>
       
-      <div className="grid grid-cols-1 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <StatCard
           title="Número de Contatos"
           value={contactsStats?.total ?? 0}
           icon={Users}
           description="Total de contatos na base"
+          isLoading={isLoading}
+        />
+        <StatCard
+          title="Inválidos"
+          value={contactsStats?.invalid ?? 0}
+          icon={AlertTriangle}
+          description="Contatos com Invalido='Invalido'"
           isLoading={isLoading}
         />
       </div>

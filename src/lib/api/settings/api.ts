@@ -4,23 +4,17 @@
  */
 
 import { supabase } from '@/lib/supabase';
-import { DisparoOptions, DEFAULT_OPTIONS } from './types';
+import { DisparoOptions, OptionRow, DEFAULT_OPTIONS } from './types';
 import { convertRowsToDisparoOptions, convertDisparoOptionsToUpdates } from './utils';
 
 /**
- * Busca as configurações da tabela AppW_Options
- * Adaptada para o novo formato horizontal de dados, usando empresa_id
+ * Fetches settings from the AppW_Options table
  */
-export const fetchDisparoOptions = async (empresaId = 'empresa-01'): Promise<DisparoOptions> => {
+export const fetchDisparoOptions = async (): Promise<DisparoOptions> => {
   try {
-    console.log(`Buscando configurações no formato horizontal para empresa: ${empresaId}`);
-    
-    // No novo formato, buscamos uma única linha que corresponde ao empresa_id
     const { data, error } = await supabase
       .from('AppW_Options')
-      .select('*')
-      .eq('empresa_id', empresaId)
-      .limit(1);
+      .select('*');
 
     if (error) {
       console.error("Erro ao buscar configurações:", error);
@@ -28,12 +22,11 @@ export const fetchDisparoOptions = async (empresaId = 'empresa-01'): Promise<Dis
     }
 
     if (!data || data.length === 0) {
-      console.log(`Nenhuma configuração encontrada para empresa ${empresaId}. Retornando valores padrão...`);
+      console.log("Nenhuma opção encontrada. Retornando valores padrão...");
       return { ...DEFAULT_OPTIONS };
     }
 
-    console.log("Configurações encontradas:", data);
-    return convertRowsToDisparoOptions(data);
+    return convertRowsToDisparoOptions(data as OptionRow[]);
   } catch (error) {
     console.error('Erro ao buscar configurações:', error);
     throw error;
@@ -41,52 +34,40 @@ export const fetchDisparoOptions = async (empresaId = 'empresa-01'): Promise<Dis
 };
 
 /**
- * Atualiza as configurações na tabela AppW_Options
- * Adaptada para o novo formato horizontal de dados, usando empresa_id
+ * Updates settings in the AppW_Options table
  */
-export const updateDisparoOptions = async (options: DisparoOptions, empresaId = 'empresa-01'): Promise<void> => {
+export const updateDisparoOptions = async (options: DisparoOptions): Promise<void> => {
   try {
-    console.log(`Atualizando configurações no formato horizontal para empresa: ${empresaId}`);
-    
-    // Converte as opções para o formato de atualização, incluindo empresa_id
-    const updates = convertDisparoOptionsToUpdates(options);
-    
-    // Verifica se a empresa já existe na tabela
-    const { data: existingData, error: countError } = await supabase
+    const { data: existingOptions, error: fetchError } = await supabase
       .from('AppW_Options')
-      .select('*')
-      .eq('empresa_id', empresaId)
-      .limit(1);
+      .select('option');
     
-    if (countError) {
-      throw new Error(`Erro ao verificar existência de configurações: ${countError.message}`);
+    if (fetchError) {
+      throw new Error(`Erro ao verificar opções existentes: ${fetchError.message}`);
     }
     
-    // Garante que o empresa_id seja incluído nas atualizações
-    updates.empresa_id = empresaId;
-    
-    if (!existingData || existingData.length === 0) {
-      // Se não houver nenhuma linha para esta empresa, insere uma nova
-      const { error: insertError } = await supabase
-        .from('AppW_Options')
-        .insert([updates]);
-      
-      if (insertError) {
-        throw new Error(`Erro ao inserir configurações: ${insertError.message}`);
-      }
-    } else {
-      // Se já existir uma linha para esta empresa, atualiza ela
-      const { error: updateError } = await supabase
-        .from('AppW_Options')
-        .update(updates)
-        .eq('empresa_id', empresaId);
-      
-      if (updateError) {
-        throw new Error(`Erro ao atualizar configurações: ${updateError.message}`);
-      }
+    if (!existingOptions || existingOptions.length === 0) {
+      throw new Error('Não é possível atualizar as configurações: nenhuma opção encontrada no banco de dados. Contate o administrador do sistema.');
     }
     
-    console.log(`Configurações atualizadas com sucesso para empresa: ${empresaId}`);
+    const existingOptionsMap = new Set(existingOptions.map(row => row.option));
+    
+    const updateList = convertDisparoOptionsToUpdates(options);
+    
+    for (const { option, updates } of updateList) {
+      if (existingOptionsMap.has(option)) {
+        const { error } = await supabase
+          .from('AppW_Options')
+          .update(updates)
+          .eq('option', option);
+
+        if (error) {
+          throw new Error(`Erro ao atualizar configuração ${option}: ${error.message}`);
+        }
+      } else {
+        console.warn(`Configuração "${option}" não existe no banco de dados e não pode ser criada devido às restrições de RLS.`);
+      }
+    }
   } catch (error) {
     console.error('Erro ao atualizar configurações:', error);
     throw error;

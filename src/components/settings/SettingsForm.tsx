@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Form } from "@/components/ui/form";
 import { useForm } from "react-hook-form";
@@ -53,7 +52,7 @@ export function SettingsForm({ initialSettings }: SettingsFormProps) {
   }, [initialSettings, form]);
 
   const updateSettingsMutation = useMutation({
-    mutationFn: (values: DisparoOptions) => updateDisparoOptions(values, 'empresa-01'),
+    mutationFn: updateDisparoOptions,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['disparo-options'] });
       toast.success("Configurações atualizadas com sucesso!");
