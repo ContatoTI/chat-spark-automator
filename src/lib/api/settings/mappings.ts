@@ -9,6 +9,7 @@ import { DisparoOptions } from './types';
  * Maps database option names to their corresponding field type and property in DisparoOptions
  */
 export const optionMapping: Record<string, { field: 'text' | 'numeric' | 'boolean', key: keyof DisparoOptions }> = {
+  instancia: { field: 'text', key: 'instancia' },
   ativo: { field: 'boolean', key: 'Ativo' },
   horario_limite: { field: 'numeric', key: 'horario_limite' },
   long_wait_min: { field: 'numeric', key: 'long_wait_min' },

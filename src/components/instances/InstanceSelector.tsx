@@ -3,7 +3,7 @@ import React, { useEffect } from "react";
 import { useInstanceStore } from "@/stores/instanceStore";
 import { fetchInstances } from "@/lib/api/instances";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { RefreshCw } from "lucide-react";
+import { ReloadIcon } from "@radix-ui/react-icons";
 
 export const InstanceSelector = () => {
   const { 
@@ -21,9 +21,7 @@ export const InstanceSelector = () => {
     const loadInstances = async () => {
       setIsLoading(true);
       try {
-        console.log("Fetching instances from AppW_Instancias table...");
         const instancesData = await fetchInstances();
-        console.log("Instances fetched:", instancesData);
         setInstances(instancesData);
         
         // If there's no selected instance, set the first one
@@ -53,7 +51,7 @@ export const InstanceSelector = () => {
   if (isLoading && instances.length === 0) {
     return (
       <div className="flex items-center space-x-2 rounded-md border px-3 py-2">
-        <RefreshCw className="h-4 w-4 animate-spin" />
+        <ReloadIcon className="h-4 w-4 animate-spin" />
         <span>Carregando instâncias...</span>
       </div>
     );

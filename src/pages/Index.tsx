@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Layout } from "@/components/layout/Layout";
 import { DashboardStats } from "@/components/dashboard/DashboardStats";
 import { RecentCampaigns } from "@/components/dashboard/RecentCampaigns";
