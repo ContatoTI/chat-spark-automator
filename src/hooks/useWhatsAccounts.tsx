@@ -15,13 +15,18 @@ export function useWhatsAccounts() {
     try {
       setIsLoading(true);
       setError(null);
+      
+      console.log("Iniciando busca de contas...");
       const data = await getWhatsAccounts();
+      console.log("Contas obtidas:", data);
+      
       setAccounts(data);
     } catch (err) {
+      console.error("Erro completo:", err);
       setError(err instanceof Error ? err : new Error('Erro desconhecido ao carregar contas'));
       toast({
         title: "Erro",
-        description: "Não foi possível carregar as contas de WhatsApp",
+        description: err instanceof Error ? err.message : "Não foi possível carregar as contas de WhatsApp",
         variant: "destructive",
       });
     } finally {
@@ -46,9 +51,10 @@ export function useWhatsAccounts() {
       
       return Promise.resolve();
     } catch (err) {
+      console.error("Erro ao criar conta:", err);
       toast({
         title: "Erro",
-        description: "Não foi possível criar a conta de WhatsApp",
+        description: err instanceof Error ? err.message : "Não foi possível criar a conta de WhatsApp",
         variant: "destructive",
       });
       
@@ -68,9 +74,10 @@ export function useWhatsAccounts() {
         description: "Conta de WhatsApp excluída com sucesso",
       });
     } catch (err) {
+      console.error("Erro ao excluir conta:", err);
       toast({
         title: "Erro",
-        description: "Não foi possível excluir a conta de WhatsApp",
+        description: err instanceof Error ? err.message : "Não foi possível excluir a conta de WhatsApp",
         variant: "destructive",
       });
     }
