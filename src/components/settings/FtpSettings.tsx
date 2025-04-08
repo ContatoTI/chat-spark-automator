@@ -1,14 +1,13 @@
-
 import React from "react";
 import { FormField, FormItem, FormLabel, FormControl, FormDescription, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { UseFormReturn } from "react-hook-form";
-import { DisparoOptions } from "@/lib/api/settings";
+import { SettingsFormValues } from "@/lib/validations/settings";
 import { FolderCheck, Lock } from "lucide-react";
 
 interface FtpSettingsProps {
-  form: UseFormReturn<DisparoOptions>;
+  form: UseFormReturn<SettingsFormValues>;
 }
 
 export function FtpSettings({ form }: FtpSettingsProps) {

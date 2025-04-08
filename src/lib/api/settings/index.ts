@@ -4,7 +4,7 @@
  * Re-exports all public types and functions
  */
 
-export type { DisparoOptions, OptionRow } from './types';
+export type { DisparoOptions } from './types';
 export { DEFAULT_OPTIONS } from './types';
 export { fetchDisparoOptions, updateDisparoOptions } from './api';
 export { testWebhook } from './webhook';

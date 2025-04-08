@@ -30,12 +30,13 @@ export const fetchDisparoOptions = async (): Promise<DisparoOptions> => {
     // The data is already in the right format - just return the first row
     const options: DisparoOptions = data[0];
     
-    // Handle any null values by providing defaults
+    // Handle any null values by providing defaults and ensure Ativo is a boolean
     return {
       ...DEFAULT_OPTIONS,
       ...options,
-      // Ensure booleans are correctly typed
-      Ativo: options.Ativo === true || options.Ativo === 'TRUE',
+      // Convert Ativo to boolean if it's a string or other type
+      Ativo: typeof options.Ativo === 'boolean' ? options.Ativo : 
+             options.Ativo === 'TRUE' || options.Ativo === 'true' || options.Ativo === '1',
     };
   } catch (error) {
     console.error('Erro ao buscar configurações:', error);

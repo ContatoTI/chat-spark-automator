@@ -24,31 +24,57 @@ export function SettingsForm({ initialSettings }: SettingsFormProps) {
   const form = useForm<SettingsFormValues>({
     resolver: zodResolver(settingsSchema),
     defaultValues: {
-      instancia: "",
-      Ativo: true,
-      horario_limite: 17,
-      long_wait_min: 50,
-      long_wait_max: 240,
-      ShortWaitMin: 5,
-      ShortWaitMax: 10,
-      BatchSizeMim: 5,
-      BatchSizeMax: 10,
-      urlAPI: "",
-      apikey: "",
-      webhook_disparo: "",
-      webhook_contatos: "",
-      webhook_get_images: "",
-      webhook_up_docs: "",
-      ftp_url: "",
-      ftp_user: "",
-      ftp_port: 21,
-      ftp_password: "",
+      instancia: initialSettings.instancia || "",
+      Ativo: initialSettings.Ativo,
+      horario_limite: initialSettings.horario_limite,
+      long_wait_min: initialSettings.long_wait_min,
+      long_wait_max: initialSettings.long_wait_max,
+      ShortWaitMin: initialSettings.ShortWaitMin,
+      ShortWaitMax: initialSettings.ShortWaitMax,
+      BatchSizeMim: initialSettings.BatchSizeMim,
+      BatchSizeMax: initialSettings.BatchSizeMax,
+      urlAPI: initialSettings.urlAPI || "",
+      apikey: initialSettings.apikey || "",
+      webhook_disparo: initialSettings.webhook_disparo || "",
+      webhook_contatos: initialSettings.webhook_contatos || "",
+      webhook_get_images: initialSettings.webhook_get_images || "",
+      webhook_up_docs: initialSettings.webhook_up_docs || "",
+      ftp_url: initialSettings.ftp_url || "",
+      ftp_user: initialSettings.ftp_user || "",
+      ftp_port: initialSettings.ftp_port,
+      ftp_password: initialSettings.ftp_password || "",
+      id: initialSettings.id,
+      empresa_id: initialSettings.empresa_id,
+      numero_de_contatos: initialSettings.numero_de_contatos,
     },
   });
 
   React.useEffect(() => {
     if (initialSettings) {
-      form.reset(initialSettings);
+      form.reset({
+        instancia: initialSettings.instancia || "",
+        Ativo: initialSettings.Ativo,
+        horario_limite: initialSettings.horario_limite,
+        long_wait_min: initialSettings.long_wait_min,
+        long_wait_max: initialSettings.long_wait_max,
+        ShortWaitMin: initialSettings.ShortWaitMin,
+        ShortWaitMax: initialSettings.ShortWaitMax,
+        BatchSizeMim: initialSettings.BatchSizeMim,
+        BatchSizeMax: initialSettings.BatchSizeMax,
+        urlAPI: initialSettings.urlAPI || "",
+        apikey: initialSettings.apikey || "",
+        webhook_disparo: initialSettings.webhook_disparo || "",
+        webhook_contatos: initialSettings.webhook_contatos || "",
+        webhook_get_images: initialSettings.webhook_get_images || "",
+        webhook_up_docs: initialSettings.webhook_up_docs || "",
+        ftp_url: initialSettings.ftp_url || "",
+        ftp_user: initialSettings.ftp_user || "",
+        ftp_port: initialSettings.ftp_port,
+        ftp_password: initialSettings.ftp_password || "",
+        id: initialSettings.id,
+        empresa_id: initialSettings.empresa_id,
+        numero_de_contatos: initialSettings.numero_de_contatos,
+      });
     }
   }, [initialSettings, form]);
 
@@ -64,11 +90,18 @@ export function SettingsForm({ initialSettings }: SettingsFormProps) {
   });
 
   const onSubmit = (values: SettingsFormValues) => {
-    // Include any existing id and empresa_id that might be present in the initialSettings
     const updatedSettings: DisparoOptions = {
       ...values,
-      id: initialSettings.id,
-      empresa_id: initialSettings.empresa_id
+      // Ensuring all required fields have values
+      Ativo: values.Ativo ?? true,
+      horario_limite: values.horario_limite,
+      long_wait_min: values.long_wait_min,
+      long_wait_max: values.long_wait_max,
+      ShortWaitMin: values.ShortWaitMin,
+      ShortWaitMax: values.ShortWaitMax,
+      BatchSizeMim: values.BatchSizeMim,
+      BatchSizeMax: values.BatchSizeMax,
+      ftp_port: values.ftp_port || 21
     };
     updateSettingsMutation.mutate(updatedSettings);
   };
