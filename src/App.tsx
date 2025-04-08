@@ -9,6 +9,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import Index from "./pages/Index";
+import Contacts from "./pages/Contacts";
 import Campaigns from "./pages/Campaigns";
 import Settings from "./pages/Settings";
 import Users from "./pages/Users";
@@ -33,6 +34,7 @@ const App = () => (
               {/* Rotas protegidas que qualquer usuário autenticado pode acessar */}
               <Route element={<ProtectedRoute />}>
                 <Route path="/" element={<Index />} />
+                <Route path="/contacts" element={<Contacts />} />
                 <Route path="/campaigns" element={<Campaigns />} />
               </Route>
               
