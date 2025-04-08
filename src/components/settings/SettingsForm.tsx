@@ -1,8 +1,9 @@
+
 import React from "react";
 import { Form } from "@/components/ui/form";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { settingsSchema } from "@/lib/validations/settings";
+import { settingsSchema, SettingsFormValues } from "@/lib/validations/settings";
 import { toast } from "sonner";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { DisparoOptions, updateDisparoOptions } from "@/lib/api/settings";
@@ -20,7 +21,7 @@ interface SettingsFormProps {
 export function SettingsForm({ initialSettings }: SettingsFormProps) {
   const queryClient = useQueryClient();
 
-  const form = useForm({
+  const form = useForm<SettingsFormValues>({
     resolver: zodResolver(settingsSchema),
     defaultValues: {
       instancia: "",
@@ -62,8 +63,14 @@ export function SettingsForm({ initialSettings }: SettingsFormProps) {
     },
   });
 
-  const onSubmit = (values: DisparoOptions) => {
-    updateSettingsMutation.mutate(values);
+  const onSubmit = (values: SettingsFormValues) => {
+    // Include any existing id and empresa_id that might be present in the initialSettings
+    const updatedSettings: DisparoOptions = {
+      ...values,
+      id: initialSettings.id,
+      empresa_id: initialSettings.empresa_id
+    };
+    updateSettingsMutation.mutate(updatedSettings);
   };
 
   return (

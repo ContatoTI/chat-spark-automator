@@ -4,17 +4,18 @@
  */
 
 import { supabase } from '@/lib/supabase';
-import { DisparoOptions, OptionRow, DEFAULT_OPTIONS } from './types';
-import { convertRowsToDisparoOptions, convertDisparoOptionsToUpdates } from './utils';
+import { DisparoOptions, DEFAULT_OPTIONS } from './types';
 
 /**
- * Fetches settings from the AppW_Options table
+ * Fetches settings from the AppW_Options_Horizontal table
+ * which now stores settings in a horizontal format (one row per company)
  */
 export const fetchDisparoOptions = async (): Promise<DisparoOptions> => {
   try {
     const { data, error } = await supabase
-      .from('AppW_Options')
-      .select('*');
+      .from('AppW_Options_Horizontal')
+      .select('*')
+      .limit(1);  // Get the first row, which contains all settings
 
     if (error) {
       console.error("Erro ao buscar configurações:", error);
@@ -22,11 +23,20 @@ export const fetchDisparoOptions = async (): Promise<DisparoOptions> => {
     }
 
     if (!data || data.length === 0) {
-      console.log("Nenhuma opção encontrada. Retornando valores padrão...");
+      console.log("Nenhuma configuração encontrada. Retornando valores padrão...");
       return { ...DEFAULT_OPTIONS };
     }
 
-    return convertRowsToDisparoOptions(data as OptionRow[]);
+    // The data is already in the right format - just return the first row
+    const options: DisparoOptions = data[0];
+    
+    // Handle any null values by providing defaults
+    return {
+      ...DEFAULT_OPTIONS,
+      ...options,
+      // Ensure booleans are correctly typed
+      Ativo: options.Ativo === true || options.Ativo === 'TRUE',
+    };
   } catch (error) {
     console.error('Erro ao buscar configurações:', error);
     throw error;
@@ -34,38 +44,38 @@ export const fetchDisparoOptions = async (): Promise<DisparoOptions> => {
 };
 
 /**
- * Updates settings in the AppW_Options table
+ * Updates settings in the AppW_Options_Horizontal table
  */
 export const updateDisparoOptions = async (options: DisparoOptions): Promise<void> => {
   try {
-    const { data: existingOptions, error: fetchError } = await supabase
-      .from('AppW_Options')
-      .select('option');
+    // First check if there's a record
+    const { data: existingData, error: checkError } = await supabase
+      .from('AppW_Options_Horizontal')
+      .select('id')
+      .limit(1);
     
-    if (fetchError) {
-      throw new Error(`Erro ao verificar opções existentes: ${fetchError.message}`);
+    if (checkError) {
+      throw new Error(`Erro ao verificar configurações existentes: ${checkError.message}`);
     }
     
-    if (!existingOptions || existingOptions.length === 0) {
-      throw new Error('Não é possível atualizar as configurações: nenhuma opção encontrada no banco de dados. Contate o administrador do sistema.');
-    }
-    
-    const existingOptionsMap = new Set(existingOptions.map(row => row.option));
-    
-    const updateList = convertDisparoOptionsToUpdates(options);
-    
-    for (const { option, updates } of updateList) {
-      if (existingOptionsMap.has(option)) {
-        const { error } = await supabase
-          .from('AppW_Options')
-          .update(updates)
-          .eq('option', option);
-
-        if (error) {
-          throw new Error(`Erro ao atualizar configuração ${option}: ${error.message}`);
-        }
-      } else {
-        console.warn(`Configuração "${option}" não existe no banco de dados e não pode ser criada devido às restrições de RLS.`);
+    if (!existingData || existingData.length === 0) {
+      // Insert a new record if none exists
+      const { error: insertError } = await supabase
+        .from('AppW_Options_Horizontal')
+        .insert(options);
+      
+      if (insertError) {
+        throw new Error(`Erro ao inserir configurações: ${insertError.message}`);
+      }
+    } else {
+      // Update existing record
+      const { error: updateError } = await supabase
+        .from('AppW_Options_Horizontal')
+        .update(options)
+        .eq('id', existingData[0].id);
+      
+      if (updateError) {
+        throw new Error(`Erro ao atualizar configurações: ${updateError.message}`);
       }
     }
   } catch (error) {

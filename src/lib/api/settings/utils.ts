@@ -1,6 +1,8 @@
-
 /**
- * Utility functions for settings conversion
+ * Utility functions for settings
+ * 
+ * Note: The previous conversion functions are no longer needed
+ * since we're now using a horizontal database schema instead of vertical.
  */
 
 import { DisparoOptions, OptionRow } from './types';

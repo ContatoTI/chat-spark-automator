@@ -2,6 +2,8 @@
 import { z } from "zod";
 
 export const settingsSchema = z.object({
+  id: z.number().optional(),
+  empresa_id: z.string().optional(),
   instancia: z.string().optional(),
   Ativo: z.boolean().default(true),
   horario_limite: z.coerce.number().min(0).max(23),
@@ -21,6 +23,7 @@ export const settingsSchema = z.object({
   ftp_user: z.string().optional(),
   ftp_port: z.coerce.number().default(21),
   ftp_password: z.string().optional(),
+  numero_de_contatos: z.number().optional(),
 });
 
 export type SettingsFormValues = z.infer<typeof settingsSchema>;
