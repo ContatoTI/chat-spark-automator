@@ -15,8 +15,10 @@ export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
     // Check if theme is stored in localStorage
     const savedTheme = localStorage.getItem("theme") as Theme;
     
-    // Default to dark mode
-    return savedTheme || "dark";
+    // Check if browser prefers dark mode
+    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    
+    return savedTheme || (prefersDark ? "dark" : "light");
   });
 
   useEffect(() => {
