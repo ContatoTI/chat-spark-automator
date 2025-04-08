@@ -42,6 +42,8 @@ export function WhatsAccountsHeader({ onCreate, isCreating }: WhatsAccountsHeade
 
   const handleSubmit = async (data: FormValues) => {
     try {
+      // Since FormValues now guarantees nome_instancia is a string (not optional),
+      // this will always pass the correct type to onCreate
       await onCreate(data);
       setOpen(false);
       form.reset();

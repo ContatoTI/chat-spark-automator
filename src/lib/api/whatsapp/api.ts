@@ -24,7 +24,7 @@ export const getWhatsAccounts = async (): Promise<WhatsAccount[]> => {
  * Create a new WhatsApp account
  */
 export const createWhatsAccount = async (
-  account: Omit<WhatsAccount, "id" | "empresa_id">
+  account: { nome_instancia: string }
 ): Promise<WhatsAccount> => {
   // In a real app, we'd get the empresa_id from the authenticated user
   // For now, we'll use a default value
