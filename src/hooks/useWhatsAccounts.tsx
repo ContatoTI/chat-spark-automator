@@ -32,6 +32,7 @@ export function useWhatsAccounts() {
   const handleCreateAccount = async (data: { nome_instancia: string }) => {
     try {
       setIsCreating(true);
+      // Ensure we're explicitly passing a non-optional nome_instancia
       const newAccount = await createWhatsAccount({
         nome_instancia: data.nome_instancia
       });
