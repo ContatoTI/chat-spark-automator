@@ -1,3 +1,4 @@
+
 import React from "react";
 import { FormField, FormItem, FormLabel, FormControl, FormDescription, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -56,7 +57,7 @@ export function IntervalSettings({ form }: IntervalSettingsProps) {
           
           <FormField
             control={form.control}
-            name="ShortWaitMin"
+            name="short_wait_min"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Espera curta (mín)</FormLabel>
@@ -73,7 +74,7 @@ export function IntervalSettings({ form }: IntervalSettingsProps) {
           
           <FormField
             control={form.control}
-            name="ShortWaitMax"
+            name="short_wait_max"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Espera curta (máx)</FormLabel>

@@ -7,15 +7,15 @@ export interface DisparoOptions {
   id?: number;
   empresa_id?: string;
   instancia?: string;
-  Ativo: boolean;
+  ativo: boolean;
   horario_limite: number;
   long_wait_min: number;
   long_wait_max: number;
-  ShortWaitMin: number;
-  ShortWaitMax: number;
-  BatchSizeMim: number;
-  BatchSizeMax: number;
-  urlAPI?: string;
+  short_wait_min: number;
+  short_wait_max: number;
+  batch_size_min: number;
+  batch_size_max: number;
+  url_api?: string;
   apikey?: string;
   webhook_disparo?: string;
   webhook_contatos?: string;
@@ -30,15 +30,15 @@ export interface DisparoOptions {
 
 export const DEFAULT_OPTIONS: DisparoOptions = {
   instancia: 'Padrão',
-  Ativo: true,
+  ativo: true,
   horario_limite: 17,
   long_wait_min: 50,
   long_wait_max: 240,
-  ShortWaitMin: 5,
-  ShortWaitMax: 10,
-  BatchSizeMim: 5,
-  BatchSizeMax: 10,
-  urlAPI: '',
+  short_wait_min: 5,
+  short_wait_max: 10,
+  batch_size_min: 5,
+  batch_size_max: 10,
+  url_api: '',
   apikey: '',
   webhook_disparo: '',
   webhook_contatos: '',

@@ -1,3 +1,4 @@
+
 import React from "react";
 import { FormField, FormItem, FormLabel, FormControl, FormDescription, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -22,7 +23,7 @@ export function BatchSettings({ form }: BatchSettingsProps) {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
           <FormField
             control={form.control}
-            name="BatchSizeMim"
+            name="batch_size_min"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Tamanho do lote (mín)</FormLabel>
@@ -39,7 +40,7 @@ export function BatchSettings({ form }: BatchSettingsProps) {
           
           <FormField
             control={form.control}
-            name="BatchSizeMax"
+            name="batch_size_max"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Tamanho do lote (máx)</FormLabel>

@@ -7,13 +7,13 @@ import { supabase } from '@/lib/supabase';
 import { DisparoOptions, DEFAULT_OPTIONS } from './types';
 
 /**
- * Fetches settings from the AppW_Options_Horizontal table
- * which now stores settings in a horizontal format (one row per company)
+ * Fetches settings from the AppW_Options table
+ * which stores settings in a horizontal format (one row per company)
  */
 export const fetchDisparoOptions = async (): Promise<DisparoOptions> => {
   try {
     const { data, error } = await supabase
-      .from('AppW_Options_Horizontal')
+      .from('AppW_Options')
       .select('*')
       .limit(1);  // Get the first row, which contains all settings
 
@@ -30,13 +30,13 @@ export const fetchDisparoOptions = async (): Promise<DisparoOptions> => {
     // The data is already in the right format - just return the first row
     const options: DisparoOptions = data[0];
     
-    // Handle any null values by providing defaults and ensure Ativo is a boolean
+    // Handle any null values by providing defaults and ensure ativo is a boolean
     return {
       ...DEFAULT_OPTIONS,
       ...options,
-      // Convert Ativo to boolean if it's a string or other type
-      Ativo: typeof options.Ativo === 'boolean' ? options.Ativo : 
-             options.Ativo === 'TRUE' || options.Ativo === 'true' || options.Ativo === '1',
+      // Convert ativo to boolean if it's a string or other type
+      ativo: typeof options.ativo === 'boolean' ? options.ativo : 
+             options.ativo === true || options.ativo === 'true' || options.ativo === '1',
     };
   } catch (error) {
     console.error('Erro ao buscar configurações:', error);
@@ -45,13 +45,13 @@ export const fetchDisparoOptions = async (): Promise<DisparoOptions> => {
 };
 
 /**
- * Updates settings in the AppW_Options_Horizontal table
+ * Updates settings in the AppW_Options table
  */
 export const updateDisparoOptions = async (options: DisparoOptions): Promise<void> => {
   try {
     // First check if there's a record
     const { data: existingData, error: checkError } = await supabase
-      .from('AppW_Options_Horizontal')
+      .from('AppW_Options')
       .select('id')
       .limit(1);
     
@@ -62,7 +62,7 @@ export const updateDisparoOptions = async (options: DisparoOptions): Promise<voi
     if (!existingData || existingData.length === 0) {
       // Insert a new record if none exists
       const { error: insertError } = await supabase
-        .from('AppW_Options_Horizontal')
+        .from('AppW_Options')
         .insert(options);
       
       if (insertError) {
@@ -71,7 +71,7 @@ export const updateDisparoOptions = async (options: DisparoOptions): Promise<voi
     } else {
       // Update existing record
       const { error: updateError } = await supabase
-        .from('AppW_Options_Horizontal')
+        .from('AppW_Options')
         .update(options)
         .eq('id', existingData[0].id);
       
