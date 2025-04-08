@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { WhatsAccount } from "@/lib/api/whatsapp/types";
 import { getWhatsAccounts, createWhatsAccount, deleteWhatsAccount } from "@/lib/api/whatsapp/api";
+import { callInstanceWebhook } from "@/lib/api/whatsapp/webhook";
 
 export function useWhatsAccounts() {
   const [accounts, setAccounts] = useState<WhatsAccount[]>([]);
@@ -37,7 +38,20 @@ export function useWhatsAccounts() {
   const handleCreateAccount = async (data: { nome_instancia: string }) => {
     try {
       setIsCreating(true);
-      // Ensure we're explicitly passing a non-optional nome_instancia
+      
+      // Primeiro chamar o webhook
+      const webhookResult = await callInstanceWebhook(data.nome_instancia);
+      
+      if (!webhookResult.success) {
+        toast({
+          title: "Erro no webhook",
+          description: webhookResult.message || "Não foi possível criar a instância no servidor externo",
+          variant: "destructive",
+        });
+        return Promise.reject(new Error(webhookResult.message));
+      }
+      
+      // Se o webhook foi bem-sucedido, criar na base de dados
       const newAccount = await createWhatsAccount({
         nome_instancia: data.nome_instancia
       });
@@ -46,7 +60,7 @@ export function useWhatsAccounts() {
       
       toast({
         title: "Sucesso",
-        description: "Conta de WhatsApp criada com sucesso",
+        description: webhookResult.message || "Conta de WhatsApp criada com sucesso",
       });
       
       return Promise.resolve();

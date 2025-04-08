@@ -161,6 +161,28 @@ export function GeneralSettings({ form }: GeneralSettingsProps) {
           />
         </div>
         
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <FormField
+            control={form.control}
+            name="webhook_instancias"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Webhook para Instâncias</FormLabel>
+                <div className="flex gap-2">
+                  <FormControl className="flex-1">
+                    <Input {...field} />
+                  </FormControl>
+                  <TestWebhookButton url={field.value} />
+                </div>
+                <FormDescription>
+                  URL do webhook para gerenciamento de instâncias de WhatsApp
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+        
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
           <FormField
             control={form.control}

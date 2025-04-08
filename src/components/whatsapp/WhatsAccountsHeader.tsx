@@ -1,14 +1,15 @@
 
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { PlusCircle } from "lucide-react";
+import { PlusCircle, Loader } from "lucide-react";
 import { 
   Dialog, 
   DialogContent, 
   DialogHeader, 
   DialogTitle, 
   DialogDescription,
-  DialogFooter
+  DialogFooter,
+  DialogClose
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -16,6 +17,8 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, FormField, FormItem, FormControl, FormMessage } from "@/components/ui/form";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { AlertCircle, CheckCircle } from "lucide-react";
 
 // Define the schema to ensure nome_instancia is required
 const formSchema = z.object({
@@ -34,6 +37,8 @@ interface WhatsAccountsHeaderProps {
 
 export function WhatsAccountsHeader({ onCreate, isCreating }: WhatsAccountsHeaderProps) {
   const [open, setOpen] = useState(false);
+  const [webhookStatus, setWebhookStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [webhookMessage, setWebhookMessage] = useState('');
   
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -44,15 +49,30 @@ export function WhatsAccountsHeader({ onCreate, isCreating }: WhatsAccountsHeade
 
   const handleSubmit = async (data: FormValues) => {
     try {
+      setWebhookStatus('idle');
+      setWebhookMessage('');
+      
       // Here we ensure data has a required nome_instancia field
       await onCreate({
         nome_instancia: data.nome_instancia
       });
-      setOpen(false);
-      form.reset();
+      
+      setWebhookStatus('success');
+      setWebhookMessage('Instância criada com sucesso!');
+      
+      // Não fechamos o diálogo automaticamente para que o usuário veja a mensagem de sucesso
     } catch (error) {
       console.error("Erro ao criar conta:", error);
+      setWebhookStatus('error');
+      setWebhookMessage(error instanceof Error ? error.message : 'Erro desconhecido ao criar instância');
     }
+  };
+
+  const handleCloseDialog = () => {
+    setOpen(false);
+    setWebhookStatus('idle');
+    setWebhookMessage('');
+    form.reset();
   };
 
   return (
@@ -71,7 +91,7 @@ export function WhatsAccountsHeader({ onCreate, isCreating }: WhatsAccountsHeade
         Nova Conta
       </Button>
 
-      <Dialog open={open} onOpenChange={setOpen}>
+      <Dialog open={open} onOpenChange={handleCloseDialog}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Nova Conta WhatsApp</DialogTitle>
@@ -79,6 +99,22 @@ export function WhatsAccountsHeader({ onCreate, isCreating }: WhatsAccountsHeade
               Adicione uma nova conta de WhatsApp para disparos
             </DialogDescription>
           </DialogHeader>
+          
+          {webhookStatus === 'success' && (
+            <Alert className="bg-green-50 border-green-500 text-green-800 mb-4">
+              <CheckCircle className="h-4 w-4 text-green-600" />
+              <AlertTitle>Sucesso!</AlertTitle>
+              <AlertDescription>{webhookMessage}</AlertDescription>
+            </Alert>
+          )}
+          
+          {webhookStatus === 'error' && (
+            <Alert variant="destructive" className="mb-4">
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>Erro!</AlertTitle>
+              <AlertDescription>{webhookMessage}</AlertDescription>
+            </Alert>
+          )}
           
           <Form {...form}>
             <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
@@ -93,6 +129,7 @@ export function WhatsAccountsHeader({ onCreate, isCreating }: WhatsAccountsHeade
                         id="nome_instancia" 
                         placeholder="Ex: Marketing, Vendas, Suporte" 
                         {...field} 
+                        disabled={isCreating}
                       />
                     </FormControl>
                     <FormMessage />
@@ -101,16 +138,30 @@ export function WhatsAccountsHeader({ onCreate, isCreating }: WhatsAccountsHeade
               />
               
               <DialogFooter>
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  onClick={() => setOpen(false)}
-                >
-                  Cancelar
-                </Button>
-                <Button type="submit" disabled={isCreating}>
-                  {isCreating ? "Criando..." : "Criar Conta"}
-                </Button>
+                {webhookStatus === 'success' ? (
+                  <Button type="button" onClick={handleCloseDialog}>
+                    Fechar
+                  </Button>
+                ) : (
+                  <>
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      onClick={handleCloseDialog}
+                      disabled={isCreating}
+                    >
+                      Cancelar
+                    </Button>
+                    <Button type="submit" disabled={isCreating}>
+                      {isCreating ? (
+                        <>
+                          <Loader className="mr-2 h-4 w-4 animate-spin" />
+                          Criando...
+                        </>
+                      ) : "Criar Conta"}
+                    </Button>
+                  </>
+                )}
               </DialogFooter>
             </form>
           </Form>

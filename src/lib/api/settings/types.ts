@@ -21,6 +21,7 @@ export interface DisparoOptions {
   webhook_contatos?: string;
   webhook_get_images?: string;
   webhook_up_docs?: string;
+  webhook_instancias?: string; // Novo campo adicionado
   ftp_url?: string;
   ftp_user?: string;
   ftp_port: number;
@@ -44,6 +45,7 @@ export const DEFAULT_OPTIONS: DisparoOptions = {
   webhook_contatos: '',
   webhook_get_images: '',
   webhook_up_docs: '',
+  webhook_instancias: '', // Novo campo adicionado
   ftp_url: '',
   ftp_user: '',
   ftp_port: 21,
