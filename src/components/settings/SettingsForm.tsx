@@ -13,7 +13,6 @@ import { IntervalSettings } from "./IntervalSettings";
 import { BatchSettings } from "./BatchSettings";
 import { FtpSettings } from "./FtpSettings";
 import { SaveButton } from "./SaveButton";
-import { useInstanceStore } from "@/stores/instanceStore";
 
 interface SettingsFormProps {
   initialSettings: DisparoOptions;
@@ -21,11 +20,11 @@ interface SettingsFormProps {
 
 export function SettingsForm({ initialSettings }: SettingsFormProps) {
   const queryClient = useQueryClient();
-  const { selectedInstance } = useInstanceStore();
 
   const form = useForm({
     resolver: zodResolver(settingsSchema),
     defaultValues: {
+      instancia: "",
       Ativo: true,
       horario_limite: 17,
       long_wait_min: 50,
@@ -71,29 +70,13 @@ export function SettingsForm({ initialSettings }: SettingsFormProps) {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-        {selectedInstance ? (
-          <>
-            <div className="bg-blue-50 border border-blue-200 rounded-md p-4 mb-4">
-              <p className="text-blue-800">
-                Configurando a instância: <strong>{selectedInstance.nome_instancia}</strong>
-              </p>
-            </div>
-            <GeneralSettings form={form} />
-            <LimitsSettings form={form} />
-            <IntervalSettings form={form} />
-            <BatchSettings form={form} />
-            <FtpSettings form={form} />
-            <SaveButton isPending={updateSettingsMutation.isPending} />
-          </>
-        ) : (
-          <div className="flex flex-col items-center justify-center p-8 text-center">
-            <h2 className="text-xl font-medium mb-2">Selecione uma instância</h2>
-            <p className="text-muted-foreground">
-              Selecione uma instância para configurar suas opções
-            </p>
-          </div>
-        )}
+        <GeneralSettings form={form} />
+        <LimitsSettings form={form} />
+        <IntervalSettings form={form} />
+        <BatchSettings form={form} />
+        <FtpSettings form={form} />
+        <SaveButton isPending={updateSettingsMutation.isPending} />
       </form>
     </Form>
   );
-};
+}

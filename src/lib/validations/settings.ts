@@ -2,6 +2,7 @@
 import { z } from "zod";
 
 export const settingsSchema = z.object({
+  instancia: z.string().optional(),
   Ativo: z.boolean().default(true),
   horario_limite: z.coerce.number().min(0).max(23),
   long_wait_min: z.coerce.number().min(1),

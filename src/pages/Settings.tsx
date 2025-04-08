@@ -6,15 +6,13 @@ import { SettingsForm } from "@/components/settings/SettingsForm";
 import { LoadingState } from "@/components/settings/LoadingState";
 import { ErrorState } from "@/components/settings/ErrorState";
 import { useSettingsForm } from "@/hooks/useSettingsForm";
+import { toast } from "sonner";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
 import { DatabaseDiagnostic } from "@/components/diagnostic/DatabaseDiagnostic";
-import { InstanceSelector } from "@/components/instances/InstanceSelector";
-import { useInstanceStore } from "@/stores/instanceStore";
 
 const Settings = () => {
   const { settings, isLoading, error, refetch } = useSettingsForm();
-  const { selectedInstance } = useInstanceStore();
 
   // Se os dados estão carregando, exiba o componente de carregamento
   if (isLoading) {
@@ -71,10 +69,7 @@ const Settings = () => {
   return (
     <Layout>
       <div className="flex flex-col gap-8">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-          <SettingsHeader />
-          <InstanceSelector />
-        </div>
+        <SettingsHeader />
         
         {/* Adicionando o componente de diagnóstico */}
         <div className="mb-4">

@@ -11,6 +11,7 @@ export interface OptionRow {
 }
 
 export interface DisparoOptions {
+  instancia: string;
   Ativo: boolean;
   horario_limite: number;
   long_wait_min: number;
@@ -33,6 +34,7 @@ export interface DisparoOptions {
 }
 
 export const DEFAULT_OPTIONS: DisparoOptions = {
+  instancia: 'Padrão',
   Ativo: true,
   horario_limite: 17,
   long_wait_min: 50,
