@@ -7,7 +7,8 @@ import {
   MessageSquare, 
   Settings,
   Users,
-  LogOut
+  LogOut,
+  Phone
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -78,6 +79,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ open }) => {
             {/* Exibir links apenas para administradores */}
             {isAdmin && (
               <>
+                <SidebarLink
+                  to="/whatsapp-accounts"
+                  icon={Phone}
+                  label="Contas WhatsApp"
+                  active={currentPath === "/whatsapp-accounts"}
+                />
                 <SidebarLink
                   to="/users"
                   icon={Users}

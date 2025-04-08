@@ -12,6 +12,7 @@ import Contacts from "./pages/Contacts";
 import Campaigns from "./pages/Campaigns";
 import Settings from "./pages/Settings";
 import Users from "./pages/Users";
+import WhatsAccounts from "./pages/WhatsAccounts";
 import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
 
@@ -40,6 +41,7 @@ const App = () => (
               <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
                 <Route path="/settings" element={<Settings />} />
                 <Route path="/users" element={<Users />} />
+                <Route path="/whatsapp-accounts" element={<WhatsAccounts />} />
               </Route>
               
               {/* Rota de fallback */}
