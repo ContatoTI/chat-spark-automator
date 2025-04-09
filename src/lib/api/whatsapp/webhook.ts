@@ -254,25 +254,50 @@ export const callConnectInstanceWebhook = async (nomeInstancia: string): Promise
 
     let data;
     try {
-      data = await response.json();
-      console.log("Resposta do webhook de conexão:", data);
+      const responseText = await response.text();
+      console.log("Resposta bruta do webhook:", responseText);
       
-      // Verifica se a resposta contém um QR code (base64 ou código)
-      if (data.success && data.data) {
-        const qrCode = data.data.base64 || data.data.code || null;
-        if (qrCode) {
-          return { 
-            success: true, 
-            message: data.message || "QR Code gerado com sucesso",
-            qrCode: qrCode
-          };
+      try {
+        data = JSON.parse(responseText);
+        console.log("Resposta do webhook de conexão após parse:", data);
+        
+        // Verifica se a resposta está em formato de array como no exemplo fornecido
+        if (Array.isArray(data) && data.length > 0) {
+          const firstItem = data[0];
+          
+          if (firstItem.success && firstItem.data) {
+            // Extrai o QR code da estrutura de resposta
+            const qrCode = firstItem.data.base64 || firstItem.data.code || null;
+            
+            if (qrCode) {
+              return { 
+                success: true, 
+                message: "QR Code gerado com sucesso",
+                qrCode: qrCode
+              };
+            }
+          }
+        } 
+        // Formato alternativo - objeto direto
+        else if (data.success && data.data) {
+          const qrCode = data.data.base64 || data.data.code || null;
+          if (qrCode) {
+            return { 
+              success: true, 
+              message: data.message || "QR Code gerado com sucesso",
+              qrCode: qrCode
+            };
+          }
         }
+        
+        return { 
+          success: true, 
+          message: data.message || "Solicitação enviada com sucesso" 
+        };
+      } catch (parseError) {
+        console.error("Erro ao parsear resposta JSON:", parseError);
+        return { success: true, message: responseText || "Instância conectada com sucesso" };
       }
-      
-      return { 
-        success: true, 
-        message: data.message || "Instância conectada com sucesso" 
-      };
     } catch (e) {
       // Se não conseguir parsear como JSON, considera resposta como texto
       const text = await response.text();
