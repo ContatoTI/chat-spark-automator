@@ -3,6 +3,7 @@ import React from "react";
 import { Layout } from "@/components/layout/Layout";
 import { WhatsAccountsHeader } from "@/components/whatsapp/WhatsAccountsHeader";
 import { WhatsAccountsTable } from "@/components/whatsapp/WhatsAccountsTable";
+import { QRCodeDialog } from "@/components/whatsapp/QRCodeDialog";
 import { useWhatsAccounts } from "@/hooks/useWhatsAccounts";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertTriangle } from "lucide-react";
@@ -19,7 +20,11 @@ const WhatsAccounts = () => {
     disconnectAccount,
     isCreating,
     isProcessing,
-    refreshAccounts
+    refreshAccounts,
+    qrCodeData,
+    qrCodeDialogOpen,
+    currentInstance,
+    closeQrCodeDialog
   } = useWhatsAccounts();
 
   return (
@@ -74,6 +79,13 @@ const WhatsAccounts = () => {
                 </div>
               </div>
             )}
+            
+            <QRCodeDialog 
+              isOpen={qrCodeDialogOpen}
+              onClose={closeQrCodeDialog}
+              instanceName={currentInstance}
+              qrCodeData={qrCodeData || undefined}
+            />
           </>
         )}
       </div>

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { WhatsAccount } from "@/lib/api/whatsapp/types";
@@ -17,6 +16,9 @@ export function useWhatsAccounts() {
   const [error, setError] = useState<Error | null>(null);
   const [isCreating, setIsCreating] = useState(false);
   const [isProcessing, setIsProcessing] = useState<{[id: number]: string}>({});
+  const [qrCodeData, setQrCodeData] = useState<string | null>(null);
+  const [qrCodeDialogOpen, setQrCodeDialogOpen] = useState(false);
+  const [currentInstance, setCurrentInstance] = useState<string>("");
   const { toast: uiToast } = useToast();
 
   const fetchAccounts = async () => {
@@ -126,6 +128,7 @@ export function useWhatsAccounts() {
     try {
       // Registrar que estamos processando esta conta
       setIsProcessing(prev => ({ ...prev, [id]: 'connecting' }));
+      setCurrentInstance(nomeInstancia);
       
       // Chamar o webhook de conexão
       const webhookResult = await callConnectInstanceWebhook(nomeInstancia);
@@ -137,9 +140,18 @@ export function useWhatsAccounts() {
         return;
       }
       
-      toast.success("Solicitação de conexão enviada", {
-        description: webhookResult.message || "Verifique o QR Code no dispositivo"
-      });
+      // Se temos um QR code, mostrar o diálogo com o QR code
+      if (webhookResult.qrCode) {
+        setQrCodeData(webhookResult.qrCode);
+        setQrCodeDialogOpen(true);
+        toast.info("QR Code disponível", {
+          description: "Escaneie o QR Code para conectar seu WhatsApp"
+        });
+      } else {
+        toast.success("Solicitação de conexão enviada", {
+          description: webhookResult.message || "Verifique o QR Code no dispositivo"
+        });
+      }
     } catch (err) {
       console.error("Erro ao conectar conta:", err);
       toast.error("Erro ao conectar conta", {
@@ -188,6 +200,11 @@ export function useWhatsAccounts() {
     }
   };
 
+  const handleCloseQrCodeDialog = () => {
+    setQrCodeDialogOpen(false);
+    setQrCodeData(null);
+  };
+
   useEffect(() => {
     fetchAccounts();
   }, []);
@@ -202,6 +219,10 @@ export function useWhatsAccounts() {
     disconnectAccount: handleDisconnectAccount,
     isCreating,
     isProcessing,
-    refreshAccounts: fetchAccounts
+    refreshAccounts: fetchAccounts,
+    qrCodeData,
+    qrCodeDialogOpen,
+    currentInstance,
+    closeQrCodeDialog: handleCloseQrCodeDialog
   };
 }

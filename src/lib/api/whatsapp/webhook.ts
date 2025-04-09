@@ -214,7 +214,11 @@ export const callDeleteInstanceWebhook = async (nomeInstancia: string): Promise<
 /**
  * Chama o webhook para conectar instância
  */
-export const callConnectInstanceWebhook = async (nomeInstancia: string): Promise<{ success: boolean; message?: string }> => {
+export const callConnectInstanceWebhook = async (nomeInstancia: string): Promise<{ 
+  success: boolean; 
+  message?: string;
+  qrCode?: string;
+}> => {
   try {
     const webhookUrl = await getWebhookConnectInstanciaUrl();
     
@@ -251,16 +255,29 @@ export const callConnectInstanceWebhook = async (nomeInstancia: string): Promise
     let data;
     try {
       data = await response.json();
+      console.log("Resposta do webhook de conexão:", data);
+      
+      // Verifica se a resposta contém um QR code (base64 ou código)
+      if (data.success && data.data) {
+        const qrCode = data.data.base64 || data.data.code || null;
+        if (qrCode) {
+          return { 
+            success: true, 
+            message: data.message || "QR Code gerado com sucesso",
+            qrCode: qrCode
+          };
+        }
+      }
+      
+      return { 
+        success: true, 
+        message: data.message || "Instância conectada com sucesso" 
+      };
     } catch (e) {
       // Se não conseguir parsear como JSON, considera resposta como texto
       const text = await response.text();
       return { success: true, message: text || "Instância conectada com sucesso" };
     }
-
-    return { 
-      success: true, 
-      message: data.message || "Instância conectada com sucesso" 
-    };
   } catch (error) {
     console.error("Erro ao chamar webhook de conexão de instâncias:", error);
     return { 
