@@ -167,7 +167,7 @@ export function GeneralSettings({ form }: GeneralSettingsProps) {
             name="webhook_instancias"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Webhook para Instâncias</FormLabel>
+                <FormLabel>Webhook para Criar Instâncias</FormLabel>
                 <div className="flex gap-2">
                   <FormControl className="flex-1">
                     <Input {...field} />
@@ -175,7 +175,69 @@ export function GeneralSettings({ form }: GeneralSettingsProps) {
                   <TestWebhookButton url={field.value} />
                 </div>
                 <FormDescription>
-                  URL do webhook para gerenciamento de instâncias de WhatsApp
+                  URL do webhook para criação de instâncias de WhatsApp
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          
+          <FormField
+            control={form.control}
+            name="webhook_del_instancia"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Webhook para Excluir Instâncias</FormLabel>
+                <div className="flex gap-2">
+                  <FormControl className="flex-1">
+                    <Input {...field} />
+                  </FormControl>
+                  <TestWebhookButton url={field.value} />
+                </div>
+                <FormDescription>
+                  URL do webhook para exclusão de instâncias de WhatsApp
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <FormField
+            control={form.control}
+            name="webhook_on_qr_instancia"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Webhook para Conectar Instâncias</FormLabel>
+                <div className="flex gap-2">
+                  <FormControl className="flex-1">
+                    <Input {...field} />
+                  </FormControl>
+                  <TestWebhookButton url={field.value} />
+                </div>
+                <FormDescription>
+                  URL do webhook para conectar instâncias via QR Code
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          
+          <FormField
+            control={form.control}
+            name="webhook_off_instancia"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Webhook para Desconectar Instâncias</FormLabel>
+                <div className="flex gap-2">
+                  <FormControl className="flex-1">
+                    <Input {...field} />
+                  </FormControl>
+                  <TestWebhookButton url={field.value} />
+                </div>
+                <FormDescription>
+                  URL do webhook para desconectar instâncias de WhatsApp
                 </FormDescription>
                 <FormMessage />
               </FormItem>

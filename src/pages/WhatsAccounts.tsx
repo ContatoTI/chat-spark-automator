@@ -15,7 +15,10 @@ const WhatsAccounts = () => {
     error,
     createAccount,
     deleteAccount,
+    connectAccount,
+    disconnectAccount,
     isCreating,
+    isProcessing,
     refreshAccounts
   } = useWhatsAccounts();
 
@@ -49,6 +52,9 @@ const WhatsAccounts = () => {
               accounts={accounts} 
               isLoading={isLoading} 
               onDelete={deleteAccount}
+              onConnect={connectAccount}
+              onDisconnect={disconnectAccount}
+              isProcessing={isProcessing}
             />
             
             {!isLoading && accounts.length === 0 && (
