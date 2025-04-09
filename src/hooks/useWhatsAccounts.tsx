@@ -1,13 +1,15 @@
+
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { WhatsAccount } from "@/lib/api/whatsapp/types";
 import { getWhatsAccounts, createWhatsAccount, deleteWhatsAccount } from "@/lib/api/whatsapp/api";
 import { 
-  callInstanceWebhook, 
-  callDeleteInstanceWebhook,
-  callConnectInstanceWebhook,
-  callDisconnectInstanceWebhook
+  getWebhookInstanciasUrl, 
+  getWebhookDeleteInstanciaUrl,
+  getWebhookConnectInstanciaUrl,
+  getWebhookDisconnectInstanciaUrl
 } from "@/lib/api/whatsapp/webhook";
+import { callWebhook } from "@/lib/api/webhook-utils";
 import { toast } from "sonner";
 
 export function useWhatsAccounts() {
@@ -48,8 +50,22 @@ export function useWhatsAccounts() {
     try {
       setIsCreating(true);
       
-      // Primeiro chamar o webhook
-      const webhookResult = await callInstanceWebhook(data.nome_instancia);
+      // Call the webhook
+      const webhookUrl = await getWebhookInstanciasUrl();
+      
+      if (!webhookUrl) {
+        uiToast({
+          title: "Erro",
+          description: "URL do webhook de instâncias não configurada",
+          variant: "destructive",
+        });
+        return Promise.reject(new Error("URL do webhook de instâncias não configurada"));
+      }
+      
+      const webhookResult = await callWebhook(webhookUrl, {
+        nome_instancia: data.nome_instancia,
+        acao: 'criar'
+      });
       
       if (!webhookResult.success) {
         uiToast({
@@ -60,7 +76,7 @@ export function useWhatsAccounts() {
         return Promise.reject(new Error(webhookResult.message));
       }
       
-      // Se o webhook foi bem-sucedido, criar na base de dados
+      // If webhook was successful, create in database
       const newAccount = await createWhatsAccount({
         nome_instancia: data.nome_instancia
       });
@@ -89,11 +105,23 @@ export function useWhatsAccounts() {
 
   const handleDeleteAccount = async (id: number, nomeInstancia: string) => {
     try {
-      // Registrar que estamos processando esta conta
+      // Register that we're processing this account
       setIsProcessing(prev => ({ ...prev, [id]: 'deleting' }));
       
-      // Primeiro chamar o webhook de exclusão
-      const webhookResult = await callDeleteInstanceWebhook(nomeInstancia);
+      // Call the delete webhook
+      const webhookUrl = await getWebhookDeleteInstanciaUrl();
+      
+      if (!webhookUrl) {
+        toast.error("Erro ao excluir instância", {
+          description: "URL do webhook de exclusão não configurada"
+        });
+        return;
+      }
+      
+      const webhookResult = await callWebhook(webhookUrl, {
+        nome_instancia: nomeInstancia,
+        acao: 'excluir'
+      });
       
       if (!webhookResult.success) {
         toast.error("Erro ao excluir instância", {
@@ -102,7 +130,7 @@ export function useWhatsAccounts() {
         return;
       }
       
-      // Se o webhook foi bem-sucedido, excluir na base de dados
+      // If webhook was successful, delete from database
       await deleteWhatsAccount(id);
       setAccounts((prev) => prev.filter((account) => account.id !== id));
       
@@ -115,7 +143,7 @@ export function useWhatsAccounts() {
         description: err instanceof Error ? err.message : "Não foi possível excluir a conta de WhatsApp"
       });
     } finally {
-      // Remover o status de processamento para esta conta
+      // Remove the processing status for this account
       setIsProcessing(prev => {
         const newState = { ...prev };
         delete newState[id];
@@ -126,12 +154,25 @@ export function useWhatsAccounts() {
 
   const handleConnectAccount = async (id: number, nomeInstancia: string) => {
     try {
-      // Registrar que estamos processando esta conta
+      // Register that we're processing this account
       setIsProcessing(prev => ({ ...prev, [id]: 'connecting' }));
       setCurrentInstance(nomeInstancia);
       
-      // Chamar o webhook de conexão
-      const webhookResult = await callConnectInstanceWebhook(nomeInstancia);
+      // Get connect webhook URL
+      const webhookUrl = await getWebhookConnectInstanciaUrl();
+      
+      if (!webhookUrl) {
+        toast.error("Erro ao conectar instância", {
+          description: "URL do webhook de conexão não configurada"
+        });
+        return;
+      }
+      
+      // Call connect webhook
+      const webhookResult = await callWebhook(webhookUrl, {
+        nome_instancia: nomeInstancia,
+        acao: 'conectar'
+      });
       
       if (!webhookResult.success) {
         toast.error("Erro ao conectar instância", {
@@ -140,9 +181,28 @@ export function useWhatsAccounts() {
         return;
       }
       
-      // Se temos um QR code, mostrar o diálogo com o QR code
-      if (webhookResult.qrCode) {
-        setQrCodeData(webhookResult.qrCode);
+      // Process results to extract QR code
+      let qrCode = null;
+      
+      if (webhookResult.data) {
+        const responseData = webhookResult.data;
+        
+        // Try different response formats
+        if (Array.isArray(responseData) && responseData.length > 0) {
+          const firstItem = responseData[0];
+          
+          if (firstItem.success && firstItem.data) {
+            qrCode = firstItem.data.base64 || firstItem.data.code || null;
+          }
+        } 
+        else if (responseData.success && responseData.data) {
+          qrCode = responseData.data.base64 || responseData.data.code || null;
+        }
+      }
+      
+      // If we have a QR code, show the dialog
+      if (qrCode) {
+        setQrCodeData(qrCode);
         setQrCodeDialogOpen(true);
         toast.info("QR Code disponível", {
           description: "Escaneie o QR Code para conectar seu WhatsApp"
@@ -158,7 +218,7 @@ export function useWhatsAccounts() {
         description: err instanceof Error ? err.message : "Não foi possível conectar a conta de WhatsApp"
       });
     } finally {
-      // Remover o status de processamento para esta conta
+      // Remove the processing status for this account
       setIsProcessing(prev => {
         const newState = { ...prev };
         delete newState[id];
@@ -169,11 +229,24 @@ export function useWhatsAccounts() {
 
   const handleDisconnectAccount = async (id: number, nomeInstancia: string) => {
     try {
-      // Registrar que estamos processando esta conta
+      // Register that we're processing this account
       setIsProcessing(prev => ({ ...prev, [id]: 'disconnecting' }));
       
-      // Chamar o webhook de desconexão
-      const webhookResult = await callDisconnectInstanceWebhook(nomeInstancia);
+      // Get disconnect webhook URL
+      const webhookUrl = await getWebhookDisconnectInstanciaUrl();
+      
+      if (!webhookUrl) {
+        toast.error("Erro ao desconectar instância", {
+          description: "URL do webhook de desconexão não configurada"
+        });
+        return;
+      }
+      
+      // Call disconnect webhook
+      const webhookResult = await callWebhook(webhookUrl, {
+        nome_instancia: nomeInstancia,
+        acao: 'desconectar'
+      });
       
       if (!webhookResult.success) {
         toast.error("Erro ao desconectar instância", {
@@ -191,7 +264,7 @@ export function useWhatsAccounts() {
         description: err instanceof Error ? err.message : "Não foi possível desconectar a conta de WhatsApp"
       });
     } finally {
-      // Remover o status de processamento para esta conta
+      // Remove the processing status for this account
       setIsProcessing(prev => {
         const newState = { ...prev };
         delete newState[id];

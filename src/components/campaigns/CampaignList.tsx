@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useState, useMemo } from "react";
 import { Campaign } from "@/lib/api/campaigns";
 import { LoadingState } from "./LoadingState";
 import { EmptyState } from "./EmptyState";
@@ -28,7 +28,38 @@ export const CampaignList: React.FC<CampaignListProps> = ({
   onNewCampaign,
   isSending
 }) => {
-  const [viewMode, setViewMode] = React.useState<"list" | "calendar">("calendar");
+  const [viewMode, setViewMode] = useState<"list" | "calendar">("calendar");
+
+  // Memoize the view component to prevent unnecessary re-renders
+  const currentView = useMemo(() => {
+    if (isLoading) {
+      return <LoadingState />;
+    }
+
+    if (campaigns.length === 0) {
+      return <EmptyState onNewCampaign={onNewCampaign} />;
+    }
+
+    return viewMode === "calendar" ? (
+      <CampaignCalendarView 
+        campaigns={campaigns} 
+        onEdit={onEdit} 
+        onDelete={onDelete} 
+        onSendNow={onSendNow} 
+        onDuplicate={onDuplicate} 
+        isSending={isSending} 
+      />
+    ) : (
+      <ListView 
+        campaigns={campaigns} 
+        onEdit={onEdit} 
+        onDelete={onDelete} 
+        onSendNow={onSendNow} 
+        onDuplicate={onDuplicate} 
+        isSending={isSending} 
+      />
+    );
+  }, [campaigns, isLoading, viewMode, onEdit, onDelete, onSendNow, onDuplicate, onNewCampaign, isSending]);
 
   if (isLoading) {
     return <LoadingState />;
@@ -45,26 +76,7 @@ export const CampaignList: React.FC<CampaignListProps> = ({
         setViewMode={setViewMode} 
         onNewCampaign={onNewCampaign}
       />
-
-      {viewMode === "calendar" ? (
-        <CampaignCalendarView 
-          campaigns={campaigns} 
-          onEdit={onEdit} 
-          onDelete={onDelete} 
-          onSendNow={onSendNow} 
-          onDuplicate={onDuplicate} 
-          isSending={isSending} 
-        />
-      ) : (
-        <ListView 
-          campaigns={campaigns} 
-          onEdit={onEdit} 
-          onDelete={onDelete} 
-          onSendNow={onSendNow} 
-          onDuplicate={onDuplicate} 
-          isSending={isSending} 
-        />
-      )}
+      {currentView}
     </div>
   );
 };

@@ -7,6 +7,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 
 export const ThemeToggle: React.FC = () => {
   const { theme, toggleTheme } = useTheme();
+  const isDark = theme === "dark";
 
   return (
     <TooltipProvider>
@@ -19,16 +20,16 @@ export const ThemeToggle: React.FC = () => {
             className="h-9 w-9 rounded-md hover:bg-gray-200 dark:hover:bg-slate-700"
             aria-label="Alternar tema"
           >
-            {theme === "light" ? (
-              <Moon className="h-[1.2rem] w-[1.2rem] text-slate-700 dark:text-slate-200" />
-            ) : (
+            {isDark ? (
               <Sun className="h-[1.2rem] w-[1.2rem] text-amber-400" />
+            ) : (
+              <Moon className="h-[1.2rem] w-[1.2rem] text-slate-700 dark:text-slate-200" />
             )}
             <span className="sr-only">Alternar tema</span>
           </Button>
         </TooltipTrigger>
         <TooltipContent>
-          <p>{theme === "light" ? "Modo escuro" : "Modo claro"}</p>
+          <p>{isDark ? "Modo claro" : "Modo escuro"}</p>
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>
