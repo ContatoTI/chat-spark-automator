@@ -8,6 +8,7 @@ import { WhatsAppStatusResponse } from "./types";
  */
 export const getWebhookInstanciasUrl = async (): Promise<string | null> => {
   try {
+    console.log("Fetching webhook_instancias URL from AppW_Options");
     const { data, error } = await supabase
       .from('AppW_Options')
       .select('webhook_instancias')
@@ -19,6 +20,7 @@ export const getWebhookInstanciasUrl = async (): Promise<string | null> => {
       return null;
     }
 
+    console.log("Retrieved webhook_instancias value:", data?.webhook_instancias);
     return data?.webhook_instancias || null;
   } catch (error) {
     console.error("Erro ao buscar webhook de instâncias:", error);
@@ -95,6 +97,9 @@ export const processStatusResponse = (responseData: any): WhatsAppStatusResponse
   if (!responseData) return [];
   
   try {
+    // Log the response for debugging
+    console.log("Processing status response:", responseData);
+    
     if (Array.isArray(responseData)) {
       return responseData.map(item => ({
         name: item.name,

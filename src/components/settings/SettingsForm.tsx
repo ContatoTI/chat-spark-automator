@@ -39,6 +39,7 @@ export function SettingsForm({ initialSettings }: SettingsFormProps) {
       webhook_contatos: initialSettings.webhook_contatos || "",
       webhook_get_images: initialSettings.webhook_get_images || "",
       webhook_up_docs: initialSettings.webhook_up_docs || "",
+      webhook_instancias: initialSettings.webhook_instancias || "",
       ftp_url: initialSettings.ftp_url || "",
       ftp_user: initialSettings.ftp_user || "",
       ftp_port: initialSettings.ftp_port,
@@ -51,6 +52,7 @@ export function SettingsForm({ initialSettings }: SettingsFormProps) {
 
   React.useEffect(() => {
     if (initialSettings) {
+      console.log("Setting form values from initialSettings:", initialSettings);
       form.reset({
         instancia: initialSettings.instancia || "",
         ativo: initialSettings.ativo,
@@ -67,6 +69,7 @@ export function SettingsForm({ initialSettings }: SettingsFormProps) {
         webhook_contatos: initialSettings.webhook_contatos || "",
         webhook_get_images: initialSettings.webhook_get_images || "",
         webhook_up_docs: initialSettings.webhook_up_docs || "",
+        webhook_instancias: initialSettings.webhook_instancias || "",
         ftp_url: initialSettings.ftp_url || "",
         ftp_user: initialSettings.ftp_user || "",
         ftp_port: initialSettings.ftp_port,
