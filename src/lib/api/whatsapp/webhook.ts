@@ -2,7 +2,8 @@
 import { supabase } from "@/lib/supabase";
 
 /**
- * Gets the webhook URL for instances from the settings table
+ * Gets the webhook URL for WhatsApp instances from the settings table
+ * This is now the only webhook used for all WhatsApp instance operations
  */
 export const getWebhookInstanciasUrl = async (): Promise<string | null> => {
   try {
@@ -20,75 +21,6 @@ export const getWebhookInstanciasUrl = async (): Promise<string | null> => {
     return data?.webhook_instancias || null;
   } catch (error) {
     console.error("Erro ao buscar webhook de instâncias:", error);
-    return null;
-  }
-};
-
-/**
- * Gets the webhook URL for deleting instances from the settings table
- */
-export const getWebhookDeleteInstanciaUrl = async (): Promise<string | null> => {
-  try {
-    const { data, error } = await supabase
-      .from('AppW_Options')
-      .select('webhook_del_instancia')
-      .limit(1)
-      .single();
-
-    if (error) {
-      console.error("Erro ao buscar webhook de exclusão de instâncias:", error);
-      return null;
-    }
-
-    return data?.webhook_del_instancia || null;
-  } catch (error) {
-    console.error("Erro ao buscar webhook de exclusão de instâncias:", error);
-    return null;
-  }
-};
-
-/**
- * Gets the webhook URL for connecting instances from the settings table
- */
-export const getWebhookConnectInstanciaUrl = async (): Promise<string | null> => {
-  try {
-    const { data, error } = await supabase
-      .from('AppW_Options')
-      .select('webhook_on_qr_instancia')
-      .limit(1)
-      .single();
-
-    if (error) {
-      console.error("Erro ao buscar webhook de conexão de instâncias:", error);
-      return null;
-    }
-
-    return data?.webhook_on_qr_instancia || null;
-  } catch (error) {
-    console.error("Erro ao buscar webhook de conexão de instâncias:", error);
-    return null;
-  }
-};
-
-/**
- * Gets the webhook URL for disconnecting instances from the settings table
- */
-export const getWebhookDisconnectInstanciaUrl = async (): Promise<string | null> => {
-  try {
-    const { data, error } = await supabase
-      .from('AppW_Options')
-      .select('webhook_off_instancia')
-      .limit(1)
-      .single();
-
-    if (error) {
-      console.error("Erro ao buscar webhook de desconexão de instâncias:", error);
-      return null;
-    }
-
-    return data?.webhook_off_instancia || null;
-  } catch (error) {
-    console.error("Erro ao buscar webhook de desconexão de instâncias:", error);
     return null;
   }
 };
@@ -125,5 +57,32 @@ export const extractQrCodeFromResponse = (responseData: any): string | null => {
   } catch (error) {
     console.error("Erro ao extrair QR code da resposta:", error);
     return null;
+  }
+};
+
+/**
+ * Maps status code to readable status text
+ * @param statusCode - The status code from the API
+ * @returns Readable status text
+ */
+export const mapStatusToText = (statusCode: string | null): { 
+  text: string; 
+  color: "green" | "red" | "yellow" | "gray";
+} => {
+  if (!statusCode) {
+    return { text: "Desconhecido", color: "gray" };
+  }
+
+  switch (statusCode.toLowerCase()) {
+    case "connected":
+      return { text: "Conectado", color: "green" };
+    case "disconnected":
+      return { text: "Desconectado", color: "red" };
+    case "connecting":
+      return { text: "Conectando", color: "yellow" };
+    case "qrcode":
+      return { text: "Aguardando QR Code", color: "yellow" };
+    default:
+      return { text: statusCode, color: "gray" };
   }
 };

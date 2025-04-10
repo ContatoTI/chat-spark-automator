@@ -3,12 +3,7 @@ import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { WhatsAccount } from "@/lib/api/whatsapp/types";
 import { getWhatsAccounts, createWhatsAccount, deleteWhatsAccount } from "@/lib/api/whatsapp/api";
-import { 
-  getWebhookInstanciasUrl, 
-  getWebhookDeleteInstanciaUrl,
-  getWebhookConnectInstanciaUrl,
-  getWebhookDisconnectInstanciaUrl
-} from "@/lib/api/whatsapp/webhook";
+import { getWebhookInstanciasUrl, extractQrCodeFromResponse, mapStatusToText } from "@/lib/api/whatsapp/webhook";
 import { callWebhook } from "@/lib/api/webhook-utils";
 import { toast } from "sonner";
 
@@ -21,6 +16,7 @@ export function useWhatsAccounts() {
   const [qrCodeData, setQrCodeData] = useState<string | null>(null);
   const [qrCodeDialogOpen, setQrCodeDialogOpen] = useState(false);
   const [currentInstance, setCurrentInstance] = useState<string>("");
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const { toast: uiToast } = useToast();
 
   const fetchAccounts = async () => {
@@ -46,6 +42,48 @@ export function useWhatsAccounts() {
     }
   };
 
+  const refreshAccountsStatus = async () => {
+    try {
+      setIsRefreshing(true);
+      
+      // Get webhook URL
+      const webhookUrl = await getWebhookInstanciasUrl();
+      
+      if (!webhookUrl) {
+        toast.error("Erro ao atualizar status", {
+          description: "URL do webhook não configurada"
+        });
+        return;
+      }
+      
+      // Call webhook for status update
+      const webhookResult = await callWebhook(webhookUrl, {
+        acao: 'status'
+      });
+      
+      if (!webhookResult.success) {
+        toast.error("Erro ao atualizar status", {
+          description: webhookResult.message || "Não foi possível atualizar o status das instâncias"
+        });
+        return;
+      }
+      
+      // Refresh accounts data from database
+      await fetchAccounts();
+      
+      toast.success("Status atualizado", {
+        description: "Status de todas as instâncias atualizado com sucesso"
+      });
+    } catch (err) {
+      console.error("Erro ao atualizar status:", err);
+      toast.error("Erro ao atualizar status", {
+        description: err instanceof Error ? err.message : "Não foi possível atualizar o status das instâncias"
+      });
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
   const handleCreateAccount = async (data: { nome_instancia: string }) => {
     try {
       setIsCreating(true);
@@ -64,7 +102,7 @@ export function useWhatsAccounts() {
       
       const webhookResult = await callWebhook(webhookUrl, {
         nome_instancia: data.nome_instancia,
-        acao: 'criar'
+        acao: 'new'
       });
       
       if (!webhookResult.success) {
@@ -109,7 +147,7 @@ export function useWhatsAccounts() {
       setIsProcessing(prev => ({ ...prev, [id]: 'deleting' }));
       
       // Call the delete webhook
-      const webhookUrl = await getWebhookDeleteInstanciaUrl();
+      const webhookUrl = await getWebhookInstanciasUrl();
       
       if (!webhookUrl) {
         toast.error("Erro ao excluir instância", {
@@ -120,7 +158,7 @@ export function useWhatsAccounts() {
       
       const webhookResult = await callWebhook(webhookUrl, {
         nome_instancia: nomeInstancia,
-        acao: 'excluir'
+        acao: 'delete'
       });
       
       if (!webhookResult.success) {
@@ -158,12 +196,12 @@ export function useWhatsAccounts() {
       setIsProcessing(prev => ({ ...prev, [id]: 'connecting' }));
       setCurrentInstance(nomeInstancia);
       
-      // Get connect webhook URL
-      const webhookUrl = await getWebhookConnectInstanciaUrl();
+      // Get webhook URL
+      const webhookUrl = await getWebhookInstanciasUrl();
       
       if (!webhookUrl) {
         toast.error("Erro ao conectar instância", {
-          description: "URL do webhook de conexão não configurada"
+          description: "URL do webhook não configurada"
         });
         return;
       }
@@ -171,7 +209,7 @@ export function useWhatsAccounts() {
       // Call connect webhook
       const webhookResult = await callWebhook(webhookUrl, {
         nome_instancia: nomeInstancia,
-        acao: 'conectar'
+        acao: 'connect'
       });
       
       if (!webhookResult.success) {
@@ -185,19 +223,7 @@ export function useWhatsAccounts() {
       let qrCode = null;
       
       if (webhookResult.data) {
-        const responseData = webhookResult.data;
-        
-        // Try different response formats
-        if (Array.isArray(responseData) && responseData.length > 0) {
-          const firstItem = responseData[0];
-          
-          if (firstItem.success && firstItem.data) {
-            qrCode = firstItem.data.base64 || firstItem.data.code || null;
-          }
-        } 
-        else if (responseData.success && responseData.data) {
-          qrCode = responseData.data.base64 || responseData.data.code || null;
-        }
+        qrCode = extractQrCodeFromResponse(webhookResult.data);
       }
       
       // If we have a QR code, show the dialog
@@ -212,6 +238,9 @@ export function useWhatsAccounts() {
           description: webhookResult.message || "Verifique o QR Code no dispositivo"
         });
       }
+      
+      // Refresh accounts to update status
+      await fetchAccounts();
     } catch (err) {
       console.error("Erro ao conectar conta:", err);
       toast.error("Erro ao conectar conta", {
@@ -232,12 +261,12 @@ export function useWhatsAccounts() {
       // Register that we're processing this account
       setIsProcessing(prev => ({ ...prev, [id]: 'disconnecting' }));
       
-      // Get disconnect webhook URL
-      const webhookUrl = await getWebhookDisconnectInstanciaUrl();
+      // Get webhook URL
+      const webhookUrl = await getWebhookInstanciasUrl();
       
       if (!webhookUrl) {
         toast.error("Erro ao desconectar instância", {
-          description: "URL do webhook de desconexão não configurada"
+          description: "URL do webhook não configurada"
         });
         return;
       }
@@ -245,7 +274,7 @@ export function useWhatsAccounts() {
       // Call disconnect webhook
       const webhookResult = await callWebhook(webhookUrl, {
         nome_instancia: nomeInstancia,
-        acao: 'desconectar'
+        acao: 'disconnect'
       });
       
       if (!webhookResult.success) {
@@ -258,6 +287,9 @@ export function useWhatsAccounts() {
       toast.success("Instância desconectada", {
         description: webhookResult.message || "Instância desconectada com sucesso"
       });
+      
+      // Refresh accounts to update status
+      await fetchAccounts();
     } catch (err) {
       console.error("Erro ao desconectar conta:", err);
       toast.error("Erro ao desconectar conta", {
@@ -293,9 +325,12 @@ export function useWhatsAccounts() {
     isCreating,
     isProcessing,
     refreshAccounts: fetchAccounts,
+    refreshAccountsStatus,
+    isRefreshing,
     qrCodeData,
     qrCodeDialogOpen,
     currentInstance,
-    closeQrCodeDialog: handleCloseQrCodeDialog
+    closeQrCodeDialog: handleCloseQrCodeDialog,
+    getStatusInfo: mapStatusToText
   };
 }

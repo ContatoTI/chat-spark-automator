@@ -21,16 +21,24 @@ const WhatsAccounts = () => {
     isCreating,
     isProcessing,
     refreshAccounts,
+    refreshAccountsStatus,
+    isRefreshing,
     qrCodeData,
     qrCodeDialogOpen,
     currentInstance,
-    closeQrCodeDialog
+    closeQrCodeDialog,
+    getStatusInfo
   } = useWhatsAccounts();
 
   return (
     <Layout>
       <div className="flex flex-col gap-8">
-        <WhatsAccountsHeader onCreate={createAccount} isCreating={isCreating} />
+        <WhatsAccountsHeader 
+          onCreate={createAccount} 
+          onRefreshStatus={refreshAccountsStatus}
+          isCreating={isCreating} 
+          isRefreshing={isRefreshing}
+        />
         
         {error ? (
           <div className="bg-destructive/15 p-4 rounded-md space-y-4">
@@ -60,6 +68,7 @@ const WhatsAccounts = () => {
               onConnect={connectAccount}
               onDisconnect={disconnectAccount}
               isProcessing={isProcessing}
+              getStatusInfo={getStatusInfo}
             />
             
             {!isLoading && accounts.length === 0 && (

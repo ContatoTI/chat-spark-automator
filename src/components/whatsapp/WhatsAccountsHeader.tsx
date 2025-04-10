@@ -1,7 +1,7 @@
 
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { PlusCircle, Loader } from "lucide-react";
+import { PlusCircle, Loader, RefreshCw } from "lucide-react";
 import { 
   Dialog, 
   DialogContent, 
@@ -19,6 +19,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, FormField, FormItem, FormControl, FormMessage } from "@/components/ui/form";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle, CheckCircle } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 // Define the schema to ensure nome_instancia is required
 const formSchema = z.object({
@@ -32,10 +33,12 @@ type FormValues = z.infer<typeof formSchema>;
 
 interface WhatsAccountsHeaderProps {
   onCreate: (data: { nome_instancia: string }) => Promise<void>;
+  onRefreshStatus: () => Promise<void>;
   isCreating: boolean;
+  isRefreshing: boolean;
 }
 
-export function WhatsAccountsHeader({ onCreate, isCreating }: WhatsAccountsHeaderProps) {
+export function WhatsAccountsHeader({ onCreate, onRefreshStatus, isCreating, isRefreshing }: WhatsAccountsHeaderProps) {
   const [open, setOpen] = useState(false);
   const [webhookStatus, setWebhookStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [webhookMessage, setWebhookMessage] = useState('');
@@ -83,13 +86,39 @@ export function WhatsAccountsHeader({ onCreate, isCreating }: WhatsAccountsHeade
           Gerencie suas contas de WhatsApp para disparos
         </p>
       </div>
-      <Button 
-        className="w-full md:w-auto" 
-        onClick={() => setOpen(true)}
-      >
-        <PlusCircle className="mr-2 h-4 w-4" />
-        Nova Conta
-      </Button>
+      
+      <div className="flex gap-2 w-full md:w-auto">
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button 
+                variant="outline" 
+                onClick={onRefreshStatus} 
+                disabled={isRefreshing}
+                className="flex-1 md:flex-none"
+              >
+                {isRefreshing ? (
+                  <Loader className="h-4 w-4 animate-spin" />
+                ) : (
+                  <RefreshCw className="h-4 w-4" />
+                )}
+                <span className="ml-2 md:inline">Atualizar Status</span>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Atualizar status de todas as instâncias</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+        
+        <Button 
+          className="flex-1 md:flex-none" 
+          onClick={() => setOpen(true)}
+        >
+          <PlusCircle className="mr-2 h-4 w-4" />
+          Nova Conta
+        </Button>
+      </div>
 
       <Dialog open={open} onOpenChange={handleCloseDialog}>
         <DialogContent>
