@@ -5,3 +5,8 @@ export interface WhatsAccount {
   empresa_id: string;
   status?: string;
 }
+
+export interface WhatsAppStatusResponse {
+  name: string;
+  connectionStatus: 'connecting' | 'close' | 'open';
+}

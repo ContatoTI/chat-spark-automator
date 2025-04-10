@@ -9,7 +9,7 @@ import {
   TableRow 
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Trash2, Plug, PlugZap, Loader2, WifiOff, Wifi, Clock } from "lucide-react";
+import { Trash2, Plug, PlugZap, Loader2, Wifi, WifiOff, Clock } from "lucide-react";
 import { 
   AlertDialog,
   AlertDialogAction,
@@ -26,6 +26,7 @@ import { EmptyState } from "@/components/whatsapp/EmptyState";
 import { LoadingState } from "@/components/whatsapp/LoadingState";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Badge } from "@/components/ui/badge";
+import { isInstanceConnected } from "@/lib/api/whatsapp/webhook";
 
 interface WhatsAccountsTableProps {
   accounts: WhatsAccount[];
@@ -58,12 +59,11 @@ export function WhatsAccountsTable({
     if (!status) return <Clock className="h-4 w-4" />;
     
     switch (status.toLowerCase()) {
-      case "connected":
+      case "open":
         return <Wifi className="h-4 w-4 text-green-500" />;
-      case "disconnected":
+      case "close":
         return <WifiOff className="h-4 w-4 text-red-500" />;
       case "connecting":
-      case "qrcode":
         return <Clock className="h-4 w-4 text-yellow-500" />;
       default:
         return <Clock className="h-4 w-4 text-gray-500" />;
@@ -76,6 +76,15 @@ export function WhatsAccountsTable({
       case "red": return "destructive";
       case "yellow": return "warning";
       case "gray": default: return "secondary";
+    }
+  };
+
+  const handleConnectionToggle = (account: WhatsAccount) => {
+    const connected = isInstanceConnected(account.status);
+    if (connected) {
+      return onDisconnect(account.id, account.nome_instancia);
+    } else {
+      return onConnect(account.id, account.nome_instancia);
     }
   };
 
@@ -95,6 +104,9 @@ export function WhatsAccountsTable({
           {accounts.map((account) => {
             const statusInfo = getStatusInfo(account.status || null);
             const badgeVariant = getStatusBadgeVariant(statusInfo.color);
+            const isConnected = isInstanceConnected(account.status);
+            const isProcessingInstance = !!isProcessing[account.id];
+            const connectionAction = isConnected ? 'disconnecting' : 'connecting';
             
             return (
               <TableRow key={account.id}>
@@ -115,42 +127,21 @@ export function WhatsAccountsTable({
                           <Button 
                             variant="outline" 
                             size="icon" 
-                            className="text-blue-600" 
-                            onClick={() => onConnect(account.id, account.nome_instancia)}
-                            disabled={!!isProcessing[account.id]}
+                            className={isConnected ? "text-orange-600" : "text-blue-600"} 
+                            onClick={() => handleConnectionToggle(account)}
+                            disabled={isProcessingInstance}
                           >
-                            {isProcessing[account.id] === 'connecting' ? (
+                            {isProcessing[account.id] === connectionAction ? (
                               <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : isConnected ? (
+                              <Plug className="h-4 w-4" />
                             ) : (
                               <PlugZap className="h-4 w-4" />
                             )}
                           </Button>
                         </TooltipTrigger>
                         <TooltipContent>
-                          <p>Conectar instância</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                    
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button 
-                            variant="outline" 
-                            size="icon" 
-                            className="text-orange-600" 
-                            onClick={() => onDisconnect(account.id, account.nome_instancia)}
-                            disabled={!!isProcessing[account.id]}
-                          >
-                            {isProcessing[account.id] === 'disconnecting' ? (
-                              <Loader2 className="h-4 w-4 animate-spin" />
-                            ) : (
-                              <Plug className="h-4 w-4" />
-                            )}
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>Desconectar instância</p>
+                          <p>{isConnected ? "Desconectar instância" : "Conectar instância"}</p>
                         </TooltipContent>
                       </Tooltip>
                     </TooltipProvider>
@@ -161,7 +152,7 @@ export function WhatsAccountsTable({
                           variant="ghost" 
                           size="icon" 
                           className="text-destructive hover:text-destructive"
-                          disabled={!!isProcessing[account.id]}
+                          disabled={isProcessingInstance}
                         >
                           {isProcessing[account.id] === 'deleting' ? (
                             <Loader2 className="h-4 w-4 animate-spin" />

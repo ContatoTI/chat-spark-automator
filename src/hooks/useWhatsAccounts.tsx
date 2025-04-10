@@ -1,9 +1,13 @@
-
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { WhatsAccount } from "@/lib/api/whatsapp/types";
+import { WhatsAccount, WhatsAppStatusResponse } from "@/lib/api/whatsapp/types";
 import { getWhatsAccounts, createWhatsAccount, deleteWhatsAccount } from "@/lib/api/whatsapp/api";
-import { getWebhookInstanciasUrl, extractQrCodeFromResponse, mapStatusToText } from "@/lib/api/whatsapp/webhook";
+import { 
+  getWebhookInstanciasUrl, 
+  extractQrCodeFromResponse, 
+  mapStatusToText, 
+  processStatusResponse 
+} from "@/lib/api/whatsapp/webhook";
 import { callWebhook } from "@/lib/api/webhook-utils";
 import { toast } from "sonner";
 
@@ -68,8 +72,28 @@ export function useWhatsAccounts() {
         return;
       }
       
-      // Refresh accounts data from database
-      await fetchAccounts();
+      // Process the status response
+      if (webhookResult.data) {
+        const statusResponses = processStatusResponse(webhookResult.data);
+        
+        // Update the local accounts with the new status information
+        setAccounts(prevAccounts => {
+          return prevAccounts.map(account => {
+            const matchingStatus = statusResponses.find(
+              status => status.name === account.nome_instancia
+            );
+            
+            if (matchingStatus) {
+              return {
+                ...account,
+                status: matchingStatus.connectionStatus
+              };
+            }
+            
+            return account;
+          });
+        });
+      }
       
       toast.success("Status atualizado", {
         description: "Status de todas as instâncias atualizado com sucesso"
@@ -239,8 +263,18 @@ export function useWhatsAccounts() {
         });
       }
       
-      // Refresh accounts to update status
-      await fetchAccounts();
+      // Update the account status locally
+      setAccounts(prevAccounts => {
+        return prevAccounts.map(account => {
+          if (account.id === id) {
+            return {
+              ...account,
+              status: 'connecting'
+            };
+          }
+          return account;
+        });
+      });
     } catch (err) {
       console.error("Erro ao conectar conta:", err);
       toast.error("Erro ao conectar conta", {
@@ -288,8 +322,18 @@ export function useWhatsAccounts() {
         description: webhookResult.message || "Instância desconectada com sucesso"
       });
       
-      // Refresh accounts to update status
-      await fetchAccounts();
+      // Update the account status locally
+      setAccounts(prevAccounts => {
+        return prevAccounts.map(account => {
+          if (account.id === id) {
+            return {
+              ...account,
+              status: 'close'
+            };
+          }
+          return account;
+        });
+      });
     } catch (err) {
       console.error("Erro ao desconectar conta:", err);
       toast.error("Erro ao desconectar conta", {
@@ -311,7 +355,10 @@ export function useWhatsAccounts() {
   };
 
   useEffect(() => {
-    fetchAccounts();
+    fetchAccounts().then(() => {
+      // After initial accounts are loaded, refresh their status
+      refreshAccountsStatus();
+    });
   }, []);
 
   return {

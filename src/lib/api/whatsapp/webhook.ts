@@ -1,5 +1,6 @@
 
 import { supabase } from "@/lib/supabase";
+import { WhatsAppStatusResponse } from "./types";
 
 /**
  * Gets the webhook URL for WhatsApp instances from the settings table
@@ -61,28 +62,59 @@ export const extractQrCodeFromResponse = (responseData: any): string | null => {
 };
 
 /**
- * Maps status code to readable status text
- * @param statusCode - The status code from the API
- * @returns Readable status text
+ * Maps connection status to readable status text
+ * @param connectionStatus - The status from the API
+ * @returns Readable status text and color
  */
-export const mapStatusToText = (statusCode: string | null): { 
+export const mapStatusToText = (connectionStatus: string | null): { 
   text: string; 
   color: "green" | "red" | "yellow" | "gray";
 } => {
-  if (!statusCode) {
+  if (!connectionStatus) {
     return { text: "Desconhecido", color: "gray" };
   }
 
-  switch (statusCode.toLowerCase()) {
-    case "connected":
+  switch (connectionStatus.toLowerCase()) {
+    case "open":
       return { text: "Conectado", color: "green" };
-    case "disconnected":
+    case "close":
       return { text: "Desconectado", color: "red" };
     case "connecting":
-      return { text: "Conectando", color: "yellow" };
-    case "qrcode":
       return { text: "Aguardando QR Code", color: "yellow" };
     default:
-      return { text: statusCode, color: "gray" };
+      return { text: connectionStatus, color: "gray" };
   }
+};
+
+/**
+ * Processes the status response from webhook
+ * @param responseData - Status response data from webhook
+ * @returns Array of status objects with name and connectionStatus
+ */
+export const processStatusResponse = (responseData: any): WhatsAppStatusResponse[] => {
+  if (!responseData) return [];
+  
+  try {
+    if (Array.isArray(responseData)) {
+      return responseData.map(item => ({
+        name: item.name,
+        connectionStatus: item.connectionStatus
+      }));
+    }
+    
+    return [];
+  } catch (error) {
+    console.error("Erro ao processar resposta de status:", error);
+    return [];
+  }
+};
+
+/**
+ * Checks if the instance status indicates it's connected
+ * @param status - The connection status
+ * @returns True if connected, false otherwise
+ */
+export const isInstanceConnected = (status: string | null): boolean => {
+  if (!status) return false;
+  return status.toLowerCase() === 'open';
 };
