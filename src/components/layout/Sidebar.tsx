@@ -8,7 +8,8 @@ import {
   Settings,
   Users,
   LogOut,
-  Phone
+  Phone,
+  Building
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -44,7 +45,7 @@ const SidebarLink: React.FC<SidebarLinkProps> = ({ to, icon: Icon, label, active
 export const Sidebar: React.FC<SidebarProps> = ({ open }) => {
   const location = useLocation();
   const currentPath = location.pathname;
-  const { isAdmin, logout } = useAuth();
+  const { isAdmin, isMaster, logout } = useAuth();
 
   return (
     <aside
@@ -76,8 +77,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ open }) => {
               active={currentPath === "/campaigns"}
             />
             
-            {/* Exibir links apenas para administradores */}
-            {isAdmin && (
+            {/* Exibir links apenas para administradores ou master */}
+            {(isAdmin || isMaster) && (
               <>
                 <SidebarLink
                   to="/whatsapp-accounts"
@@ -91,13 +92,27 @@ export const Sidebar: React.FC<SidebarProps> = ({ open }) => {
                   label="Usuários"
                   active={currentPath === "/users"}
                 />
-                <SidebarLink
-                  to="/settings"
-                  icon={Settings}
-                  label="Configurações"
-                  active={currentPath === "/settings"}
-                />
               </>
+            )}
+
+            {/* Link de empresas apenas para usuários master */}
+            {isMaster && (
+              <SidebarLink
+                to="/companies"
+                icon={Building}
+                label="Empresas"
+                active={currentPath === "/companies"}
+              />
+            )}
+            
+            {/* Link de configurações para admin ou master */}
+            {(isAdmin || isMaster) && (
+              <SidebarLink
+                to="/settings"
+                icon={Settings}
+                label="Configurações"
+                active={currentPath === "/settings"}
+              />
             )}
           </nav>
         </div>

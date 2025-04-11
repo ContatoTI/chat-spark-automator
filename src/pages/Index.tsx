@@ -13,33 +13,33 @@ import { Card, CardContent } from "@/components/ui/card";
 const Dashboard = () => {
   const [newCampaignDialogOpen, setNewCampaignDialogOpen] = useState(false);
   const [syncDialogOpen, setSyncDialogOpen] = useState(false);
-  const [companyId, setCompanyId] = useState<string | null>(null);
+  const [companyName, setCompanyName] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const fetchCompanyId = async () => {
+    const fetchCompanyInfo = async () => {
       try {
         setIsLoading(true);
-        // Try to get company_id from the options table
+        // Try to get company info from the options table
         const { data, error } = await supabase
           .from('AppW_Options')
-          .select('empresa_id')
+          .select('empresa_id, nome_da_empresa')
           .limit(1)
           .single();
         
         if (error) {
-          console.error("Error fetching company ID from options:", error);
+          console.error("Error fetching company info from options:", error);
         } else if (data) {
-          setCompanyId(data.empresa_id);
+          setCompanyName(data.nome_da_empresa || data.empresa_id);
         }
       } catch (err) {
-        console.error("Error in fetchCompanyId:", err);
+        console.error("Error in fetchCompanyInfo:", err);
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchCompanyId();
+    fetchCompanyInfo();
   }, []);
 
   return (
@@ -81,8 +81,8 @@ const Dashboard = () => {
             <div className="mt-2">
               {isLoading ? (
                 <div className="h-6 w-32 bg-muted animate-pulse rounded"></div>
-              ) : companyId ? (
-                <p className="text-md font-semibold">{companyId}</p>
+              ) : companyName ? (
+                <p className="text-md font-semibold">{companyName}</p>
               ) : (
                 <p className="text-sm text-muted-foreground">Nenhuma empresa identificada</p>
               )}
