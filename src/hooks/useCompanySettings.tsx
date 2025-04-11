@@ -17,7 +17,7 @@ export function useCompanySettings(companyId: string) {
     defaultValues: {
       instancia: "",
       ativo: true,
-      horario_limite: "",
+      horario_limite: 0, // Changed from string to number (0)
       long_wait_min: 0,
       long_wait_max: 0,
       short_wait_min: 0,
@@ -80,6 +80,15 @@ export function useCompanySettings(companyId: string) {
     updateSettingsMutation.mutate({
       ...values,
       empresa_id: companyId,
+      ativo: values.ativo ?? true, // Ensure ativo is always defined
+      horario_limite: values.horario_limite || 0, // Ensure required number fields have fallbacks
+      long_wait_min: values.long_wait_min || 0,
+      long_wait_max: values.long_wait_max || 0,
+      short_wait_min: values.short_wait_min || 0,
+      short_wait_max: values.short_wait_max || 0,
+      batch_size_min: values.batch_size_min || 0,
+      batch_size_max: values.batch_size_max || 0,
+      ftp_port: values.ftp_port || 21
     });
   };
 
