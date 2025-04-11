@@ -11,13 +11,15 @@ import {
   TableRow 
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { Pencil, Trash2, AlertCircle, Building, ChevronDown, ChevronUp, Users } from 'lucide-react';
+import { Pencil, Trash2, AlertCircle, Building, ChevronDown, ChevronUp, Users, Settings, FolderCheck } from 'lucide-react';
 import { EditCompanyDialog } from './EditCompanyDialog';
 import { DeleteCompanyDialog } from './DeleteCompanyDialog';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Card, CardContent } from '@/components/ui/card';
 import { useUsers } from '@/hooks/useUsers';
+import { CompanySettingsForm } from './CompanySettingsForm';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface CompaniesTableProps {
   companies?: Company[];
@@ -36,7 +38,9 @@ export const CompaniesTable: React.FC<CompaniesTableProps> = ({
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [expandedCompany, setExpandedCompany] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<'users' | 'settings'>('users');
   const { users, isLoading: usersLoading } = useUsers();
+  const { isMaster } = useAuth();
 
   if (isLoading) {
     return (
@@ -96,6 +100,7 @@ export const CompaniesTable: React.FC<CompaniesTableProps> = ({
       setExpandedCompany(null);
     } else {
       setExpandedCompany(companyId);
+      setActiveTab('users');
     }
   };
 
@@ -149,64 +154,110 @@ export const CompaniesTable: React.FC<CompaniesTableProps> = ({
             
             {expandedCompany === company.id && (
               <CardContent className="pt-4 pb-4 border-t">
-                <div className="space-y-4">
-                  <div>
-                    <div className="flex items-center gap-2 mb-2">
-                      <Users className="h-4 w-4" />
-                      <h4 className="font-medium">Usuários desta empresa</h4>
+                {/* Tabs para usuários e configurações */}
+                {isMaster && (
+                  <div className="mb-4 border-b">
+                    <div className="flex space-x-4">
+                      <button
+                        className={`pb-2 px-1 ${activeTab === 'users' 
+                          ? 'border-b-2 border-primary font-medium text-primary' 
+                          : 'text-muted-foreground'}`}
+                        onClick={() => setActiveTab('users')}
+                      >
+                        <span className="flex items-center gap-2">
+                          <Users className="h-4 w-4" />
+                          Usuários
+                        </span>
+                      </button>
+                      <button
+                        className={`pb-2 px-1 ${activeTab === 'settings' 
+                          ? 'border-b-2 border-primary font-medium text-primary' 
+                          : 'text-muted-foreground'}`}
+                        onClick={() => setActiveTab('settings')}
+                      >
+                        <span className="flex items-center gap-2">
+                          <Settings className="h-4 w-4" />
+                          Configurações
+                        </span>
+                      </button>
                     </div>
-                    
-                    {usersLoading ? (
-                      <div className="text-center py-4">
-                        <div className="inline-block h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
-                        <p className="text-sm text-muted-foreground mt-2">Carregando usuários...</p>
-                      </div>
-                    ) : (
-                      <div className="rounded-md border overflow-hidden">
-                        <Table>
-                          <TableHeader>
-                            <TableRow>
-                              <TableHead>Email</TableHead>
-                              <TableHead>Função</TableHead>
-                              <TableHead>Criado em</TableHead>
-                            </TableRow>
-                          </TableHeader>
-                          <TableBody>
-                            {getUsersByCompany(company.id).length > 0 ? (
-                              getUsersByCompany(company.id).map((user) => (
-                                <TableRow key={user.id}>
-                                  <TableCell className="font-medium">{user.email}</TableCell>
-                                  <TableCell>
-                                    <span className={`inline-block px-2 py-1 rounded-full text-xs ${
-                                      user.role === 'master' 
-                                        ? 'bg-purple-100 text-purple-800' 
-                                        : user.role === 'admin'
-                                          ? 'bg-blue-100 text-blue-800'
-                                          : 'bg-gray-100 text-gray-800'
-                                    }`}>
-                                      {user.role === 'master' 
-                                        ? 'Master' 
-                                        : user.role === 'admin' 
-                                          ? 'Administrador' 
-                                          : 'Usuário'}
-                                    </span>
-                                  </TableCell>
-                                  <TableCell>{formatDate(user.created_at)}</TableCell>
-                                </TableRow>
-                              ))
-                            ) : (
-                              <TableRow>
-                                <TableCell colSpan={3} className="text-center py-4 text-muted-foreground">
-                                  Nenhum usuário associado a esta empresa
-                                </TableCell>
-                              </TableRow>
-                            )}
-                          </TableBody>
-                        </Table>
-                      </div>
-                    )}
                   </div>
-                </div>
+                )}
+
+                {/* Conteúdo baseado na aba ativa */}
+                {(activeTab === 'users' || !isMaster) && (
+                  <div className="space-y-4">
+                    <div>
+                      <div className="flex items-center gap-2 mb-2">
+                        <Users className="h-4 w-4" />
+                        <h4 className="font-medium">Usuários desta empresa</h4>
+                      </div>
+                      
+                      {usersLoading ? (
+                        <div className="text-center py-4">
+                          <div className="inline-block h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
+                          <p className="text-sm text-muted-foreground mt-2">Carregando usuários...</p>
+                        </div>
+                      ) : (
+                        <div className="rounded-md border overflow-hidden">
+                          <Table>
+                            <TableHeader>
+                              <TableRow>
+                                <TableHead>Email</TableHead>
+                                <TableHead>Função</TableHead>
+                                <TableHead>Criado em</TableHead>
+                              </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                              {getUsersByCompany(company.id).length > 0 ? (
+                                getUsersByCompany(company.id).map((user) => (
+                                  <TableRow key={user.id}>
+                                    <TableCell className="font-medium">{user.email}</TableCell>
+                                    <TableCell>
+                                      <span className={`inline-block px-2 py-1 rounded-full text-xs ${
+                                        user.role === 'master' 
+                                          ? 'bg-purple-100 text-purple-800' 
+                                          : user.role === 'admin'
+                                            ? 'bg-blue-100 text-blue-800'
+                                            : 'bg-gray-100 text-gray-800'
+                                      }`}>
+                                        {user.role === 'master' 
+                                          ? 'Master' 
+                                          : user.role === 'admin' 
+                                            ? 'Administrador' 
+                                            : 'Usuário'}
+                                      </span>
+                                    </TableCell>
+                                    <TableCell>{formatDate(user.created_at)}</TableCell>
+                                  </TableRow>
+                                ))
+                              ) : (
+                                <TableRow>
+                                  <TableCell colSpan={3} className="text-center py-4 text-muted-foreground">
+                                    Nenhum usuário associado a esta empresa
+                                  </TableCell>
+                                </TableRow>
+                              )}
+                            </TableBody>
+                          </Table>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {activeTab === 'settings' && isMaster && (
+                  <div className="space-y-4">
+                    <div>
+                      <div className="flex items-center gap-2 mb-4">
+                        <Settings className="h-4 w-4" />
+                        <h4 className="font-medium">Configurações da empresa</h4>
+                      </div>
+                      
+                      <CompanySettingsForm companyId={company.id} />
+                    </div>
+                  </div>
+                )}
               </CardContent>
             )}
           </Card>

@@ -12,18 +12,30 @@ import { useSettingsFormData } from "@/hooks/useSettingsFormData";
 
 interface SettingsFormProps {
   initialSettings: DisparoOptions;
+  userRole?: string;
 }
 
-export function SettingsForm({ initialSettings }: SettingsFormProps) {
+export function SettingsForm({ initialSettings, userRole }: SettingsFormProps) {
   const { form, isSubmitting, onSubmit } = useSettingsFormData(initialSettings);
+  const isMaster = userRole === 'master';
+  const isAdmin = userRole === 'admin';
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
         <GeneralSettings form={form} />
+        
+        {/* Mostrar configurações de limites para qualquer tipo de usuário */}
         <LimitsSettings form={form} />
-        <IntervalSettings form={form} />
-        <BatchSettings form={form} />
+        
+        {/* Mostrar configurações de intervalo e lote apenas para usuários não-master */}
+        {!isMaster && (
+          <>
+            <IntervalSettings form={form} />
+            <BatchSettings form={form} />
+          </>
+        )}
+        
         <FtpSettings form={form} />
         <SaveButton isPending={isSubmitting} />
       </form>
