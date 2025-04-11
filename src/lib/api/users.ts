@@ -1,3 +1,4 @@
+
 import { supabase } from "@/lib/supabase";
 
 export interface User {
@@ -9,14 +10,26 @@ export interface User {
   last_sign_in_at?: string;
 }
 
-// Função para buscar usuários da tabela appw_users
-export const fetchUsers = async (): Promise<User[]> => {
-  console.log("Buscando usuários da tabela appw_users");
+// Função para buscar usuários com base na função e empresa do usuário logado
+export const fetchUsers = async (currentUser?: User | null): Promise<User[]> => {
+  console.log("Buscando usuários da tabela appw_users", { currentUserRole: currentUser?.role });
   
   try {
-    const { data, error } = await supabase
-      .from('appw_users')
-      .select('*');
+    let query = supabase.from('appw_users').select('*');
+    
+    // Aplicar filtros com base na função do usuário
+    if (currentUser) {
+      if (currentUser.role === 'admin' && currentUser.company_id) {
+        // Admin só vê usuários da mesma empresa
+        query = query.eq('empresa_id', currentUser.company_id);
+      } else if (currentUser.role === 'user') {
+        // Usuário comum não vê outros usuários (retorna lista vazia)
+        return [];
+      }
+      // Master vê todos os usuários (sem filtro)
+    }
+    
+    const { data, error } = await query;
     
     if (error) {
       console.error("Erro ao buscar usuários:", error);
