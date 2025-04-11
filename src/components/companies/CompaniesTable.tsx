@@ -1,6 +1,7 @@
 
 import React, { useState } from 'react';
 import { Company } from '@/lib/api/companies';
+import { User } from '@/lib/api/users';
 import { 
   Table, 
   TableBody, 
@@ -10,11 +11,13 @@ import {
   TableRow 
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { Pencil, Trash2, AlertCircle, Building } from 'lucide-react';
+import { Pencil, Trash2, AlertCircle, Building, ChevronDown, ChevronUp, Users } from 'lucide-react';
 import { EditCompanyDialog } from './EditCompanyDialog';
 import { DeleteCompanyDialog } from './DeleteCompanyDialog';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { Card, CardContent } from '@/components/ui/card';
+import { useUsers } from '@/hooks/useUsers';
 
 interface CompaniesTableProps {
   companies?: Company[];
@@ -32,6 +35,8 @@ export const CompaniesTable: React.FC<CompaniesTableProps> = ({
   const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [expandedCompany, setExpandedCompany] = useState<string | null>(null);
+  const { users, isLoading: usersLoading } = useUsers();
 
   if (isLoading) {
     return (
@@ -81,55 +86,131 @@ export const CompaniesTable: React.FC<CompaniesTableProps> = ({
     return format(new Date(dateString), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR });
   };
 
+  // Filtrar usuários por empresa
+  const getUsersByCompany = (companyId: string): User[] => {
+    return users.filter(user => user.company_id === companyId);
+  };
+
+  const toggleExpand = (companyId: string) => {
+    if (expandedCompany === companyId) {
+      setExpandedCompany(null);
+    } else {
+      setExpandedCompany(companyId);
+    }
+  };
+
   return (
     <>
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Nome</TableHead>
-              <TableHead>ID</TableHead>
-              <TableHead>Criada em</TableHead>
-              <TableHead className="text-right">Ações</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {companies.map((company) => (
-              <TableRow key={company.id}>
-                <TableCell className="font-medium">{company.name}</TableCell>
-                <TableCell className="text-muted-foreground text-sm">{company.id}</TableCell>
-                <TableCell>{formatDate(company.created_at)}</TableCell>
-                <TableCell className="text-right">
-                  <div className="flex justify-end gap-2">
-                    <Button 
-                      variant="ghost" 
-                      size="icon"
-                      onClick={() => {
-                        setSelectedCompany(company);
-                        setEditDialogOpen(true);
-                      }}
-                      title="Editar empresa"
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                    <Button 
-                      variant="ghost" 
-                      size="icon"
-                      onClick={() => {
-                        setSelectedCompany(company);
-                        setDeleteDialogOpen(true);
-                      }}
-                      className="text-destructive hover:text-destructive/90 hover:bg-destructive/10"
-                      title="Excluir empresa"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+      <div className="space-y-4">
+        {companies.map((company) => (
+          <Card key={company.id} className="overflow-hidden">
+            <div className="flex justify-between items-center p-4 hover:bg-muted/20 cursor-pointer" onClick={() => toggleExpand(company.id)}>
+              <div className="flex items-center gap-3">
+                <Building className="h-5 w-5 text-primary" />
+                <div>
+                  <h3 className="text-lg font-medium">{company.name}</h3>
+                  <p className="text-sm text-muted-foreground">ID: {company.id}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <p className="text-sm text-muted-foreground mr-2">Criada em: {formatDate(company.created_at)}</p>
+                <Button 
+                  variant="ghost" 
+                  size="icon"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSelectedCompany(company);
+                    setEditDialogOpen(true);
+                  }}
+                  title="Editar empresa"
+                >
+                  <Pencil className="h-4 w-4" />
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  size="icon"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSelectedCompany(company);
+                    setDeleteDialogOpen(true);
+                  }}
+                  className="text-destructive hover:text-destructive/90 hover:bg-destructive/10"
+                  title="Excluir empresa"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+                {expandedCompany === company.id ? (
+                  <ChevronUp className="h-5 w-5" />
+                ) : (
+                  <ChevronDown className="h-5 w-5" />
+                )}
+              </div>
+            </div>
+            
+            {expandedCompany === company.id && (
+              <CardContent className="pt-4 pb-4 border-t">
+                <div className="space-y-4">
+                  <div>
+                    <div className="flex items-center gap-2 mb-2">
+                      <Users className="h-4 w-4" />
+                      <h4 className="font-medium">Usuários desta empresa</h4>
+                    </div>
+                    
+                    {usersLoading ? (
+                      <div className="text-center py-4">
+                        <div className="inline-block h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
+                        <p className="text-sm text-muted-foreground mt-2">Carregando usuários...</p>
+                      </div>
+                    ) : (
+                      <div className="rounded-md border overflow-hidden">
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead>Email</TableHead>
+                              <TableHead>Função</TableHead>
+                              <TableHead>Criado em</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {getUsersByCompany(company.id).length > 0 ? (
+                              getUsersByCompany(company.id).map((user) => (
+                                <TableRow key={user.id}>
+                                  <TableCell className="font-medium">{user.email}</TableCell>
+                                  <TableCell>
+                                    <span className={`inline-block px-2 py-1 rounded-full text-xs ${
+                                      user.role === 'master' 
+                                        ? 'bg-purple-100 text-purple-800' 
+                                        : user.role === 'admin'
+                                          ? 'bg-blue-100 text-blue-800'
+                                          : 'bg-gray-100 text-gray-800'
+                                    }`}>
+                                      {user.role === 'master' 
+                                        ? 'Master' 
+                                        : user.role === 'admin' 
+                                          ? 'Administrador' 
+                                          : 'Usuário'}
+                                    </span>
+                                  </TableCell>
+                                  <TableCell>{formatDate(user.created_at)}</TableCell>
+                                </TableRow>
+                              ))
+                            ) : (
+                              <TableRow>
+                                <TableCell colSpan={3} className="text-center py-4 text-muted-foreground">
+                                  Nenhum usuário associado a esta empresa
+                                </TableCell>
+                              </TableRow>
+                            )}
+                          </TableBody>
+                        </Table>
+                      </div>
+                    )}
                   </div>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+                </div>
+              </CardContent>
+            )}
+          </Card>
+        ))}
       </div>
 
       {selectedCompany && (

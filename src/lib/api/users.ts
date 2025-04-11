@@ -1,4 +1,3 @@
-
 import { supabase } from "@/lib/supabase";
 
 export interface User {
@@ -6,6 +5,7 @@ export interface User {
   email: string;
   created_at: string;
   role: string;
+  company_id?: string;
   last_sign_in_at?: string;
 }
 
@@ -64,6 +64,7 @@ export const fetchUsers = async (): Promise<User[]> => {
       email: user.email || '',
       created_at: user.created_at || new Date().toISOString(),
       role: user.role || 'user',
+      company_id: user.empresa_id || undefined,
       last_sign_in_at: user.last_sign_in_at || undefined
     })) || [];
     
@@ -168,6 +169,20 @@ export const deleteUser = async (userId: string): Promise<void> => {
     }
   } catch (error) {
     console.error("Erro deletando usuário:", error);
+    throw error;
+  }
+};
+
+export const assignUserToCompany = async (userId: string, companyId: string): Promise<void> => {
+  try {
+    const { error } = await supabase
+      .from('appw_users')
+      .update({ company_id: companyId })
+      .eq('user_id', userId);
+      
+    if (error) throw error;
+  } catch (error) {
+    console.error("Erro atribuindo usuário a empresa:", error);
     throw error;
   }
 };
