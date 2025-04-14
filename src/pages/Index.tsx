@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback } from "react";
 import { Layout } from "@/components/layout/Layout";
 import { DashboardStats } from "@/components/dashboard/DashboardStats";
@@ -19,6 +18,7 @@ import {
   SelectValue 
 } from "@/components/ui/select";
 import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "@/hooks/use-toast";
 
 const Dashboard = () => {
   const [newCampaignDialogOpen, setNewCampaignDialogOpen] = useState(false);
