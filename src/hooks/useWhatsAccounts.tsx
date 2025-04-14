@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getWhatsAccounts, createWhatsAccount, deleteWhatsAccount } from "@/lib/api/whatsapp/api";
 import { WhatsAccount } from "@/lib/api/whatsapp/types";
-import { generateQRCodeData, fetchInstanceStatus } from "@/lib/api/whatsapp/webhook";
+import { generateQRCodeData, fetchInstanceStatus, mapStatusToText, isInstanceConnected } from "@/lib/api/whatsapp/webhook";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -29,11 +29,8 @@ export const useWhatsAccounts = () => {
 
   // Create account mutation
   const createAccountMutation = useMutation({
-    mutationFn: () => {
-      const randomId = Math.floor(Math.random() * 10000);
-      return createWhatsAccount({ 
-        nome_instancia: `instance_${randomId}` 
-      }, user, selectedCompany);
+    mutationFn: (data: { nome_instancia: string }) => {
+      return createWhatsAccount(data, user, selectedCompany);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['whatsapp-accounts'] });
@@ -49,28 +46,34 @@ export const useWhatsAccounts = () => {
 
   // Delete account mutation
   const deleteAccountMutation = useMutation({
-    mutationFn: deleteWhatsAccount,
+    mutationFn: async (params: { id: number, nomeInstancia: string }) => {
+      setProcessingInstanceId(params.id);
+      await deleteWhatsAccount(params.id);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['whatsapp-accounts'] });
       toast.success("Conta excluída com sucesso");
+      setProcessingInstanceId(null);
     },
     onError: (error) => {
       console.error("Error deleting account:", error);
       toast.error("Erro ao excluir conta", {
         description: error instanceof Error ? error.message : "Unknown error"
       });
+      setProcessingInstanceId(null);
     }
   });
 
   // Connect account mutation
   const connectAccountMutation = useMutation({
-    mutationFn: async (instanceId: string) => {
-      const data = await generateQRCodeData(instanceId);
-      return data;
+    mutationFn: async (params: { id: number, nomeInstancia: string }) => {
+      setProcessingInstanceId(params.id);
+      const data = await generateQRCodeData(params.nomeInstancia);
+      return { qrCodeData: data, instanceName: params.nomeInstancia };
     },
-    onSuccess: (data, instanceId) => {
-      setQrCodeData(data);
-      setCurrentInstance(instanceId);
+    onSuccess: (data) => {
+      setQrCodeData(data.qrCodeData);
+      setCurrentInstance(data.instanceName);
       setQrCodeDialogOpen(true);
       setProcessingInstanceId(null);
     },
@@ -85,7 +88,8 @@ export const useWhatsAccounts = () => {
 
   // Disconnect account mutation
   const disconnectAccountMutation = useMutation({
-    mutationFn: async (id: number) => {
+    mutationFn: async (params: { id: number, nomeInstancia: string }) => {
+      setProcessingInstanceId(params.id);
       // In a real app, this would call an API to disconnect
       return new Promise<void>((resolve) => {
         setTimeout(resolve, 1000);
@@ -126,26 +130,24 @@ export const useWhatsAccounts = () => {
   });
 
   // Handler functions
-  const createAccount = () => {
-    createAccountMutation.mutate();
+  const createAccount = async (data: { nome_instancia: string }) => {
+    return createAccountMutation.mutate(data);
   };
 
-  const deleteAccount = (id: number) => {
-    deleteAccountMutation.mutate(id);
+  const deleteAccount = async (id: number, nomeInstancia: string) => {
+    return deleteAccountMutation.mutate({ id, nomeInstancia });
   };
 
-  const connectAccount = (account: WhatsAccount) => {
-    setProcessingInstanceId(account.id);
-    connectAccountMutation.mutate(account.nome_instancia);
+  const connectAccount = async (id: number, nomeInstancia: string) => {
+    return connectAccountMutation.mutate({ id, nomeInstancia });
   };
 
-  const disconnectAccount = (id: number) => {
-    setProcessingInstanceId(id);
-    disconnectAccountMutation.mutate(id);
+  const disconnectAccount = async (id: number, nomeInstancia: string) => {
+    return disconnectAccountMutation.mutate({ id, nomeInstancia });
   };
 
-  const refreshAccountsStatus = () => {
-    refreshStatusMutation.mutate();
+  const refreshAccountsStatus = async () => {
+    return refreshStatusMutation.mutate();
   };
 
   const closeQrCodeDialog = () => {
@@ -154,33 +156,25 @@ export const useWhatsAccounts = () => {
     setCurrentInstance(null);
   };
 
-  const getStatusInfo = (status: string) => {
-    switch (status) {
-      case 'connected':
-        return {
-          label: 'Conectado',
-          color: 'text-green-500',
-          bgColor: 'bg-green-50 dark:bg-green-900/20',
-        };
-      case 'disconnected':
-        return {
-          label: 'Desconectado',
-          color: 'text-red-500',
-          bgColor: 'bg-red-50 dark:bg-red-900/20',
-        };
-      case 'connecting':
-        return {
-          label: 'Conectando',
-          color: 'text-amber-500',
-          bgColor: 'bg-amber-50 dark:bg-amber-900/20',
-        };
-      default:
-        return {
-          label: 'Desconhecido',
-          color: 'text-slate-500',
-          bgColor: 'bg-slate-50 dark:bg-slate-800',
-        };
+  // Create a record of processing status by instance ID
+  const processingStatus: { [id: number]: string } = {};
+  if (processingInstanceId) {
+    if (connectAccountMutation.isPending) {
+      processingStatus[processingInstanceId] = 'connecting';
+    } else if (disconnectAccountMutation.isPending) {
+      processingStatus[processingInstanceId] = 'disconnecting';
+    } else if (deleteAccountMutation.isPending) {
+      processingStatus[processingInstanceId] = 'deleting';
     }
+  }
+
+  const getStatusInfo = (status: string | null) => {
+    const result = mapStatusToText(status);
+    return {
+      label: result.text,
+      color: `text-${result.color}-500`,
+      bgColor: `bg-${result.color}-50 dark:bg-${result.color}-900/20`,
+    };
   };
 
   return {
@@ -192,7 +186,7 @@ export const useWhatsAccounts = () => {
     connectAccount,
     disconnectAccount,
     isCreating: createAccountMutation.isPending,
-    isProcessing: Boolean(processingInstanceId),
+    isProcessing: processingStatus,
     refreshAccounts: refetchAccounts,
     refreshAccountsStatus,
     isRefreshing: refreshStatusMutation.isPending,

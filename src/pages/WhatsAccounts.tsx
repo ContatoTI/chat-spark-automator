@@ -30,6 +30,11 @@ const WhatsAccounts = () => {
     getStatusInfo
   } = useWhatsAccounts();
 
+  const handleRefreshAccounts = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    refreshAccounts();
+  };
+
   return (
     <Layout>
       <div className="flex flex-col gap-8">
@@ -49,7 +54,7 @@ const WhatsAccounts = () => {
                 {error.message}
               </AlertDescription>
             </Alert>
-            <Button onClick={refreshAccounts} variant="outline">
+            <Button onClick={handleRefreshAccounts} variant="outline">
               Tentar novamente
             </Button>
             <div className="mt-2 p-2 bg-muted/50 rounded text-xs font-mono overflow-auto">
@@ -92,7 +97,7 @@ const WhatsAccounts = () => {
             <QRCodeDialog 
               isOpen={qrCodeDialogOpen}
               onClose={closeQrCodeDialog}
-              instanceName={currentInstance}
+              instanceName={currentInstance || ''}
               qrCodeData={qrCodeData || undefined}
             />
           </>

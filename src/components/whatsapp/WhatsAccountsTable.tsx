@@ -34,8 +34,12 @@ interface WhatsAccountsTableProps {
   onDelete: (id: number, nomeInstancia: string) => Promise<void>;
   onConnect: (id: number, nomeInstancia: string) => Promise<void>;
   onDisconnect: (id: number, nomeInstancia: string) => Promise<void>;
-  isProcessing: {[id: number]: string};
-  getStatusInfo: (status: string | null) => { text: string; color: "green" | "red" | "yellow" | "gray" };
+  isProcessing: { [id: number]: string };
+  getStatusInfo: (status: string | null) => { 
+    label: string; 
+    color: string; 
+    bgColor: string; 
+  };
 }
 
 export function WhatsAccountsTable({ 
@@ -70,13 +74,11 @@ export function WhatsAccountsTable({
     }
   };
 
-  const getStatusBadgeVariant = (color: "green" | "red" | "yellow" | "gray") => {
-    switch (color) {
-      case "green": return "success";
-      case "red": return "destructive";
-      case "yellow": return "warning";
-      case "gray": default: return "secondary";
-    }
+  const getStatusBadgeVariant = (colorClass: string) => {
+    if (colorClass.includes("green")) return "success";
+    if (colorClass.includes("red")) return "destructive";
+    if (colorClass.includes("yellow")) return "warning";
+    return "secondary";
   };
 
   const handleConnectionToggle = (account: WhatsAccount) => {
@@ -116,7 +118,7 @@ export function WhatsAccountsTable({
                 <TableCell>
                   <Badge variant={badgeVariant as any} className="flex items-center gap-1 w-fit">
                     {getStatusIcon(account.status || null)}
-                    <span>{statusInfo.text}</span>
+                    <span>{statusInfo.label}</span>
                   </Badge>
                 </TableCell>
                 <TableCell>

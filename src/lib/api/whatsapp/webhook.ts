@@ -29,6 +29,78 @@ export const getWebhookInstanciasUrl = async (): Promise<string | null> => {
 };
 
 /**
+ * Generate QR code data for a WhatsApp instance by calling the webhook
+ */
+export const generateQRCodeData = async (instanceName: string): Promise<string | null> => {
+  try {
+    const webhookUrl = await getWebhookInstanciasUrl();
+    
+    if (!webhookUrl) {
+      console.error("Webhook URL para instâncias não configurado");
+      throw new Error("Webhook URL para instâncias não configurado");
+    }
+    
+    // Adiciona o nome da instância como parâmetro de consulta
+    const url = new URL(webhookUrl);
+    url.searchParams.append('instance', instanceName);
+    url.searchParams.append('action', 'qrcode');
+    
+    console.log(`Chamando webhook para gerar QR code para instância: ${instanceName}`);
+    const response = await fetch(url.toString());
+    
+    if (!response.ok) {
+      throw new Error(`Erro ao gerar QR code: ${response.statusText}`);
+    }
+    
+    const responseData = await response.json();
+    return extractQrCodeFromResponse(responseData);
+  } catch (error) {
+    console.error("Erro ao gerar QR code:", error);
+    throw error;
+  }
+};
+
+/**
+ * Fetch the status of a WhatsApp instance by calling the webhook
+ */
+export const fetchInstanceStatus = async (instanceName: string): Promise<string | null> => {
+  try {
+    const webhookUrl = await getWebhookInstanciasUrl();
+    
+    if (!webhookUrl) {
+      console.error("Webhook URL para instâncias não configurado");
+      throw new Error("Webhook URL para instâncias não configurado");
+    }
+    
+    // Adiciona o nome da instância como parâmetro de consulta
+    const url = new URL(webhookUrl);
+    url.searchParams.append('instance', instanceName);
+    url.searchParams.append('action', 'status');
+    
+    console.log(`Chamando webhook para verificar status da instância: ${instanceName}`);
+    const response = await fetch(url.toString());
+    
+    if (!response.ok) {
+      throw new Error(`Erro ao verificar status: ${response.statusText}`);
+    }
+    
+    const responseData = await response.json();
+    
+    // Process the status response
+    const statusList = processStatusResponse(responseData);
+    if (statusList.length > 0) {
+      const instanceStatus = statusList.find(item => item.name === instanceName);
+      return instanceStatus?.connectionStatus || null;
+    }
+    
+    return null;
+  } catch (error) {
+    console.error("Erro ao verificar status da instância:", error);
+    throw error;
+  }
+};
+
+/**
  * Extracts QR code data from webhook response
  * @param responseData - Webhook response data
  * @returns The QR code string if found, null otherwise
