@@ -1,4 +1,3 @@
-
 import { WhatsAppStatusResponse } from "./types";
 import { callWebhook } from "../webhook-utils";
 
@@ -38,7 +37,7 @@ export const generateQRCodeData = async (instanceName: string): Promise<string> 
 };
 
 /**
- * Fetch the status of a WhatsApp instance
+ * Fetch the status of WhatsApp instances
  */
 export const fetchInstanceStatus = async (instanceName: string): Promise<string> => {
   try {
@@ -53,24 +52,23 @@ export const fetchInstanceStatus = async (instanceName: string): Promise<string>
     const response = await callWebhook(webhookUrl, {
       action: 'status',
       instance_name: instanceName,
-    });
+    }) as WhatsAppStatusResponse;
     
     if (!response.success) {
       throw new Error(response.message || 'Falha ao verificar status');
     }
     
-    if (response.data?.status === undefined) {
-      throw new Error('Resposta do webhook não contém dados de status');
+    // Procurar a instância específica na resposta
+    const instance = response.data?.find(inst => inst.name === instanceName);
+    if (!instance) {
+      throw new Error('Instância não encontrada na resposta');
     }
     
-    return response.data.status;
+    // Retorna o status da instância
+    return instance.connectionStatus;
   } catch (error) {
     console.error('Erro ao verificar status:', error);
-    
-    console.warn('Usando status simulado como fallback');
-    const statuses = ['open', 'close', 'connecting'];
-    const randomIndex = Math.floor(Math.random() * statuses.length);
-    return statuses[randomIndex];
+    return 'close'; // Fallback para desconectado em caso de erro
   }
 };
 
@@ -189,7 +187,7 @@ export const mapStatusToText = (status: string | null | undefined): {
     case "close":
       return { text: "Desconectado", color: "red" };
     case "connecting":
-      return { text: "Conectando", color: "yellow" };
+      return { text: "QR Code", color: "yellow" };
     default:
       return { text: "Desconhecido", color: "gray" };
   }

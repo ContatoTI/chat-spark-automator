@@ -1,4 +1,3 @@
-
 export interface WhatsAccount {
   id: number;
   nome_instancia: string;
@@ -6,7 +5,13 @@ export interface WhatsAccount {
   status?: string;
 }
 
-export interface WhatsAppStatusResponse {
+export interface WhatsAppInstanceResponse {
   name: string;
   connectionStatus: 'connecting' | 'close' | 'open';
+}
+
+export interface WhatsAppStatusResponse {
+  success: boolean;
+  data?: WhatsAppInstanceResponse[];
+  message?: string;
 }
