@@ -41,17 +41,7 @@ export const generateQRCodeData = async (instanceName: string): Promise<string> 
  */
 export const fetchInstanceStatus = async (instanceName: string): Promise<string> => {
   try {
-    const settingsResponse = await fetch('/api/settings/get-webhook-url?type=instances');
-    let webhookUrl = '';
-    
-    try {
-      const settings = await settingsResponse.json();
-      webhookUrl = settings.webhookUrl;
-    } catch (error) {
-      console.error('Erro ao obter URL do webhook de instâncias:', error);
-      // Fallback para URL padrão em caso de falha
-      webhookUrl = 'https://dinastia-n8n-webhook.ssdx0m.easypanel.host/webhook/whatsapp';
-    }
+    const webhookUrl = localStorage.getItem('webhook_instancias');
     
     console.log(`Verificando status para instância: ${instanceName} via webhook: ${webhookUrl}`);
     
@@ -59,7 +49,6 @@ export const fetchInstanceStatus = async (instanceName: string): Promise<string>
       throw new Error('URL do webhook de instâncias não configurada');
     }
     
-    // Chamada ao webhook com a ação de verificar status
     const response = await callWebhook(webhookUrl, {
       action: 'check_status',
       instance_name: instanceName,
@@ -69,7 +58,6 @@ export const fetchInstanceStatus = async (instanceName: string): Promise<string>
       throw new Error(response.message || 'Falha ao verificar status');
     }
     
-    // Verificar se a resposta contém dados de status
     if (response.data?.status === undefined) {
       throw new Error('Resposta do webhook não contém dados de status');
     }
@@ -78,7 +66,6 @@ export const fetchInstanceStatus = async (instanceName: string): Promise<string>
   } catch (error) {
     console.error('Erro ao verificar status:', error);
     
-    // Em caso de falha, retornamos um status simulado
     console.warn('Usando status simulado como fallback');
     const statuses = ['open', 'close', 'connecting'];
     const randomIndex = Math.floor(Math.random() * statuses.length);

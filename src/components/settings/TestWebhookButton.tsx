@@ -14,9 +14,10 @@ import {
 interface TestWebhookButtonProps {
   url: string;
   label?: string;
+  onSuccessCallback?: (url: string) => void;
 }
 
-export function TestWebhookButton({ url, label = "Testar" }: TestWebhookButtonProps) {
+export function TestWebhookButton({ url, label = "Testar", onSuccessCallback }: TestWebhookButtonProps) {
   const [isTesting, setIsTesting] = useState(false);
   const [lastTestStatus, setLastTestStatus] = useState<'success' | 'error' | null>(null);
 
@@ -37,6 +38,11 @@ export function TestWebhookButton({ url, label = "Testar" }: TestWebhookButtonPr
       toast.success("Webhook testado com sucesso", {
         description: "A conexão com o webhook foi estabelecida com sucesso."
       });
+      
+      // Chama a função de callback se estiver disponível
+      if (onSuccessCallback) {
+        onSuccessCallback(url);
+      }
     } catch (error) {
       setLastTestStatus('error');
       toast.error("Erro no teste do webhook", {

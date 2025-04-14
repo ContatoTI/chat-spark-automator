@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Layout } from "@/components/layout/Layout";
 import { DashboardStats } from "@/components/dashboard/DashboardStats";
 import { RecentCampaigns } from "@/components/dashboard/RecentCampaigns";
@@ -18,15 +18,42 @@ import {
   SelectTrigger, 
   SelectValue 
 } from "@/components/ui/select";
+import { useQueryClient } from "@tanstack/react-query";
 
 const Dashboard = () => {
   const [newCampaignDialogOpen, setNewCampaignDialogOpen] = useState(false);
   const [syncDialogOpen, setSyncDialogOpen] = useState(false);
   const [companyName, setCompanyName] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const { user, isMaster } = useAuth();
-  const { companies } = useCompanies();
-  const [selectedCompany, setSelectedCompany] = useState<string | null>(null);
+  const { user, isMaster, selectedCompany, setSelectedCompany, refreshPage } = useAuth();
+  const { companies, refetch: refetchCompanies } = useCompanies();
+  const queryClient = useQueryClient();
+  
+  // Função para atualizar os dados
+  const handleRefresh = useCallback(() => {
+    // Invalidar todas as queries para forçar recarregamento de dados
+    queryClient.invalidateQueries();
+    // Recarregar dados de empresas
+    refetchCompanies();
+    // Exibir toast de confirmação
+    toast.success("Dados atualizados com sucesso!");
+  }, [queryClient, refetchCompanies]);
+
+  // Efeito para observar mudanças de empresa
+  useEffect(() => {
+    const handleCompanyChange = () => {
+      // Invalidar consultas quando a empresa muda
+      queryClient.invalidateQueries();
+    };
+
+    // Registrar o listener para o evento custom
+    window.addEventListener('company-changed', handleCompanyChange);
+    
+    // Limpeza ao desmontar
+    return () => {
+      window.removeEventListener('company-changed', handleCompanyChange);
+    };
+  }, [queryClient]);
 
   useEffect(() => {
     const fetchCompanyInfo = async () => {
@@ -37,7 +64,6 @@ const Dashboard = () => {
           // Para usuário master com empresa selecionada
           const selectedCompanyData = companies.find(c => c.id === selectedCompany);
           setCompanyName(selectedCompanyData?.name || selectedCompanyData?.id);
-          localStorage.setItem('selectedCompany', selectedCompany);
         } else {
           // Para outros usuários ou master sem seleção
           const { data, error } = await supabase
@@ -55,7 +81,6 @@ const Dashboard = () => {
             // Se o usuário é master e não há empresa selecionada, definir a primeira encontrada
             if (isMaster && !selectedCompany) {
               setSelectedCompany(data.empresa_id);
-              localStorage.setItem('selectedCompany', data.empresa_id);
             }
           }
         }
@@ -67,7 +92,7 @@ const Dashboard = () => {
     };
 
     fetchCompanyInfo();
-  }, [user, isMaster, selectedCompany, companies]);
+  }, [user, isMaster, selectedCompany, companies, setSelectedCompany]);
 
   // Restaurar empresa selecionada do localStorage ao carregar
   useEffect(() => {
@@ -77,11 +102,10 @@ const Dashboard = () => {
         setSelectedCompany(saved);
       }
     }
-  }, [isMaster]);
+  }, [isMaster, setSelectedCompany]);
 
   const handleCompanyChange = (companyId: string) => {
     setSelectedCompany(companyId);
-    localStorage.setItem('selectedCompany', companyId);
   };
 
   return (
@@ -102,6 +126,14 @@ const Dashboard = () => {
             >
               <RefreshCw className="mr-2 h-4 w-4" />
               Sincronizar Contatos
+            </Button>
+            <Button 
+              variant="outline"
+              className="w-full sm:w-auto"
+              onClick={handleRefresh}
+            >
+              <RefreshCw className="mr-2 h-4 w-4" />
+              Atualizar Dados
             </Button>
             <Button 
               className="w-full sm:w-auto bg-primary"

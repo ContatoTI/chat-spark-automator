@@ -6,7 +6,7 @@ import { UseFormReturn } from "react-hook-form";
 import { SettingsFormValues } from "@/lib/validations/settings";
 import { TestWebhookButton } from "../TestWebhookButton";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, Webhook } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 interface InstanceWebhookSectionProps {
@@ -14,10 +14,29 @@ interface InstanceWebhookSectionProps {
 }
 
 export function InstanceWebhookSection({ form }: InstanceWebhookSectionProps) {
+  // Quando o webhook for testado com sucesso, salve no localStorage
+  const saveWebhookToLocalStorage = (url: string) => {
+    if (url && url.trim() !== '') {
+      localStorage.setItem('webhook_instancias', url);
+      console.log('Webhook de instâncias salvo no localStorage:', url);
+    }
+  };
+
+  // Pegar o valor atual do form
+  const currentWebhookUrl = form.watch('webhook_instancias');
+  
+  // Salvar no localStorage sempre que o valor mudar
+  React.useEffect(() => {
+    saveWebhookToLocalStorage(currentWebhookUrl);
+  }, [currentWebhookUrl]);
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Webhook de Instâncias</CardTitle>
+        <CardTitle className="flex items-center gap-2">
+          <Webhook className="h-5 w-5" />
+          Webhook de Instâncias
+        </CardTitle>
         <CardDescription>
           Configure o webhook para gerenciamento de instâncias do WhatsApp
         </CardDescription>
@@ -40,9 +59,20 @@ export function InstanceWebhookSection({ form }: InstanceWebhookSectionProps) {
               <FormLabel>Webhook de Instâncias WhatsApp</FormLabel>
               <div className="flex gap-2">
                 <FormControl className="flex-1">
-                  <Input {...field} placeholder="https://seu-servidor-webhook.com/whatsapp/instancias" />
+                  <Input 
+                    {...field} 
+                    placeholder="https://seu-servidor-webhook.com/whatsapp/instancias"
+                    onChange={(e) => {
+                      field.onChange(e);
+                      // Imediatamente salvar no localStorage ao digitar
+                      saveWebhookToLocalStorage(e.target.value);
+                    }}
+                  />
                 </FormControl>
-                <TestWebhookButton url={field.value} />
+                <TestWebhookButton 
+                  url={field.value} 
+                  onSuccessCallback={() => saveWebhookToLocalStorage(field.value)}
+                />
               </div>
               <FormDescription>
                 URL do webhook para gerenciar instâncias de WhatsApp (conexão, status, QR code)
@@ -55,4 +85,3 @@ export function InstanceWebhookSection({ form }: InstanceWebhookSectionProps) {
     </Card>
   );
 }
-

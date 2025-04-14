@@ -15,6 +15,7 @@ interface AuthContextType {
   isMaster: boolean;
   selectedCompany: string | null;
   setSelectedCompany: (companyId: string | null) => void;
+  refreshPage: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -129,13 +130,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
   
   // Função para atualizar a empresa selecionada (para usuários master)
+  // Modificada para disparar atualização de dados
   const handleSetSelectedCompany = (companyId: string | null) => {
     setSelectedCompany(companyId);
     if (companyId) {
       localStorage.setItem('selectedCompany', companyId);
+      
+      // Invalidar caches quando a empresa muda
+      // O efeito disso será a atualização de todas as consultas dependentes
+      const event = new CustomEvent('company-changed', { detail: { companyId } });
+      window.dispatchEvent(event);
+      
+      toast.success("Empresa alterada com sucesso!");
     } else {
       localStorage.removeItem('selectedCompany');
     }
+  };
+  
+  // Função para forçar atualização da página
+  const refreshPage = () => {
+    window.location.reload();
   };
 
   return (
@@ -149,7 +163,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         isAdmin: user?.role === 'admin',
         isMaster: user?.role === 'master',
         selectedCompany,
-        setSelectedCompany: handleSetSelectedCompany
+        setSelectedCompany: handleSetSelectedCompany,
+        refreshPage,
       }}
     >
       {children}
