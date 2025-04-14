@@ -1,55 +1,38 @@
-
 import { WhatsAppStatusResponse } from "./types";
 import { callWebhook } from "../webhook-utils";
 
-/**
- * Generate QR code data for connecting a WhatsApp instance
- */
 export const generateQRCodeData = async (instanceName: string): Promise<string> => {
   try {
-    // Buscar a URL do webhook de instâncias das configurações
-    // Para um caso real, precisaríamos obter isso das configurações
-    // Por enquanto, vamos tentar usar alguma URL padrão ou uma definida nas configurações
-    const settingsResponse = await fetch('/api/settings/get-webhook-url?type=instances');
-    let webhookUrl = '';
+    const webhookUrl = localStorage.getItem('webhook_instancias');
     
-    try {
-      const settings = await settingsResponse.json();
-      webhookUrl = settings.webhookUrl;
-    } catch (error) {
-      console.error('Erro ao obter URL do webhook de instâncias:', error);
-      // Fallback para URL padrão em caso de falha
-      webhookUrl = 'https://dinastia-n8n-webhook.ssdx0m.easypanel.host/webhook/whatsapp';
-    }
-    
-    console.log(`Gerando QR code para instância: ${instanceName} via webhook: ${webhookUrl}`);
+    console.log(`[Webhook] Gerando QR code para instância: ${instanceName}`);
+    console.log(`[Webhook] URL configurada: ${webhookUrl}`);
     
     if (!webhookUrl) {
-      throw new Error('URL do webhook de instâncias não configurada');
+      throw new Error('URL do webhook de instâncias não configurada. Configure nas Configurações > Webhooks.');
     }
     
-    // Chamada ao webhook com a ação de gerar QR code
     const response = await callWebhook(webhookUrl, {
       action: 'generate_qr',
       instance_name: instanceName,
+      timestamp: new Date().toISOString()
     });
     
     if (!response.success) {
+      console.error('[Webhook] Resposta de erro:', response);
       throw new Error(response.message || 'Falha ao gerar QR code');
     }
     
-    // Verificar se a resposta contém dados do QR code
     if (!response.data?.qrcode) {
+      console.error('[Webhook] Resposta sem QR code:', response);
       throw new Error('Resposta do webhook não contém dados do QR code');
     }
     
+    console.log('[Webhook] QR code gerado com sucesso');
     return response.data.qrcode;
   } catch (error) {
-    console.error('Erro ao gerar QR code:', error);
-    
-    // Em caso de falha, retornamos um QR code simulado como fallback
-    console.warn('Usando QR code simulado como fallback');
-    return "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAQAAAAEACAYAAABccqhmAAAEsElEQVR4nO3VMQ0AMAzAsPIn3QHsd0qyEeTYO7M7A5J+twOALwMASQYAkgwAJBkASDIAkGQAIMkAQJIBgCQDAEkGAJIMACSdB0xR4HfxegAAAABJRU5ErkJggg==";
+    console.error('[Webhook] Erro ao gerar QR code:', error);
+    throw error;
   }
 };
 
@@ -58,7 +41,6 @@ export const generateQRCodeData = async (instanceName: string): Promise<string> 
  */
 export const fetchInstanceStatus = async (instanceName: string): Promise<string> => {
   try {
-    // Similar ao QR code, tentamos buscar a URL do webhook
     const settingsResponse = await fetch('/api/settings/get-webhook-url?type=instances');
     let webhookUrl = '';
     

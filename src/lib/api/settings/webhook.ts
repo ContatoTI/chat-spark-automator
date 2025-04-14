@@ -1,9 +1,5 @@
 
 /**
- * Utility functions for testing webhooks
- */
-
-/**
  * Tests if a webhook URL is accessible
  * @param url The webhook URL to test
  * @returns A promise that resolves to true if the webhook is accessible
@@ -18,27 +14,30 @@ export const testWebhook = async (url: string): Promise<boolean> => {
   }
 
   try {
-    // Primeiro, tentamos com um método POST para teste
-    console.log(`Testando webhook: ${url}`);
+    console.log(`Iniciando teste de webhook para: ${url}`);
     
-    const response = await fetch(url, {
+    // First attempt with POST
+    const postResponse = await fetch(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ test: true, message: "Testando webhook" }),
+      body: JSON.stringify({
+        action: 'test',
+        instance: 'test_instance',
+        timestamp: new Date().toISOString(),
+      }),
     });
-    
-    // Se o POST não funcionar (erro de CORS), tentamos com um método GET
-    if (!response.ok) {
-      console.log(`POST não funcionou, tentando com GET: ${url}`);
+
+    // If POST fails, try GET
+    if (!postResponse.ok) {
+      console.log(`POST falhou (${postResponse.status}), tentando GET`);
       
-      // Adicionamos parâmetros de teste à URL para GET
-      const testUrl = url.includes('?') 
-        ? `${url}&test=true&timestamp=${Date.now()}` 
-        : `${url}?test=true&timestamp=${Date.now()}`;
+      const testUrl = new URL(url);
+      testUrl.searchParams.append('test', 'true');
+      testUrl.searchParams.append('timestamp', Date.now().toString());
       
-      const getResponse = await fetch(testUrl, {
+      const getResponse = await fetch(testUrl.toString(), {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -46,6 +45,7 @@ export const testWebhook = async (url: string): Promise<boolean> => {
       });
       
       if (!getResponse.ok) {
+        console.error(`GET também falhou: ${getResponse.status} ${getResponse.statusText}`);
         throw new Error(`Erro ao testar webhook: ${getResponse.status} ${getResponse.statusText}`);
       }
     }
@@ -53,7 +53,8 @@ export const testWebhook = async (url: string): Promise<boolean> => {
     console.log(`Teste de webhook concluído com sucesso para: ${url}`);
     return true;
   } catch (error) {
-    console.error('Erro ao testar webhook:', error);
-    throw new Error('Não foi possível conectar ao webhook. Verifique a URL e tente novamente.');
+    console.error('Erro detalhado no teste do webhook:', error);
+    throw new Error('Não foi possível conectar ao webhook. Verifique a URL, permissões CORS e tente novamente.');
   }
 };
+
