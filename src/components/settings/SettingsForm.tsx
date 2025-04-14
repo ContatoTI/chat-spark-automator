@@ -7,6 +7,7 @@ import { IntervalSettings } from "./IntervalSettings";
 import { BatchSettings } from "./BatchSettings";
 import { SaveButton } from "./SaveButton";
 import { useSettingsFormData } from "@/hooks/useSettingsFormData";
+import { InstanceWebhookSection } from "./sections/InstanceWebhookSection";
 
 interface SettingsFormProps {
   initialSettings: DisparoOptions;
@@ -15,13 +16,16 @@ interface SettingsFormProps {
 
 export function SettingsForm({ initialSettings, userRole }: SettingsFormProps) {
   const { form, isSubmitting, onSubmit } = useSettingsFormData(initialSettings);
-  const isAdmin = userRole === 'admin';
+  const isAdmin = userRole === 'admin' || userRole === 'master';
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
         {/* Mostrar configurações de limites para qualquer tipo de usuário */}
         <LimitsSettings form={form} />
+        
+        {/* Mostrar webhook de instâncias para todos os tipos de usuários */}
+        <InstanceWebhookSection form={form} />
         
         {/* Mostrar configurações de intervalo e lote apenas para usuários admin */}
         {isAdmin && (

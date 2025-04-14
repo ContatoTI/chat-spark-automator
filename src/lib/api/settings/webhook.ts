@@ -18,21 +18,39 @@ export const testWebhook = async (url: string): Promise<boolean> => {
   }
 
   try {
-    // Using fetch with no-cors mode to handle CORS issues
-    // This allows the request to be sent but response info will be limited
+    // Primeiro, tentamos com um método POST para teste
     console.log(`Testando webhook: ${url}`);
     
     const response = await fetch(url, {
-      method: 'GET',
-      mode: 'no-cors',
+      method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
+      body: JSON.stringify({ test: true, message: "Testando webhook" }),
     });
     
-    // Since we're using no-cors, we won't get proper status codes
-    // But at least we know the request was sent without network errors
-    console.log(`Teste de webhook concluído para: ${url}`);
+    // Se o POST não funcionar (erro de CORS), tentamos com um método GET
+    if (!response.ok) {
+      console.log(`POST não funcionou, tentando com GET: ${url}`);
+      
+      // Adicionamos parâmetros de teste à URL para GET
+      const testUrl = url.includes('?') 
+        ? `${url}&test=true&timestamp=${Date.now()}` 
+        : `${url}?test=true&timestamp=${Date.now()}`;
+      
+      const getResponse = await fetch(testUrl, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      if (!getResponse.ok) {
+        throw new Error(`Erro ao testar webhook: ${getResponse.status} ${getResponse.statusText}`);
+      }
+    }
+    
+    console.log(`Teste de webhook concluído com sucesso para: ${url}`);
     return true;
   } catch (error) {
     console.error('Erro ao testar webhook:', error);
