@@ -3,7 +3,15 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getWhatsAccounts, createWhatsAccount, deleteWhatsAccount } from "@/lib/api/whatsapp/api";
 import { WhatsAccount } from "@/lib/api/whatsapp/types";
-import { generateQRCodeData, fetchInstanceStatus, mapStatusToText, isInstanceConnected } from "@/lib/api/whatsapp/webhook";
+import { 
+  generateQRCodeData, 
+  fetchInstanceStatus, 
+  mapStatusToText, 
+  isInstanceConnected,
+  disconnectInstance,
+  deleteInstance,
+  createInstance
+} from "@/lib/api/whatsapp/webhook";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -29,7 +37,7 @@ export const useWhatsAccounts = () => {
 
   // Create account mutation
   const createAccountMutation = useMutation({
-    mutationFn: (data: { nome_instancia: string }) => {
+    mutationFn: async (data: { nome_instancia: string }) => {
       // Determine empresa_id based on user role and selected company
       let empresa_id: string;
       
@@ -43,10 +51,16 @@ export const useWhatsAccounts = () => {
 
       console.log(`Criando conta com empresa_id: ${empresa_id}`);
       
-      return createWhatsAccount({ 
+      // Primeiro criar no banco local
+      const newAccount = await createWhatsAccount({ 
         nome_instancia: data.nome_instancia, 
         empresa_id 
       }, user, selectedCompany);
+      
+      // Depois chamar o webhook para criar a instância no serviço externo
+      await createInstance(data.nome_instancia, empresa_id);
+      
+      return newAccount;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['whatsapp-accounts'] });
@@ -64,6 +78,9 @@ export const useWhatsAccounts = () => {
   const deleteAccountMutation = useMutation({
     mutationFn: async (params: { id: number, nomeInstancia: string }) => {
       setProcessingInstanceId(params.id);
+      // Primeiro tentar excluir via webhook
+      await deleteInstance(params.nomeInstancia);
+      // Depois excluir do banco local
       await deleteWhatsAccount(params.id);
     },
     onSuccess: () => {
@@ -106,10 +123,7 @@ export const useWhatsAccounts = () => {
   const disconnectAccountMutation = useMutation({
     mutationFn: async (params: { id: number, nomeInstancia: string }) => {
       setProcessingInstanceId(params.id);
-      // In a real app, this would call an API to disconnect
-      return new Promise<void>((resolve) => {
-        setTimeout(resolve, 1000);
-      });
+      await disconnectInstance(params.nomeInstancia);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['whatsapp-accounts'] });

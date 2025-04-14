@@ -17,7 +17,7 @@ export function useCompanySettings(companyId: string) {
     defaultValues: {
       instancia: "",
       ativo: true,
-      horario_limite: 0, // Changed from string to number (0)
+      horario_limite: 0,
       long_wait_min: 0,
       long_wait_max: 0,
       short_wait_min: 0,
@@ -41,7 +41,7 @@ export function useCompanySettings(companyId: string) {
     },
   });
 
-  // Busca as configurações da empresa
+  // Busca as configurações da empresa com companyId na query key
   const { 
     data: settings, 
     isLoading, 
@@ -51,15 +51,24 @@ export function useCompanySettings(companyId: string) {
     queryFn: () => fetchCompanySettings(companyId),
     retry: 1,
     staleTime: 30000,
+    enabled: !!companyId, // Só realizar a consulta se houver um ID de empresa
   });
 
   // Atualiza os valores do formulário quando os dados são carregados
   useEffect(() => {
     if (settings) {
+      // Atualize o formulário com os dados da empresa específica
+      console.log(`Carregando configurações da empresa ${companyId}:`, settings);
       form.reset({
         ...settings,
         empresa_id: companyId,
       });
+      
+      // Salvar webhook de instâncias no localStorage para uso em outros componentes
+      if (settings.webhook_instancias) {
+        localStorage.setItem('webhook_instancias', settings.webhook_instancias);
+        console.log(`Webhook de instâncias salvo no localStorage: ${settings.webhook_instancias}`);
+      }
     }
   }, [settings, form, companyId]);
 
@@ -69,6 +78,13 @@ export function useCompanySettings(companyId: string) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['company-settings', companyId] });
       toast.success("Configurações da empresa atualizadas com sucesso!");
+      
+      // Após salvar, atualize o localStorage com o webhook de instâncias
+      const webhookInstancias = form.getValues('webhook_instancias');
+      if (webhookInstancias) {
+        localStorage.setItem('webhook_instancias', webhookInstancias);
+        console.log(`Webhook de instâncias atualizado no localStorage: ${webhookInstancias}`);
+      }
     },
     onError: (error) => {
       toast.error(`Erro ao atualizar configurações: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
@@ -80,8 +96,8 @@ export function useCompanySettings(companyId: string) {
     updateSettingsMutation.mutate({
       ...values,
       empresa_id: companyId,
-      ativo: values.ativo ?? true, // Ensure ativo is always defined
-      horario_limite: values.horario_limite || 0, // Ensure required number fields have fallbacks
+      ativo: values.ativo ?? true,
+      horario_limite: values.horario_limite || 0,
       long_wait_min: values.long_wait_min || 0,
       long_wait_max: values.long_wait_max || 0,
       short_wait_min: values.short_wait_min || 0,

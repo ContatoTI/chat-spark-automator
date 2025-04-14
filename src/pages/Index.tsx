@@ -1,6 +1,6 @@
+
 import React, { useState, useEffect, useCallback } from "react";
 import { Layout } from "@/components/layout/Layout";
-import { DashboardStats } from "@/components/dashboard/DashboardStats";
 import { RecentCampaigns } from "@/components/dashboard/RecentCampaigns";
 import { Button } from "@/components/ui/button";
 import { PlusCircle, RefreshCw, Building, ChevronDown } from "lucide-react";
@@ -191,8 +191,6 @@ const Dashboard = () => {
             </div>
           </CardContent>
         </Card>
-
-        <DashboardStats />
 
         <div className="mt-4">
           <RecentCampaigns />
