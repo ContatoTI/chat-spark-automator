@@ -36,7 +36,11 @@ const Dashboard = () => {
     // Recarregar dados de empresas
     refetchCompanies();
     // Exibir toast de confirmação
-    toast.success("Dados atualizados com sucesso!");
+    toast({
+      title: "Dados atualizados",
+      description: "As informações foram atualizadas com sucesso.",
+      variant: "default"
+    });
   }, [queryClient, refetchCompanies]);
 
   // Efeito para observar mudanças de empresa
