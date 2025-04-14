@@ -11,22 +11,30 @@ export interface User {
 }
 
 // Função para buscar usuários com base na função e empresa do usuário logado
-export const fetchUsers = async (currentUser?: User | null): Promise<User[]> => {
-  console.log("Buscando usuários da tabela appw_users", { currentUserRole: currentUser?.role });
+export const fetchUsers = async (currentUser?: User | null, selectedCompanyId?: string | null): Promise<User[]> => {
+  console.log("Buscando usuários da tabela appw_users", { 
+    currentUserRole: currentUser?.role,
+    selectedCompanyId
+  });
   
   try {
     let query = supabase.from('appw_users').select('*');
     
     // Aplicar filtros com base na função do usuário
     if (currentUser) {
-      if (currentUser.role === 'admin' && currentUser.company_id) {
-        // Admin só vê usuários da mesma empresa (exceto masters)
+      // Para usuário master com empresa selecionada
+      if (currentUser.role === 'master' && selectedCompanyId) {
+        query = query.eq('empresa_id', selectedCompanyId);
+      }
+      // Admin só vê usuários da mesma empresa (exceto masters)
+      else if (currentUser.role === 'admin' && currentUser.company_id) {
         query = query.eq('empresa_id', currentUser.company_id);
-      } else if (currentUser.role === 'user') {
-        // Usuário comum não vê outros usuários (retorna lista vazia)
+      } 
+      // Usuário comum não vê outros usuários (retorna lista vazia)
+      else if (currentUser.role === 'user') {
         return [];
       }
-      // Master vê todos os usuários (sem filtro)
+      // Master sem empresa selecionada vê todos os usuários (sem filtro)
     }
     
     const { data, error } = await query;

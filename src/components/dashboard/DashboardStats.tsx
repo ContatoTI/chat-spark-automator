@@ -10,6 +10,7 @@ import { Skeleton } from "../ui/skeleton";
 import { supabase } from "@/lib/supabase";
 import { Button } from "../ui/button";
 import { toast } from "sonner";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface StatCardProps {
   title: string;
@@ -72,14 +73,19 @@ const StatCard: React.FC<StatCardProps> = ({
   );
 };
 
-const fetchContactsStats = async () => {
-  console.log("Fetching contacts stats from options...");
+const fetchContactsStats = async (companyId?: string | null) => {
+  console.log("Fetching contacts stats for company:", companyId);
   try {
-    const { data: totalData, error: totalError } = await supabase
+    let query = supabase
       .from('AppW_Options')
       .select('numeric')
-      .eq('option', 'numero_de_contatos')
-      .single();
+      .eq('option', 'numero_de_contatos');
+    
+    if (companyId) {
+      query = query.eq('empresa_id', companyId);
+    }
+    
+    const { data: totalData, error: totalError } = await query.single();
 
     if (totalError) {
       console.error("Error fetching total contacts count from options:", totalError);
@@ -88,10 +94,16 @@ const fetchContactsStats = async () => {
 
     console.log("Total contacts from options:", totalData?.numeric);
 
-    const { count: invalid, error: invalidError } = await supabase
+    let invalidQuery = supabase
       .from('AppW_Contatos')
       .select('*', { count: 'exact', head: true })
       .eq('Invalido', 'Invalido');
+    
+    if (companyId) {
+      invalidQuery = invalidQuery.eq('empresa_id', companyId);
+    }
+    
+    const { count: invalid, error: invalidError } = await invalidQuery;
 
     if (invalidError) {
       console.error("Error fetching invalid contacts:", invalidError);
@@ -111,9 +123,12 @@ const fetchContactsStats = async () => {
 };
 
 export const DashboardStats: React.FC = () => {
+  const { user, selectedCompany } = useAuth();
+  const companyId = user?.role === 'master' ? selectedCompany : user?.company_id;
+  
   const { data: contactsStats, isLoading, error, refetch } = useQuery({
-    queryKey: ['contactsStats'],
-    queryFn: fetchContactsStats,
+    queryKey: ['contactsStats', companyId],
+    queryFn: () => fetchContactsStats(companyId),
     staleTime: 60000,
   });
 

@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { createUser, assignUserToCompany } from "@/lib/api/users";
+import { createUser } from "@/lib/api/users";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -41,11 +41,8 @@ export function CompanyAddUserDialog({ company, open, onOpenChange, onSuccess }:
 
   const onSubmit = async (values: FormValues) => {
     try {
-      // Criar o usuário
-      await createUser(values.email, values.password, values.role);
-      
-      // Atribuir o usuário à empresa
-      // Esta parte é feita automaticamente no backend agora
+      // Criar o usuário com o ID da empresa
+      await createUser(values.email, values.password, values.role, company.id);
       
       toast.success("Usuário adicionado com sucesso", {
         description: `${values.email} foi adicionado à empresa ${company.name}`

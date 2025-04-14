@@ -6,16 +6,17 @@ import { useAuth } from "@/contexts/AuthContext";
 
 export const useUsers = () => {
   const [retryCount, setRetryCount] = useState(0);
-  const { user } = useAuth();
+  const { user, selectedCompany } = useAuth();
 
   const { 
     data: users, 
     isLoading, 
     error,
-    isError
+    isError,
+    refetch: queryRefetch
   } = useQuery({
-    queryKey: ['users', retryCount, user?.id],
-    queryFn: () => fetchUsers(user),
+    queryKey: ['users', retryCount, user?.id, selectedCompany],
+    queryFn: () => fetchUsers(user, selectedCompany),
     refetchOnWindowFocus: false,
     retry: 1,
     staleTime: 10000,

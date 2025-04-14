@@ -1,16 +1,28 @@
 
 import { supabase } from "@/lib/supabase";
 import { Campaign } from "./types";
+import { User } from "@/lib/api/users";
 
 /**
  * Fetches all campaigns from Supabase
  */
-export const fetchCampaigns = async (): Promise<Campaign[]> => {
+export const fetchCampaigns = async (currentUser?: User | null, selectedCompanyId?: string | null): Promise<Campaign[]> => {
   try {
-    const { data, error } = await supabase
+    let query = supabase
       .from('AppW_Campanhas')
       .select('*')
       .order('data', { ascending: false });
+
+    // Filtrar por empresa se for usuário master com empresa selecionada
+    if (currentUser?.role === 'master' && selectedCompanyId) {
+      query = query.eq('empresa_id', selectedCompanyId);
+    } 
+    // Filtrar para usuários admin e comuns pela empresa deles
+    else if (currentUser?.role !== 'master' && currentUser?.company_id) {
+      query = query.eq('empresa_id', currentUser.company_id);
+    }
+
+    const { data, error } = await query;
 
     if (error) {
       throw new Error(`Erro ao buscar campanhas: ${error.message}`);
