@@ -39,7 +39,10 @@ export const useWhatsAccounts = () => {
         throw new Error("Empresa não identificada");
       }
 
-      return createWhatsAccount({ ...data, empresa_id }, user, selectedCompany);
+      return createWhatsAccount({ 
+        nome_instancia: data.nome_instancia, 
+        empresa_id 
+      }, user, selectedCompany);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['whatsapp-accounts'] });

@@ -1,4 +1,3 @@
-
 import { supabase } from "@/lib/supabase";
 import { WhatsAccount } from "./types";
 import { User } from "@/lib/api/users";
@@ -39,26 +38,15 @@ export const getWhatsAccounts = async (currentUser?: User | null, selectedCompan
  * Create a new WhatsApp account
  */
 export const createWhatsAccount = async (
-  account: { nome_instancia: string },
+  account: { nome_instancia: string; empresa_id: string },
   currentUser?: User | null,
   selectedCompanyId?: string | null
 ): Promise<WhatsAccount> => {
-  // Determinar o empresa_id com base no usuário logado e empresa selecionada
-  let empresa_id;
-  
-  if (currentUser?.role === 'master' && selectedCompanyId) {
-    empresa_id = selectedCompanyId;
-  } else if (currentUser?.company_id) {
-    empresa_id = currentUser.company_id;
-  } else {
-    empresa_id = "default";
-  }
-
-  console.log("Criando conta com os dados:", { ...account, empresa_id });
+  console.log("Criando conta com os dados:", account);
 
   const { data, error } = await supabase
     .from(TABLE_NAME)
-    .insert({ ...account, empresa_id })
+    .insert(account)
     .select()
     .single();
 
