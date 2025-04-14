@@ -33,6 +33,15 @@ export function CompanySettingsForm({ companyId }: CompanySettingsFormProps) {
         <p className="text-sm text-muted-foreground">
           {error instanceof Error ? error.message : "Erro ao carregar configurações"}
         </p>
+        <Button 
+          variant="outline" 
+          onClick={() => toast({
+            title: "Ação necessária",
+            description: "Verifique as permissões de acesso e tente novamente."
+          })}
+        >
+          Tentar novamente
+        </Button>
       </div>
     );
   }
@@ -45,7 +54,7 @@ export function CompanySettingsForm({ companyId }: CompanySettingsFormProps) {
             <CardHeader>
               <CardTitle>Configurações Gerais</CardTitle>
               <CardDescription>
-                Configurações gerais de API e webhooks
+                Configurações gerais de API e webhooks para esta empresa
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -57,7 +66,7 @@ export function CompanySettingsForm({ companyId }: CompanySettingsFormProps) {
             <CardHeader>
               <CardTitle>Configurações FTP</CardTitle>
               <CardDescription>
-                Configurações para o servidor FTP
+                Configurações para o servidor FTP desta empresa
               </CardDescription>
             </CardHeader>
             <CardContent>

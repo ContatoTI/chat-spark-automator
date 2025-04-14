@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Campaign } from "@/lib/api/campaigns/types";
-import { fetchCampaigns, deleteCampaign, updateCampaign } from "@/lib/api/campaigns";
+import { fetchCampaigns, deleteCampaign, updateCampaign, createCampaign } from "@/lib/api/campaigns";
 import { useAuth } from "@/contexts/AuthContext";
 
 export const useCampaignOperations = () => {
@@ -16,6 +16,22 @@ export const useCampaignOperations = () => {
     queryKey: ['campaigns', user?.id, selectedCompany],
     queryFn: () => fetchCampaigns(user, selectedCompany),
     staleTime: 1000 * 60 * 5, // 5 minutes
+  });
+
+  // Create campaign mutation
+  const createMutation = useMutation({
+    mutationFn: (campaign: Campaign) => {
+      return createCampaign(campaign, user, selectedCompany);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['campaigns'] });
+      toast.success("Campanha criada com sucesso");
+    },
+    onError: (error) => {
+      toast.error("Erro ao criar campanha", {
+        description: error instanceof Error ? error.message : "Erro desconhecido"
+      });
+    }
   });
 
   // Delete campaign mutation
@@ -52,6 +68,25 @@ export const useCampaignOperations = () => {
   });
 
   // Handler functions
+  const handleCreateCampaign = (campaign: Campaign) => {
+    // Garantir que a campanha tenha o empresa_id correto
+    let empresa_id: string;
+    
+    if (user?.role === 'master' && selectedCompany) {
+      empresa_id = selectedCompany;
+    } else if (user?.company_id) {
+      empresa_id = user.company_id;
+    } else {
+      toast.error("Empresa não identificada. Selecione uma empresa ou verifique suas permissões.");
+      return;
+    }
+    
+    createMutation.mutate({
+      ...campaign,
+      empresa_id
+    });
+  };
+
   const handleDeleteCampaign = (id: number) => {
     deleteMutation.mutate(id);
   };
@@ -75,9 +110,11 @@ export const useCampaignOperations = () => {
     isError,
     selectedCampaign,
     setSelectedCampaign,
+    handleCreateCampaign,
     handleDeleteCampaign,
     handleSendCampaignNow,
     handleEditCampaign,
+    createMutation,
     sendNowMutation
   };
 };

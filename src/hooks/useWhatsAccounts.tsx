@@ -31,14 +31,18 @@ export const useWhatsAccounts = () => {
   const createAccountMutation = useMutation({
     mutationFn: (data: { nome_instancia: string }) => {
       // Determine empresa_id based on user role and selected company
-      const empresa_id = user?.role === 'master' && selectedCompany 
-        ? selectedCompany 
-        : user?.company_id;
-
-      if (!empresa_id) {
-        throw new Error("Empresa não identificada");
+      let empresa_id: string;
+      
+      if (user?.role === 'master' && selectedCompany) {
+        empresa_id = selectedCompany;
+      } else if (user?.company_id) {
+        empresa_id = user.company_id;
+      } else {
+        throw new Error("Empresa não identificada. Selecione uma empresa ou verifique suas permissões.");
       }
 
+      console.log(`Criando conta com empresa_id: ${empresa_id}`);
+      
       return createWhatsAccount({ 
         nome_instancia: data.nome_instancia, 
         empresa_id 

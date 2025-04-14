@@ -20,6 +20,8 @@ export const testWebhook = async (url: string): Promise<boolean> => {
   try {
     // Using fetch with no-cors mode to handle CORS issues
     // This allows the request to be sent but response info will be limited
+    console.log(`Testando webhook: ${url}`);
+    
     const response = await fetch(url, {
       method: 'GET',
       mode: 'no-cors',
@@ -30,6 +32,7 @@ export const testWebhook = async (url: string): Promise<boolean> => {
     
     // Since we're using no-cors, we won't get proper status codes
     // But at least we know the request was sent without network errors
+    console.log(`Teste de webhook concluído para: ${url}`);
     return true;
   } catch (error) {
     console.error('Erro ao testar webhook:', error);

@@ -61,6 +61,7 @@ const WhatsAccounts = () => {
             <Button onClick={handleRefreshAccounts} variant="outline">
               Tentar novamente
             </Button>
+            {/* Mostrar informações de debug apenas para usuários master */}
             {isMaster && (
               <div className="mt-2 p-2 bg-muted/50 rounded text-xs font-mono overflow-auto">
                 <p>Informação para o desenvolvedor:</p>
@@ -82,6 +83,7 @@ const WhatsAccounts = () => {
               getStatusInfo={getStatusInfo}
             />
             
+            {/* Mostrar aviso sobre RLS apenas para usuários master */}
             {!isLoading && accounts.length === 0 && isMaster && (
               <div className="mt-4 p-4 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-md">
                 <h3 className="font-medium">Possível problema com RLS</h3>
