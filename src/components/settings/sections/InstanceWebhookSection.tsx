@@ -23,7 +23,7 @@ export function InstanceWebhookSection({ form }: InstanceWebhookSectionProps) {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        <Alert variant="info" className="bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-800">
+        <Alert variant="default" className="bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-800">
           <AlertCircle className="h-4 w-4 text-blue-600 dark:text-blue-400" />
           <AlertTitle>Sobre os webhooks de instâncias</AlertTitle>
           <AlertDescription className="text-sm mt-1">
@@ -55,3 +55,4 @@ export function InstanceWebhookSection({ form }: InstanceWebhookSectionProps) {
     </Card>
   );
 }
+
