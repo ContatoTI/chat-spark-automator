@@ -1,4 +1,4 @@
-import { WhatsAppStatusResponse } from "./types";
+import { WhatsAppStatusResponse, WhatsAppQRCodeResponse } from "./types";
 import { callWebhook } from "../webhook-utils";
 
 export const generateQRCodeData = async (instanceName: string): Promise<string> => {
@@ -16,20 +16,22 @@ export const generateQRCodeData = async (instanceName: string): Promise<string> 
       action: 'connect',
       instance_name: instanceName,
       timestamp: new Date().toISOString()
-    });
+    }) as WhatsAppQRCodeResponse;
     
     if (!response.success) {
       console.error('[Webhook] Resposta de erro:', response);
       throw new Error(response.message || 'Falha ao gerar QR code');
     }
     
-    if (!response.data?.qrcode) {
+    // Check for QR code in different possible response formats
+    const qrCodeData = response.data?.qrcode || response.data?.base64;
+    if (!qrCodeData) {
       console.error('[Webhook] Resposta sem QR code:', response);
       throw new Error('Resposta do webhook não contém dados do QR code');
     }
     
     console.log('[Webhook] QR code gerado com sucesso');
-    return response.data.qrcode;
+    return qrCodeData;
   } catch (error) {
     console.error('[Webhook] Erro ao gerar QR code:', error);
     throw error;

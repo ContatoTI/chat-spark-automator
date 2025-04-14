@@ -1,3 +1,4 @@
+
 export interface WhatsAccount {
   id: number;
   nome_instancia: string;
@@ -13,5 +14,14 @@ export interface WhatsAppInstanceResponse {
 export interface WhatsAppStatusResponse {
   success: boolean;
   data?: WhatsAppInstanceResponse[];
+  message?: string;
+}
+
+export interface WhatsAppQRCodeResponse {
+  success: boolean;
+  data?: {
+    qrcode?: string;
+    base64?: string;
+  };
   message?: string;
 }
