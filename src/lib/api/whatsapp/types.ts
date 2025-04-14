@@ -22,6 +22,8 @@ export interface WhatsAppQRCodeResponse {
   data?: {
     qrcode?: string;
     base64?: string;
+    pairingCode?: string | null;
+    code?: string;
   };
   message?: string;
 }

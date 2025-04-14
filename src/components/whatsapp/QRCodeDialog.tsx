@@ -21,7 +21,9 @@ export function QRCodeDialog({ isOpen, onClose, instanceName, qrCodeData }: QRCo
   // Function to determine if the string is a valid base64 format
   const isBase64 = (str: string) => {
     try {
-      return btoa(atob(str)) === str;
+      // Regular expression to check for valid base64 characters
+      const regex = /^[A-Za-z0-9+/=]+$/;
+      return regex.test(str) && str.length % 4 === 0;
     } catch (err) {
       return false;
     }
