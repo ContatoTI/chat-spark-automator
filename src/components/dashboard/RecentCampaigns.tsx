@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { 
   Check, 
@@ -22,6 +23,7 @@ import { Campaign } from "@/lib/api/campaigns";
 import { EditCampaignDialog } from "@/components/campaigns/EditCampaignDialog";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   AlertDialog,
   AlertDialogAction,
