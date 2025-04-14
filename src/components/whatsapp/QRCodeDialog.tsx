@@ -18,34 +18,6 @@ interface QRCodeDialogProps {
 }
 
 export function QRCodeDialog({ isOpen, onClose, instanceName, qrCodeData }: QRCodeDialogProps) {
-  // Function to determine if the string is a valid base64 format
-  const isBase64 = (str: string) => {
-    try {
-      // Regular expression to check for valid base64 characters
-      const regex = /^[A-Za-z0-9+/=]+$/;
-      return regex.test(str) && str.length % 4 === 0;
-    } catch (err) {
-      return false;
-    }
-  };
-
-  // Function to format the QR code data properly
-  const formatQRCodeData = (data: string) => {
-    if (!data) return '';
-    
-    // If it's already a complete data URL, return as is
-    if (data.startsWith('data:')) {
-      return data;
-    }
-    
-    // If it's a base64 string, convert to data URL
-    if (isBase64(data)) {
-      return `data:image/png;base64,${data}`;
-    }
-    
-    return data;
-  };
-
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md">
@@ -60,7 +32,7 @@ export function QRCodeDialog({ isOpen, onClose, instanceName, qrCodeData }: QRCo
           {qrCodeData ? (
             <div className="flex flex-col items-center space-y-4">
               <img 
-                src={formatQRCodeData(qrCodeData)} 
+                src={qrCodeData}
                 alt="QR Code para conectar WhatsApp" 
                 className="max-w-full h-auto border rounded-md"
               />

@@ -24,8 +24,8 @@ export const generateQRCodeData = async (instanceName: string): Promise<string> 
       throw new Error(response.message || 'Falha ao gerar QR code');
     }
     
-    // Check for QR code in different possible response formats
-    const qrCodeData = response.data?.base64 || response.data?.qrcode;
+    // Get the base64 QR code data directly from the response
+    const qrCodeData = response.data?.base64;
     if (!qrCodeData) {
       console.error('[Webhook] Resposta sem QR code:', response);
       throw new Error('Resposta do webhook não contém dados do QR code');
