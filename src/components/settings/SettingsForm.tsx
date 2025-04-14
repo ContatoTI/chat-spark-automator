@@ -23,20 +23,25 @@ export function SettingsForm({ initialSettings, userRole }: SettingsFormProps) {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-        <GeneralSettings form={form} />
+        {/* Mostrar configurações gerais e FTP apenas para usuários master */}
+        {isMaster && (
+          <>
+            <GeneralSettings form={form} />
+            <FtpSettings form={form} />
+          </>
+        )}
         
         {/* Mostrar configurações de limites para qualquer tipo de usuário */}
         <LimitsSettings form={form} />
         
-        {/* Mostrar configurações de intervalo e lote apenas para usuários não-master */}
-        {!isMaster && (
+        {/* Mostrar configurações de intervalo e lote apenas para usuários admin */}
+        {isAdmin && (
           <>
             <IntervalSettings form={form} />
             <BatchSettings form={form} />
           </>
         )}
         
-        <FtpSettings form={form} />
         <SaveButton isPending={isSubmitting} />
       </form>
     </Form>

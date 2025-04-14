@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Company } from '@/lib/api/companies';
 import { User } from '@/lib/api/users';
@@ -11,7 +10,7 @@ import {
   TableRow 
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { Pencil, Trash2, AlertCircle, Building, ChevronDown, ChevronUp, Users, Settings, FolderCheck } from 'lucide-react';
+import { Pencil, Trash2, AlertCircle, Building, ChevronDown, ChevronUp, Users, Settings, FolderCheck, UserPlus } from 'lucide-react';
 import { EditCompanyDialog } from './EditCompanyDialog';
 import { DeleteCompanyDialog } from './DeleteCompanyDialog';
 import { format } from 'date-fns';
@@ -20,6 +19,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { useUsers } from '@/hooks/useUsers';
 import { CompanySettingsForm } from './CompanySettingsForm';
 import { useAuth } from '@/contexts/AuthContext';
+import { CompanyAddUserDialog } from './CompanyAddUserDialog';
 
 interface CompaniesTableProps {
   companies?: Company[];
@@ -37,9 +37,10 @@ export const CompaniesTable: React.FC<CompaniesTableProps> = ({
   const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [addUserDialogOpen, setAddUserDialogOpen] = useState(false);
   const [expandedCompany, setExpandedCompany] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'users' | 'settings'>('users');
-  const { users, isLoading: usersLoading } = useUsers();
+  const { users, isLoading: usersLoading, refetch: refetchUsers } = useUsers();
   const { isMaster } = useAuth();
 
   if (isLoading) {
@@ -90,7 +91,6 @@ export const CompaniesTable: React.FC<CompaniesTableProps> = ({
     return format(new Date(dateString), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR });
   };
 
-  // Filtrar usuários por empresa
   const getUsersByCompany = (companyId: string): User[] => {
     return users.filter(user => user.company_id === companyId);
   };
@@ -119,6 +119,24 @@ export const CompaniesTable: React.FC<CompaniesTableProps> = ({
               </div>
               <div className="flex items-center gap-2">
                 <p className="text-sm text-muted-foreground mr-2">Criada em: {formatDate(company.created_at)}</p>
+                
+                {isMaster && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedCompany(company);
+                      setAddUserDialogOpen(true);
+                    }}
+                    className="text-blue-600 border-blue-200 hover:bg-blue-50"
+                    title="Adicionar usuário"
+                  >
+                    <UserPlus className="h-4 w-4 mr-1" />
+                    <span className="hidden sm:inline">Usuário</span>
+                  </Button>
+                )}
+                
                 <Button 
                   variant="ghost" 
                   size="icon"
@@ -131,6 +149,7 @@ export const CompaniesTable: React.FC<CompaniesTableProps> = ({
                 >
                   <Pencil className="h-4 w-4" />
                 </Button>
+                
                 <Button 
                   variant="ghost" 
                   size="icon"
@@ -144,6 +163,7 @@ export const CompaniesTable: React.FC<CompaniesTableProps> = ({
                 >
                   <Trash2 className="h-4 w-4" />
                 </Button>
+                
                 {expandedCompany === company.id ? (
                   <ChevronUp className="h-5 w-5" />
                 ) : (
@@ -154,7 +174,6 @@ export const CompaniesTable: React.FC<CompaniesTableProps> = ({
             
             {expandedCompany === company.id && (
               <CardContent className="pt-4 pb-4 border-t">
-                {/* Tabs para usuários e configurações */}
                 {isMaster && (
                   <div className="mb-4 border-b">
                     <div className="flex space-x-4">
@@ -184,13 +203,29 @@ export const CompaniesTable: React.FC<CompaniesTableProps> = ({
                   </div>
                 )}
 
-                {/* Conteúdo baseado na aba ativa */}
                 {(activeTab === 'users' || !isMaster) && (
                   <div className="space-y-4">
                     <div>
-                      <div className="flex items-center gap-2 mb-2">
-                        <Users className="h-4 w-4" />
-                        <h4 className="font-medium">Usuários desta empresa</h4>
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <Users className="h-4 w-4" />
+                          <h4 className="font-medium">Usuários desta empresa</h4>
+                        </div>
+                        
+                        {isMaster && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setSelectedCompany(company);
+                              setAddUserDialogOpen(true);
+                            }}
+                            className="text-blue-600 border-blue-200 hover:bg-blue-50"
+                          >
+                            <UserPlus className="h-4 w-4 mr-2" />
+                            Adicionar Usuário
+                          </Button>
+                        )}
                       </div>
                       
                       {usersLoading ? (
@@ -277,6 +312,14 @@ export const CompaniesTable: React.FC<CompaniesTableProps> = ({
             open={deleteDialogOpen}
             onOpenChange={setDeleteDialogOpen}
             onSuccess={refetch}
+          />
+          <CompanyAddUserDialog
+            company={selectedCompany}
+            open={addUserDialogOpen}
+            onOpenChange={setAddUserDialogOpen}
+            onSuccess={() => {
+              refetchUsers();
+            }}
           />
         </>
       )}

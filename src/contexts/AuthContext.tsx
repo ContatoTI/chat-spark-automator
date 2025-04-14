@@ -13,6 +13,8 @@ interface AuthContextType {
   logout: () => Promise<void>;
   isAdmin: boolean;
   isMaster: boolean;
+  selectedCompany: string | null;
+  setSelectedCompany: (companyId: string | null) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -21,6 +23,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
+  const [selectedCompany, setSelectedCompany] = useState<string | null>(null);
   const navigate = useNavigate();
 
   // Verificar se o usuário está logado ao iniciar
@@ -34,6 +37,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (storedUser) {
           const parsedUser = JSON.parse(storedUser);
           setUser(parsedUser);
+          
+          // Restaurar empresa selecionada para usuários master
+          if (parsedUser.role === 'master') {
+            const savedCompany = localStorage.getItem('selectedCompany');
+            if (savedCompany) {
+              setSelectedCompany(savedCompany);
+            }
+          }
         } else {
           setUser(null);
         }
@@ -75,12 +86,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         email: data.email,
         created_at: data.created_at,
         role: data.role || 'user',
+        company_id: data.empresa_id,
         last_sign_in_at: new Date().toISOString()
       };
       
       // Salvar usuário na sessão
       localStorage.setItem('currentUser', JSON.stringify(loggedUser));
       setUser(loggedUser);
+      
+      // Para usuários master, definir empresa selecionada padrão
+      if (loggedUser.role === 'master' && loggedUser.company_id) {
+        setSelectedCompany(loggedUser.company_id);
+        localStorage.setItem('selectedCompany', loggedUser.company_id);
+      }
       
       toast.success("Login realizado com sucesso!");
       navigate("/");
@@ -99,12 +117,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       // Remover usuário da sessão
       localStorage.removeItem('currentUser');
+      localStorage.removeItem('selectedCompany');
       setUser(null);
+      setSelectedCompany(null);
       navigate("/login");
       toast.info("Logout realizado com sucesso");
     } catch (err) {
       console.error("Erro ao fazer logout:", err);
       toast.error("Erro ao fazer logout");
+    }
+  };
+  
+  // Função para atualizar a empresa selecionada (para usuários master)
+  const handleSetSelectedCompany = (companyId: string | null) => {
+    setSelectedCompany(companyId);
+    if (companyId) {
+      localStorage.setItem('selectedCompany', companyId);
+    } else {
+      localStorage.removeItem('selectedCompany');
     }
   };
 
@@ -117,7 +147,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         login, 
         logout,
         isAdmin: user?.role === 'admin',
-        isMaster: user?.role === 'master'
+        isMaster: user?.role === 'master',
+        selectedCompany,
+        setSelectedCompany: handleSetSelectedCompany
       }}
     >
       {children}

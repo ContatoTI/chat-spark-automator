@@ -20,7 +20,7 @@ export const fetchUsers = async (currentUser?: User | null): Promise<User[]> => 
     // Aplicar filtros com base na função do usuário
     if (currentUser) {
       if (currentUser.role === 'admin' && currentUser.company_id) {
-        // Admin só vê usuários da mesma empresa
+        // Admin só vê usuários da mesma empresa (exceto masters)
         query = query.eq('empresa_id', currentUser.company_id);
       } else if (currentUser.role === 'user') {
         // Usuário comum não vê outros usuários (retorna lista vazia)
@@ -90,8 +90,8 @@ export const fetchUsers = async (currentUser?: User | null): Promise<User[]> => 
 };
 
 // Função para criar usuário na tabela appw_users
-export const createUser = async (email: string, password: string, role: string): Promise<void> => {
-  console.log("Criando usuário:", { email, role });
+export const createUser = async (email: string, password: string, role: string, companyId?: string): Promise<void> => {
+  console.log("Criando usuário:", { email, role, companyId });
   
   if (!email || !password) {
     throw new Error("Email e senha são obrigatórios");
@@ -126,7 +126,8 @@ export const createUser = async (email: string, password: string, role: string):
         email: email,
         password: password, // Nota: em produção, isso deveria ser um hash
         role: role,
-        created_at: new Date().toISOString()
+        created_at: new Date().toISOString(),
+        empresa_id: companyId // Atribuir à empresa fornecida, se houver
       }]);
       
     if (insertError) {

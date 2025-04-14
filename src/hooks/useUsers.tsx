@@ -21,13 +21,21 @@ export const useUsers = () => {
     staleTime: 10000,
   });
 
+  // Filtrar usuários master quando o usuário logado é admin
+  const filteredUsers = users ? users.filter(u => {
+    if (user?.role === 'admin') {
+      return u.role !== 'master';
+    }
+    return true;
+  }) : [];
+
   // Função para forçar uma atualização ao alterar a chave de consulta
   const forceRefresh = () => {
     setRetryCount(prev => prev + 1);
   };
 
   return {
-    users: users || [],
+    users: filteredUsers,
     isLoading,
     error,
     refetch: forceRefresh,
