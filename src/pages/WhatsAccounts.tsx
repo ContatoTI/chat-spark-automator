@@ -8,8 +8,12 @@ import { useWhatsAccounts } from "@/hooks/useWhatsAccounts";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/contexts/AuthContext";
 
 const WhatsAccounts = () => {
+  const { user, selectedCompany } = useAuth();
+  const isMaster = user?.role === 'master';
+  
   const {
     accounts,
     isLoading,
@@ -57,12 +61,14 @@ const WhatsAccounts = () => {
             <Button onClick={handleRefreshAccounts} variant="outline">
               Tentar novamente
             </Button>
-            <div className="mt-2 p-2 bg-muted/50 rounded text-xs font-mono overflow-auto">
-              <p>Informação para o desenvolvedor:</p>
-              <p>Tabela: AppW_Instancias</p>
-              <p>O problema pode estar relacionado a políticas RLS no Supabase.</p>
-              <p>Verifique se a tabela tem as permissões corretas para SELECT, INSERT e DELETE.</p>
-            </div>
+            {isMaster && (
+              <div className="mt-2 p-2 bg-muted/50 rounded text-xs font-mono overflow-auto">
+                <p>Informação para o desenvolvedor:</p>
+                <p>Tabela: AppW_Instancias</p>
+                <p>O problema pode estar relacionado a políticas RLS no Supabase.</p>
+                <p>Verifique se a tabela tem as permissões corretas para SELECT, INSERT e DELETE.</p>
+              </div>
+            )}
           </div>
         ) : (
           <>
@@ -76,7 +82,7 @@ const WhatsAccounts = () => {
               getStatusInfo={getStatusInfo}
             />
             
-            {!isLoading && accounts.length === 0 && (
+            {!isLoading && accounts.length === 0 && isMaster && (
               <div className="mt-4 p-4 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-md">
                 <h3 className="font-medium">Possível problema com RLS</h3>
                 <p className="text-sm mt-1">

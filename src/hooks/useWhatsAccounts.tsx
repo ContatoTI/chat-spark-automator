@@ -30,7 +30,16 @@ export const useWhatsAccounts = () => {
   // Create account mutation
   const createAccountMutation = useMutation({
     mutationFn: (data: { nome_instancia: string }) => {
-      return createWhatsAccount(data, user, selectedCompany);
+      // Determine empresa_id based on user role and selected company
+      const empresa_id = user?.role === 'master' && selectedCompany 
+        ? selectedCompany 
+        : user?.company_id;
+
+      if (!empresa_id) {
+        throw new Error("Empresa não identificada");
+      }
+
+      return createWhatsAccount({ ...data, empresa_id }, user, selectedCompany);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['whatsapp-accounts'] });
