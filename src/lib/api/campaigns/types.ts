@@ -21,4 +21,7 @@ export interface Campaign {
   producao: boolean;
   limite_disparos: number;
   enviados: number;
+  
+  // Campo para vincular campanha à empresa
+  empresa_id: string;
 }

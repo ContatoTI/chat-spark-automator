@@ -22,7 +22,7 @@ export const callWebhook = async (
   }
 
   try {
-    console.log(`Chamando webhook: ${url}`);
+    console.log(`Chamando webhook: ${url} com payload:`, JSON.stringify(payload));
     
     // Try POST request first
     try {
@@ -43,6 +43,7 @@ export const callWebhook = async (
         
         try {
           const responseJson = await postResponse.json();
+          console.log('Resposta JSON:', JSON.stringify(responseJson));
           return { 
             success: true, 
             data: responseJson,
@@ -51,6 +52,7 @@ export const callWebhook = async (
         } catch (e) {
           // If can't parse as JSON, return text
           const text = await postResponse.text();
+          console.log('Resposta TEXT:', text);
           return { 
             success: true, 
             message: text || "Operação realizada com sucesso" 
@@ -81,6 +83,7 @@ export const callWebhook = async (
           console.log('Requisição GET bem-sucedida');
           try {
             const responseJson = await getResponse.json();
+            console.log('Resposta JSON (GET):', JSON.stringify(responseJson));
             return { 
               success: true, 
               data: responseJson,
@@ -89,6 +92,7 @@ export const callWebhook = async (
           } catch (e) {
             // If can't parse as JSON, return text
             const text = await getResponse.text();
+            console.log('Resposta TEXT (GET):', text);
             return { 
               success: true, 
               message: text || "Operação realizada com sucesso" 

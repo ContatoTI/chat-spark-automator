@@ -27,15 +27,20 @@ import { LoadingState } from "@/components/whatsapp/LoadingState";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Badge } from "@/components/ui/badge";
 import { isInstanceConnected } from "@/lib/api/whatsapp/webhook";
+import { toast } from "sonner";
 
 interface WhatsAccountsTableProps {
   accounts: WhatsAccount[];
   isLoading: boolean;
   onDelete: (id: number, nomeInstancia: string) => Promise<void>;
-  onConnect: (id: number, nomeInstancia: string) => Promise<void>;
+  onConnect: (id: number, nomeInstancia: string, webhookInst: string) => Promise<void>;
   onDisconnect: (id: number, nomeInstancia: string) => Promise<void>;
-  isProcessing: {[id: number]: string};
-  getStatusInfo: (status: string | null) => { text: string; color: "green" | "red" | "yellow" | "gray" };
+  isProcessing: { [id: number]: string };
+  getStatusInfo: (status: string) => { 
+    label: string; 
+    color: string; 
+    bgColor: string; 
+  };
 }
 
 export function WhatsAccountsTable({ 
@@ -70,13 +75,11 @@ export function WhatsAccountsTable({
     }
   };
 
-  const getStatusBadgeVariant = (color: "green" | "red" | "yellow" | "gray") => {
-    switch (color) {
-      case "green": return "success";
-      case "red": return "destructive";
-      case "yellow": return "warning";
-      case "gray": default: return "secondary";
-    }
+  const getStatusBadgeVariant = (color: string) => {
+    if (color.includes("green")) return "success";
+    if (color.includes("red")) return "destructive";
+    if (color.includes("yellow")) return "warning";
+    return "secondary";
   };
 
   const handleConnectionToggle = (account: WhatsAccount) => {
@@ -84,7 +87,15 @@ export function WhatsAccountsTable({
     if (connected) {
       return onDisconnect(account.id, account.nome_instancia);
     } else {
-      return onConnect(account.id, account.nome_instancia);
+      // Get webhook URL from localStorage instead of account.webhook_inst
+      const webhookUrl = localStorage.getItem('webhook_instancias');
+      
+      if (!webhookUrl) {
+        toast.error("URL do webhook não configurada para esta instância");
+        return Promise.resolve();
+      }
+      
+      return onConnect(account.id, account.nome_instancia, webhookUrl);
     }
   };
 
@@ -102,7 +113,7 @@ export function WhatsAccountsTable({
         </TableHeader>
         <TableBody>
           {accounts.map((account) => {
-            const statusInfo = getStatusInfo(account.status || null);
+            const statusInfo = getStatusInfo(account.status || "");
             const badgeVariant = getStatusBadgeVariant(statusInfo.color);
             const isConnected = isInstanceConnected(account.status);
             const isProcessingInstance = !!isProcessing[account.id];
@@ -116,7 +127,7 @@ export function WhatsAccountsTable({
                 <TableCell>
                   <Badge variant={badgeVariant as any} className="flex items-center gap-1 w-fit">
                     {getStatusIcon(account.status || null)}
-                    <span>{statusInfo.text}</span>
+                    <span>{statusInfo.label}</span>
                   </Badge>
                 </TableCell>
                 <TableCell>

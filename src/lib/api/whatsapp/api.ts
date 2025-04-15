@@ -1,18 +1,27 @@
-
 import { supabase } from "@/lib/supabase";
 import { WhatsAccount } from "./types";
+import { User } from "@/lib/api/users";
 
 const TABLE_NAME = "AppW_Instancias";
 
 /**
  * Get all WhatsApp accounts
  */
-export const getWhatsAccounts = async (): Promise<WhatsAccount[]> => {
+export const getWhatsAccounts = async (currentUser?: User | null, selectedCompanyId?: string | null): Promise<WhatsAccount[]> => {
   console.log("Buscando contas de WhatsApp da tabela:", TABLE_NAME);
   
-  const { data, error } = await supabase
-    .from(TABLE_NAME)
-    .select("*");
+  let query = supabase.from(TABLE_NAME).select("*");
+
+  // Filtrar por empresa se for usuário master com empresa selecionada
+  if (currentUser?.role === 'master' && selectedCompanyId) {
+    query = query.eq('empresa_id', selectedCompanyId);
+  } 
+  // Filtrar para usuários admin e comuns pela empresa deles
+  else if (currentUser?.role !== 'master' && currentUser?.company_id) {
+    query = query.eq('empresa_id', currentUser.company_id);
+  }
+
+  const { data, error } = await query;
 
   console.log("Resposta do Supabase:", { data, error });
 
@@ -29,17 +38,15 @@ export const getWhatsAccounts = async (): Promise<WhatsAccount[]> => {
  * Create a new WhatsApp account
  */
 export const createWhatsAccount = async (
-  account: { nome_instancia: string }
+  account: { nome_instancia: string; empresa_id: string },
+  currentUser?: User | null,
+  selectedCompanyId?: string | null
 ): Promise<WhatsAccount> => {
-  // In a real app, we'd get the empresa_id from the authenticated user
-  // For now, we'll use a default value
-  const empresa_id = "falcontruck";
-
-  console.log("Criando conta com os dados:", { ...account, empresa_id });
+  console.log("Criando conta com os dados:", account);
 
   const { data, error } = await supabase
     .from(TABLE_NAME)
-    .insert({ ...account, empresa_id })
+    .insert(account)
     .select()
     .single();
 

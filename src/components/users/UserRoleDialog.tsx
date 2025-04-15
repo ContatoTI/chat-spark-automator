@@ -77,6 +77,7 @@ export const UserRoleDialog: React.FC<UserRoleDialogProps> = ({
               <SelectContent>
                 <SelectItem value="user">Usuário</SelectItem>
                 <SelectItem value="admin">Administrador</SelectItem>
+                <SelectItem value="master">Master</SelectItem>
               </SelectContent>
             </Select>
           </div>

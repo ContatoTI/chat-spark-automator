@@ -6,10 +6,16 @@ import { WhatsAccountsTable } from "@/components/whatsapp/WhatsAccountsTable";
 import { QRCodeDialog } from "@/components/whatsapp/QRCodeDialog";
 import { useWhatsAccounts } from "@/hooks/useWhatsAccounts";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/contexts/AuthContext";
+import { Link } from "react-router-dom";
 
 const WhatsAccounts = () => {
+  const { user, selectedCompany } = useAuth();
+  const isMaster = user?.role === 'master';
+  const webhookUrl = localStorage.getItem('webhook_instancias');
+  
   const {
     accounts,
     isLoading,
@@ -30,6 +36,11 @@ const WhatsAccounts = () => {
     getStatusInfo
   } = useWhatsAccounts();
 
+  const handleRefreshAccounts = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    refreshAccounts();
+  };
+
   return (
     <Layout>
       <div className="flex flex-col gap-8">
@@ -40,6 +51,24 @@ const WhatsAccounts = () => {
           isRefreshing={isRefreshing}
         />
         
+        {!webhookUrl && (
+          <Alert variant="default" className="bg-amber-50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-800">
+            <AlertTriangle className="h-4 w-4 text-amber-600" />
+            <AlertTitle>Webhook não configurado</AlertTitle>
+            <AlertDescription className="flex flex-col gap-2">
+              <p>URL do webhook de instâncias não configurada. Configure nas Configurações &gt; Webhooks.</p>
+              <div>
+                <Button variant="outline" size="sm" asChild className="mt-2">
+                  <Link to="/settings" className="flex items-center gap-2">
+                    <Settings className="h-4 w-4" />
+                    Ir para Configurações
+                  </Link>
+                </Button>
+              </div>
+            </AlertDescription>
+          </Alert>
+        )}
+        
         {error ? (
           <div className="bg-destructive/15 p-4 rounded-md space-y-4">
             <Alert variant="destructive">
@@ -49,15 +78,18 @@ const WhatsAccounts = () => {
                 {error.message}
               </AlertDescription>
             </Alert>
-            <Button onClick={refreshAccounts} variant="outline">
+            <Button onClick={handleRefreshAccounts} variant="outline">
               Tentar novamente
             </Button>
-            <div className="mt-2 p-2 bg-muted/50 rounded text-xs font-mono overflow-auto">
-              <p>Informação para o desenvolvedor:</p>
-              <p>Tabela: AppW_Instancias</p>
-              <p>O problema pode estar relacionado a políticas RLS no Supabase.</p>
-              <p>Verifique se a tabela tem as permissões corretas para SELECT, INSERT e DELETE.</p>
-            </div>
+            {/* Mostrar informações de debug apenas para usuários master */}
+            {isMaster && (
+              <div className="mt-2 p-2 bg-muted/50 rounded text-xs font-mono overflow-auto">
+                <p>Informação para o desenvolvedor:</p>
+                <p>Tabela: AppW_Instancias</p>
+                <p>O problema pode estar relacionado a políticas RLS no Supabase.</p>
+                <p>Verifique se a tabela tem as permissões corretas para SELECT, INSERT e DELETE.</p>
+              </div>
+            )}
           </div>
         ) : (
           <>
@@ -71,7 +103,8 @@ const WhatsAccounts = () => {
               getStatusInfo={getStatusInfo}
             />
             
-            {!isLoading && accounts.length === 0 && (
+            {/* Mostrar aviso sobre RLS apenas para usuários master */}
+            {!isLoading && accounts.length === 0 && isMaster && (
               <div className="mt-4 p-4 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-md">
                 <h3 className="font-medium">Possível problema com RLS</h3>
                 <p className="text-sm mt-1">
@@ -92,7 +125,7 @@ const WhatsAccounts = () => {
             <QRCodeDialog 
               isOpen={qrCodeDialogOpen}
               onClose={closeQrCodeDialog}
-              instanceName={currentInstance}
+              instanceName={currentInstance || ''}
               qrCodeData={qrCodeData || undefined}
             />
           </>
