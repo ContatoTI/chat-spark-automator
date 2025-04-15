@@ -1,3 +1,4 @@
+
 import React from "react";
 import { 
   Table, 
@@ -26,7 +27,7 @@ import { LoadingState } from "@/components/whatsapp/LoadingState";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Badge } from "@/components/ui/badge";
 import { isInstanceConnected } from "@/lib/api/whatsapp/webhook";
-import { toast } from "react-toastify";
+import { toast } from "sonner";
 
 interface WhatsAccountsTableProps {
   accounts: WhatsAccount[];

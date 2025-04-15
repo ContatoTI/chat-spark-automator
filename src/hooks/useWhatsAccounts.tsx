@@ -71,9 +71,9 @@ export const useWhatsAccounts = () => {
     return status.deleteAccount({ id, nomeInstancia });
   };
 
-  const connectAccount = async (id: number, nomeInstancia: string) => {
+  const connectAccount = async (id: number, nomeInstancia: string, webhookUrl: string) => {
     setProcessingInstanceId(id);
-    return connection.connectAccount({ id, nomeInstancia });
+    return connection.connectAccount({ id, nomeInstancia, webhookUrl });
   };
 
   const disconnectAccount = async (id: number, nomeInstancia: string) => {
