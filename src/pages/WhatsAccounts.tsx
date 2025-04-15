@@ -52,7 +52,7 @@ const WhatsAccounts = () => {
         />
         
         {!webhookUrl && (
-          <Alert variant="warning" className="bg-amber-50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-800">
+          <Alert variant="default" className="bg-amber-50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-800">
             <AlertTriangle className="h-4 w-4 text-amber-600" />
             <AlertTitle>Webhook não configurado</AlertTitle>
             <AlertDescription className="flex flex-col gap-2">
