@@ -22,11 +22,12 @@ export const callWebhook = async (
   }
 
   try {
-    console.log(`Chamando webhook: ${url} com payload:`, JSON.stringify(payload));
+    console.log(`[Webhook] Chamando webhook: ${url} com payload:`, JSON.stringify(payload));
+    const startTime = performance.now();
     
     // Try POST request first
     try {
-      console.log('Tentando requisição POST');
+      console.log('[Webhook] Tentando requisição POST');
       const postResponse = await fetch(url, {
         method: 'POST',
         headers: {
@@ -35,15 +36,16 @@ export const callWebhook = async (
         body: JSON.stringify(payload),
       });
       
-      console.log('Status da resposta POST:', postResponse.status);
+      console.log('[Webhook] Status da resposta POST:', postResponse.status);
       
       // If POST works, return success
       if (postResponse.ok) {
-        console.log('Requisição POST bem-sucedida');
+        const endTime = performance.now();
+        console.log(`[Webhook] Requisição POST bem-sucedida em ${(endTime - startTime).toFixed(2)}ms`);
         
         try {
           const responseJson = await postResponse.json();
-          console.log('Resposta JSON:', JSON.stringify(responseJson));
+          console.log('[Webhook] Resposta JSON:', JSON.stringify(responseJson));
           return { 
             success: true, 
             data: responseJson,
@@ -52,7 +54,7 @@ export const callWebhook = async (
         } catch (e) {
           // If can't parse as JSON, return text
           const text = await postResponse.text();
-          console.log('Resposta TEXT:', text);
+          console.log('[Webhook] Resposta TEXT:', text);
           return { 
             success: true, 
             message: text || "Operação realizada com sucesso" 
@@ -62,7 +64,7 @@ export const callWebhook = async (
       
       // If it's a 404 "not registered for POST" error, try GET
       if (postResponse.status === 404) {
-        console.log('Requisição POST falhou com 404, tentando requisição GET');
+        console.log('[Webhook] Requisição POST falhou com 404, tentando requisição GET');
         
         // Build URL with query parameters
         const queryParams = new URLSearchParams();
@@ -71,19 +73,21 @@ export const callWebhook = async (
         });
         
         const getUrl = `${url}?${queryParams.toString()}`;
-        console.log('Tentando requisição GET para:', getUrl);
+        console.log('[Webhook] Tentando requisição GET para:', getUrl);
         
         const getResponse = await fetch(getUrl, {
           method: 'GET',
         });
         
-        console.log('Status da resposta GET:', getResponse.status);
+        console.log('[Webhook] Status da resposta GET:', getResponse.status);
         
         if (getResponse.ok) {
-          console.log('Requisição GET bem-sucedida');
+          const endTime = performance.now();
+          console.log(`[Webhook] Requisição GET bem-sucedida em ${(endTime - startTime).toFixed(2)}ms`);
+          
           try {
             const responseJson = await getResponse.json();
-            console.log('Resposta JSON (GET):', JSON.stringify(responseJson));
+            console.log('[Webhook] Resposta JSON (GET):', JSON.stringify(responseJson));
             return { 
               success: true, 
               data: responseJson,
@@ -92,7 +96,7 @@ export const callWebhook = async (
           } catch (e) {
             // If can't parse as JSON, return text
             const text = await getResponse.text();
-            console.log('Resposta TEXT (GET):', text);
+            console.log('[Webhook] Resposta TEXT (GET):', text);
             return { 
               success: true, 
               message: text || "Operação realizada com sucesso" 
@@ -105,11 +109,11 @@ export const callWebhook = async (
         throw new Error(`Erro ao chamar webhook via POST: ${postResponse.status}`);
       }
     } catch (err) {
-      console.error('Erro ao chamar webhook:', err);
+      console.error('[Webhook] Erro ao chamar webhook:', err);
       throw err;
     }
   } catch (error) {
-    console.error('Erro ao processar requisição webhook:', error);
+    console.error('[Webhook] Erro ao processar requisição webhook:', error);
     return { 
       success: false, 
       message: error instanceof Error ? error.message : "Erro desconhecido ao chamar webhook" 

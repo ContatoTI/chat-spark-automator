@@ -22,6 +22,13 @@ export const fetchAllInstancesStatus = async (): Promise<WhatsAppStatusResponse>
     }
     
     console.log('[Webhook] Status de todas as instâncias recebido:', response.data);
+    
+    // Filtrar qualquer item que não tenha name ou connectionStatus definidos
+    if (response.data && Array.isArray(response.data)) {
+      response.data = response.data.filter(item => item && item.name && item.connectionStatus);
+      console.log('[Webhook] Status filtrado:', response.data);
+    }
+    
     return response;
   } catch (error) {
     console.error('[Webhook] Erro ao verificar status das instâncias:', error);

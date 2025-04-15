@@ -19,31 +19,32 @@ export const useWhatsAccounts = () => {
       console.log('[Webhook] Atualizando status de todas as instâncias em uma única chamada');
       const response = await fetchAllInstancesStatus();
       
-      if (!response.data || !Array.isArray(response.data)) {
+      if (!response.success || !response.data || !Array.isArray(response.data)) {
         throw new Error('Formato de resposta inválido do webhook');
       }
       
+      // Log das instâncias retornadas pelo webhook
+      console.log('[Webhook] Instâncias retornadas:', response.data.map(i => i.name));
+      
       // Atualizamos o cache localmente para cada instância com seu novo status
-      accounts.forEach(account => {
+      const updatedAccounts = accounts.map(account => {
+        // Buscar o status correspondente no array de resposta
         const instanceStatus = response.data?.find(
           instance => instance.name === account.nome_instancia
         );
         
-        if (instanceStatus) {
-          // Atualiza o status da conta no cache do React Query
-          queryClient.setQueryData(
-            ['whatsapp-accounts'], 
-            (oldData: any) => {
-              if (!oldData) return oldData;
-              return oldData.map((acc: any) => 
-                acc.id === account.id 
-                  ? { ...acc, status: instanceStatus.connectionStatus }
-                  : acc
-              );
-            }
-          );
+        if (instanceStatus && instanceStatus.connectionStatus) {
+          console.log(`[Webhook] Atualizando status da instância ${account.nome_instancia} para ${instanceStatus.connectionStatus}`);
+          // Retornar conta com status atualizado
+          return { ...account, status: instanceStatus.connectionStatus };
         }
+        
+        // Se não encontrou ou o status é inválido, manter o status atual
+        return account;
       });
+      
+      // Atualizar o cache do React Query
+      queryClient.setQueryData(['whatsapp-accounts'], updatedAccounts);
       
       return response.data;
     },

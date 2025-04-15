@@ -31,9 +31,8 @@ export const useCompanies = () => {
     queryFn: fetchCompanies,
     refetchOnWindowFocus: false,
     retry: 1,
-    staleTime: 60000, // Aumentar para 1 minuto para reduzir consultas
-    // Adicionar caching para melhorar performance
-    gcTime: 300000, // 5 minutos
+    staleTime: 300000, // Aumentar para 5 minutos para reduzir consultas
+    gcTime: 600000, // 10 minutos
   });
 
   // Função para forçar uma atualização ao alterar a chave de consulta

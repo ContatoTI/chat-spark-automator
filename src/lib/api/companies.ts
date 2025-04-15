@@ -13,11 +13,14 @@ export const fetchCompanies = async (): Promise<Company[]> => {
   console.log("Buscando empresas");
   
   try {
-    // Acrescentando um limite e usando DISTINCT para evitar duplicatas
+    const start = performance.now();
+    
+    // Otimizando a consulta para buscar apenas as colunas necessárias
     const { data, error } = await supabase
       .from('AppW_Options')
       .select('empresa_id, nome_da_empresa, created_at')
-      .limit(100); // Limitando para melhorar performance
+      .limit(100)
+      .order('created_at', { ascending: false }); // Ordenar por data de criação, mais recentes primeiro
     
     if (error) {
       console.error("Erro ao buscar empresas:", error);
@@ -26,11 +29,12 @@ export const fetchCompanies = async (): Promise<Company[]> => {
     
     // Se não houver dados, retorne um array vazio
     if (!data || data.length === 0) {
+      console.log("Nenhuma empresa encontrada");
       return [];
     }
     
-    // Remover duplicatas usando Set
-    const uniqueCompanies = new Map();
+    // Remover duplicatas usando Map para melhor performance
+    const uniqueCompanies = new Map<string, Company>();
     
     // Filtrar empresas únicas pelo ID
     data.forEach(company => {
@@ -46,7 +50,9 @@ export const fetchCompanies = async (): Promise<Company[]> => {
     // Converter o Map para Array
     const companies = Array.from(uniqueCompanies.values());
     
-    console.log("Empresas processadas:", companies.length);
+    const end = performance.now();
+    console.log(`Empresas processadas: ${companies.length} em ${(end - start).toFixed(2)}ms`);
+    
     return companies;
   } catch (error) {
     console.error("Erro em fetchCompanies:", error);
