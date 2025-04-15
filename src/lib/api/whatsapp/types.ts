@@ -19,12 +19,11 @@ export interface WhatsAppQRCodeResponse {
 export interface WhatsAPIResponse {
   success: boolean;
   message?: string;
-  data?: {
-    base64?: string;
-    qrcode?: string;
-    pairingCode?: string | null;
-    code?: string;
-  };
+  data?: Array<{
+    data?: {
+      base64?: string;
+    };
+  }>;
 }
 
 export interface WhatsAccount {

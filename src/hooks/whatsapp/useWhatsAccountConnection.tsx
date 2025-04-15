@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { callWebhook } from "@/lib/api/webhook-utils";
 import { toast } from "sonner";
+import { WhatsAPIResponse } from "@/lib/api/whatsapp/types";
 
 export const useWhatsAccountConnection = () => {
   const [qrCodeData, setQrCodeData] = useState<string | null>(null);
@@ -23,23 +24,20 @@ export const useWhatsAccountConnection = () => {
         action: 'connect',
         instance_name: params.nomeInstancia,
         timestamp: new Date().toISOString()
-      });
+      }) as WhatsAPIResponse;
 
       console.log('[WebhookConnection] Resposta do webhook:', response);
 
-      // Extract QR code from Evolution API response
+      // Verificar se há dados do QR code
       if (response.success && Array.isArray(response.data) && response.data.length > 0) {
         const qrData = response.data[0]?.data?.base64;
         if (!qrData) {
           throw new Error('Resposta do webhook não contém dados do QR code');
         }
         return { qrCodeData: qrData, instanceName: params.nomeInstancia };
-      } else if (response.success && response.data?.base64) {
-        // Handle response format where data is an object, not an array
-        return { qrCodeData: response.data.base64, instanceName: params.nomeInstancia };
       }
 
-      throw new Error('Resposta do webhook inválida ou não contém QR code');
+      throw new Error('Resposta do webhook não contém dados do QR code');
     },
     onSuccess: (data) => {
       console.log('[WebhookConnection] QR code gerado com sucesso');
