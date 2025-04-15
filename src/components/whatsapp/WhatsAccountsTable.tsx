@@ -87,11 +87,15 @@ export function WhatsAccountsTable({
     if (connected) {
       return onDisconnect(account.id, account.nome_instancia);
     } else {
-      if (!account.webhook_inst) {
+      // Get webhook URL from localStorage instead of account.webhook_inst
+      const webhookUrl = localStorage.getItem('webhook_instancias');
+      
+      if (!webhookUrl) {
         toast.error("URL do webhook não configurada para esta instância");
-        return;
+        return Promise.resolve();
       }
-      return onConnect(account.id, account.nome_instancia, account.webhook_inst);
+      
+      return onConnect(account.id, account.nome_instancia, webhookUrl);
     }
   };
 

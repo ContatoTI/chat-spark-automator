@@ -13,21 +13,38 @@ export const fetchCompanies = async (): Promise<Company[]> => {
   console.log("Buscando empresas");
   
   try {
+    // Acrescentando um limite e usando DISTINCT para evitar duplicatas
     const { data, error } = await supabase
       .from('AppW_Options')
-      .select('empresa_id, nome_da_empresa, created_at');
+      .select('empresa_id, nome_da_empresa, created_at')
+      .limit(100); // Limitando para melhorar performance
     
     if (error) {
       console.error("Erro ao buscar empresas:", error);
       throw new Error(`Falha ao buscar empresas: ${error.message}`);
     }
     
-    // Transformar os dados para o formato esperado
-    const companies = data?.map(company => ({
-      id: company.empresa_id,
-      name: company.nome_da_empresa || 'Empresa sem nome',
-      created_at: company.created_at || new Date().toISOString()
-    })) || [];
+    // Se não houver dados, retorne um array vazio
+    if (!data || data.length === 0) {
+      return [];
+    }
+    
+    // Remover duplicatas usando Set
+    const uniqueCompanies = new Map();
+    
+    // Filtrar empresas únicas pelo ID
+    data.forEach(company => {
+      if (company.empresa_id && !uniqueCompanies.has(company.empresa_id)) {
+        uniqueCompanies.set(company.empresa_id, {
+          id: company.empresa_id,
+          name: company.nome_da_empresa || 'Empresa sem nome',
+          created_at: company.created_at || new Date().toISOString()
+        });
+      }
+    });
+    
+    // Converter o Map para Array
+    const companies = Array.from(uniqueCompanies.values());
     
     console.log("Empresas processadas:", companies.length);
     return companies;
