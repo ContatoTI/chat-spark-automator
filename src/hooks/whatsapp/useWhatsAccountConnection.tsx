@@ -13,10 +13,12 @@ export const useWhatsAccountConnection = () => {
   // Connect account mutation
   const connectAccountMutation = useMutation({
     mutationFn: async (params: { id: number, nomeInstancia: string }) => {
+      console.log(`[WebhookConnection] Conectando instância: ${params.nomeInstancia}`);
       const data = await generateQRCodeData(params.nomeInstancia);
       return { qrCodeData: data, instanceName: params.nomeInstancia };
     },
     onSuccess: (data) => {
+      console.log('[WebhookConnection] QR code gerado com sucesso:', data.qrCodeData.substring(0, 50) + '...');
       setQrCodeData(data.qrCodeData);
       setCurrentInstance(data.instanceName);
       setQrCodeDialogOpen(true);
