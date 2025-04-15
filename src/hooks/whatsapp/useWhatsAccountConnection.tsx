@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { generateQRCodeData } from "@/lib/api/whatsapp/webhook";
+import { callWebhook } from "@/lib/api/webhook-utils";
 import { toast } from "sonner";
 
 export const useWhatsAccountConnection = () => {
@@ -12,13 +12,28 @@ export const useWhatsAccountConnection = () => {
 
   // Connect account mutation
   const connectAccountMutation = useMutation({
-    mutationFn: async (params: { id: number, nomeInstancia: string }) => {
-      console.log(`[WebhookConnection] Conectando instância: ${params.nomeInstancia}`);
-      const data = await generateQRCodeData(params.nomeInstancia);
-      return { qrCodeData: data, instanceName: params.nomeInstancia };
+    mutationFn: async (params: { id: number, nomeInstancia: string, webhookUrl: string }) => {
+      console.log(`[WebhookConnection] Conectando instância: ${params.nomeInstancia} via ${params.webhookUrl}`);
+      
+      const response = await callWebhook(params.webhookUrl, {
+        action: 'connect',
+        instance_name: params.nomeInstancia,
+        timestamp: new Date().toISOString()
+      });
+
+      // Extract QR code from Evolution API response
+      if (response.success && Array.isArray(response) && response.length > 0) {
+        const qrData = response[0].data?.base64;
+        if (!qrData) {
+          throw new Error('Resposta do webhook não contém dados do QR code');
+        }
+        return { qrCodeData: qrData, instanceName: params.nomeInstancia };
+      }
+
+      throw new Error('Resposta do webhook inválida');
     },
     onSuccess: (data) => {
-      console.log('[WebhookConnection] QR code gerado com sucesso:', data.qrCodeData.substring(0, 50) + '...');
+      console.log('[WebhookConnection] QR code gerado com sucesso');
       setQrCodeData(data.qrCodeData);
       setCurrentInstance(data.instanceName);
       setQrCodeDialogOpen(true);
@@ -26,7 +41,7 @@ export const useWhatsAccountConnection = () => {
     onError: (error) => {
       console.error("Error connecting account:", error);
       toast.error("Erro ao conectar conta", {
-        description: error instanceof Error ? error.message : "Unknown error"
+        description: error instanceof Error ? error.message : "Erro desconhecido"
       });
     }
   });

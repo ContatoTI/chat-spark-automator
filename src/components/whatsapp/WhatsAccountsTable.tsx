@@ -1,4 +1,3 @@
-
 import React from "react";
 import { 
   Table, 
@@ -27,12 +26,13 @@ import { LoadingState } from "@/components/whatsapp/LoadingState";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Badge } from "@/components/ui/badge";
 import { isInstanceConnected } from "@/lib/api/whatsapp/webhook";
+import { toast } from "react-toastify";
 
 interface WhatsAccountsTableProps {
   accounts: WhatsAccount[];
   isLoading: boolean;
   onDelete: (id: number, nomeInstancia: string) => Promise<void>;
-  onConnect: (id: number, nomeInstancia: string) => Promise<void>;
+  onConnect: (id: number, nomeInstancia: string, webhookInst: string) => Promise<void>;
   onDisconnect: (id: number, nomeInstancia: string) => Promise<void>;
   isProcessing: { [id: number]: string };
   getStatusInfo: (status: string) => { 
@@ -86,7 +86,11 @@ export function WhatsAccountsTable({
     if (connected) {
       return onDisconnect(account.id, account.nome_instancia);
     } else {
-      return onConnect(account.id, account.nome_instancia);
+      if (!account.webhook_inst) {
+        toast.error("URL do webhook não configurada para esta instância");
+        return;
+      }
+      return onConnect(account.id, account.nome_instancia, account.webhook_inst);
     }
   };
 

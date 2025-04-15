@@ -1,29 +1,45 @@
-
-export interface WhatsAccount {
-  id: number;
-  nome_instancia: string;
-  empresa_id: string;
-  status?: string;
-}
-
-export interface WhatsAppInstanceResponse {
-  name: string;
-  connectionStatus: 'connecting' | 'close' | 'open';
-}
-
 export interface WhatsAppStatusResponse {
   success: boolean;
-  data?: WhatsAppInstanceResponse[];
   message?: string;
+  data?: {
+    name: string;
+    connectionStatus: string;
+  }[];
 }
 
 export interface WhatsAppQRCodeResponse {
   success: boolean;
+  message?: string;
   data?: {
-    qrcode?: string;
     base64?: string;
+    qrcode?: string;
+  };
+}
+
+export interface WhatsAPIResponse {
+  success: boolean;
+  message?: string;
+  data?: {
+    base64?: string;
+    qrcode?: string;
     pairingCode?: string | null;
     code?: string;
   };
-  message?: string;
+}
+
+export interface WhatsAccount {
+  id: number;
+  empresa_id: string;
+  nome_instancia: string;
+  webhook_inst?: string;
+  status?: string;
+}
+
+export interface MediaFile {
+  id: string;
+  name: string;
+  url: string;
+  type: 'image' | 'video' | 'document';
+  size: number;
+  createdAt: string;
 }
