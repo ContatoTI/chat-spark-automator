@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { useCampaignForm } from "@/hooks/useCampaignForm";
@@ -9,7 +10,6 @@ import { MessageTab } from "@/components/campaigns/dialog/MessageTab";
 import { SettingsTab } from "@/components/campaigns/dialog/SettingsTab";
 import { ScheduleTab } from "@/components/campaigns/dialog/ScheduleTab";
 import { CampaignDialogFooter } from "@/components/campaigns/dialog/DialogFooter";
-import { useAuth } from "@/contexts/AuthContext";
 
 interface NewCampaignDialogProps {
   open: boolean;
@@ -21,7 +21,6 @@ export const NewCampaignDialog: React.FC<NewCampaignDialogProps> = ({
   onOpenChange
 }) => {
   const queryClient = useQueryClient();
-  const { user, selectedCompany } = useAuth();
   
   const {
     activeTab,
@@ -74,22 +73,13 @@ export const NewCampaignDialog: React.FC<NewCampaignDialogProps> = ({
   const handleSubmit = () => {
     const scheduleDateObj = scheduleDate ? new Date(scheduleDate) : null;
     
+    // If time is set and we have a schedule date, set the time components
     if (scheduleTime && scheduleDateObj) {
       const [hours, minutes] = scheduleTime.split(':').map(Number);
       scheduleDateObj.setHours(hours, minutes, 0, 0);
     }
 
     const today = new Date();
-    
-    const empresa_id = user?.role === 'master' && selectedCompany 
-      ? selectedCompany 
-      : user?.company_id;
-
-    if (!empresa_id) {
-      toast.error("Erro ao criar campanha: empresa não identificada");
-      return;
-    }
-
     const newCampaign: Campaign = {
       nome: campaignName,
       data: today.toISOString(),
@@ -103,8 +93,7 @@ export const NewCampaignDialog: React.FC<NewCampaignDialogProps> = ({
       status: scheduleDateObj ? "scheduled" : "draft",
       producao: producao,
       limite_disparos: limiteDisparos,
-      enviados: enviados,
-      empresa_id: empresa_id
+      enviados: enviados
     };
     
     createMutation.mutate(newCampaign);

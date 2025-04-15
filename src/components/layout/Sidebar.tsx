@@ -8,12 +8,9 @@ import {
   Settings,
   Users,
   LogOut,
-  Phone,
-  Building,
-  Info
+  Phone
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface SidebarProps {
   open: boolean;
@@ -47,7 +44,7 @@ const SidebarLink: React.FC<SidebarLinkProps> = ({ to, icon: Icon, label, active
 export const Sidebar: React.FC<SidebarProps> = ({ open }) => {
   const location = useLocation();
   const currentPath = location.pathname;
-  const { isAdmin, isMaster, logout, selectedCompany } = useAuth();
+  const { isAdmin, logout } = useAuth();
 
   return (
     <aside
@@ -61,19 +58,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ open }) => {
       style={{ height: "calc(100vh - 4rem)" }}
     >
       <div className="flex flex-col h-full gap-2 p-4">
-        {/* Exibir informação da empresa selecionada para usuários master */}
-        {isMaster && selectedCompany && (
-          <div className="px-3 py-2 mb-2 bg-blue-50 dark:bg-blue-900/20 rounded-md text-sm">
-            <div className="flex items-center gap-2 text-blue-700 dark:text-blue-400">
-              <Info className="h-4 w-4" />
-              <span>Empresa selecionada</span>
-            </div>
-            <p className="mt-1 font-medium text-blue-800 dark:text-blue-300 truncate">
-              {selectedCompany}
-            </p>
-          </div>
-        )}
-        
         <div className="flex-grow py-2">
           <h2 className="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-4 px-3">
             MENU PRINCIPAL
@@ -92,8 +76,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ open }) => {
               active={currentPath === "/campaigns"}
             />
             
-            {/* Exibir links apenas para administradores ou master */}
-            {(isAdmin || isMaster) && (
+            {/* Exibir links apenas para administradores */}
+            {isAdmin && (
               <>
                 <SidebarLink
                   to="/whatsapp-accounts"
@@ -107,27 +91,13 @@ export const Sidebar: React.FC<SidebarProps> = ({ open }) => {
                   label="Usuários"
                   active={currentPath === "/users"}
                 />
+                <SidebarLink
+                  to="/settings"
+                  icon={Settings}
+                  label="Configurações"
+                  active={currentPath === "/settings"}
+                />
               </>
-            )}
-
-            {/* Link de empresas apenas para usuários master */}
-            {isMaster && (
-              <SidebarLink
-                to="/companies"
-                icon={Building}
-                label="Empresas"
-                active={currentPath === "/companies"}
-              />
-            )}
-            
-            {/* Link de configurações para admin ou master */}
-            {(isAdmin || isMaster) && (
-              <SidebarLink
-                to="/settings"
-                icon={Settings}
-                label="Configurações"
-                active={currentPath === "/settings"}
-              />
             )}
           </nav>
         </div>

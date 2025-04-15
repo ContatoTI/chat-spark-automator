@@ -32,7 +32,7 @@ export function QRCodeDialog({ isOpen, onClose, instanceName, qrCodeData }: QRCo
           {qrCodeData ? (
             <div className="flex flex-col items-center space-y-4">
               <img 
-                src={qrCodeData}
+                src={qrCodeData.startsWith('data:') ? qrCodeData : `data:image/png;base64,${qrCodeData}`} 
                 alt="QR Code para conectar WhatsApp" 
                 className="max-w-full h-auto border rounded-md"
               />

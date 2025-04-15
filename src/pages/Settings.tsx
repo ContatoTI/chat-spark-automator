@@ -10,11 +10,9 @@ import { toast } from "sonner";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
 import { DatabaseDiagnostic } from "@/components/diagnostic/DatabaseDiagnostic";
-import { useAuth } from "@/contexts/AuthContext";
 
 const Settings = () => {
   const { settings, isLoading, error, refetch } = useSettingsForm();
-  const { user, isMaster } = useAuth();
 
   // Se os dados estão carregando, exiba o componente de carregamento
   if (isLoading) {
@@ -73,15 +71,13 @@ const Settings = () => {
       <div className="flex flex-col gap-8">
         <SettingsHeader />
         
-        {/* Componente de diagnóstico mostrado apenas para usuários Master */}
-        {isMaster && (
-          <div className="mb-4">
-            <h2 className="text-xl font-semibold mb-4">Diagnóstico de Compatibilidade</h2>
-            <DatabaseDiagnostic />
-          </div>
-        )}
+        {/* Adicionando o componente de diagnóstico */}
+        <div className="mb-4">
+          <h2 className="text-xl font-semibold mb-4">Diagnóstico de Compatibilidade</h2>
+          <DatabaseDiagnostic />
+        </div>
         
-        <SettingsForm initialSettings={settings} userRole={user?.role} />
+        <SettingsForm initialSettings={settings} />
       </div>
     </Layout>
   );

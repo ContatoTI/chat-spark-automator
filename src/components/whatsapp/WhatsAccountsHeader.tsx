@@ -38,12 +38,7 @@ interface WhatsAccountsHeaderProps {
   isRefreshing: boolean;
 }
 
-export function WhatsAccountsHeader({ 
-  onCreate, 
-  onRefreshStatus, 
-  isCreating, 
-  isRefreshing 
-}: WhatsAccountsHeaderProps) {
+export function WhatsAccountsHeader({ onCreate, onRefreshStatus, isCreating, isRefreshing }: WhatsAccountsHeaderProps) {
   const [open, setOpen] = useState(false);
   const [webhookStatus, setWebhookStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [webhookMessage, setWebhookMessage] = useState('');
@@ -83,15 +78,6 @@ export function WhatsAccountsHeader({
     form.reset();
   };
 
-  const handleRefreshStatus = async (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.preventDefault();
-    try {
-      await onRefreshStatus();
-    } catch (error) {
-      console.error("Erro ao atualizar status:", error);
-    }
-  };
-
   return (
     <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
       <div>
@@ -107,7 +93,7 @@ export function WhatsAccountsHeader({
             <TooltipTrigger asChild>
               <Button 
                 variant="outline" 
-                onClick={handleRefreshStatus} 
+                onClick={onRefreshStatus} 
                 disabled={isRefreshing}
                 className="flex-1 md:flex-none"
               >

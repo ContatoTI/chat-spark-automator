@@ -6,38 +6,17 @@ export interface User {
   email: string;
   created_at: string;
   role: string;
-  company_id?: string;
   last_sign_in_at?: string;
 }
 
-// Função para buscar usuários com base na função e empresa do usuário logado
-export const fetchUsers = async (currentUser?: User | null, selectedCompanyId?: string | null): Promise<User[]> => {
-  console.log("Buscando usuários da tabela appw_users", { 
-    currentUserRole: currentUser?.role,
-    selectedCompanyId
-  });
+// Função para buscar usuários da tabela appw_users
+export const fetchUsers = async (): Promise<User[]> => {
+  console.log("Buscando usuários da tabela appw_users");
   
   try {
-    let query = supabase.from('appw_users').select('*');
-    
-    // Aplicar filtros com base na função do usuário
-    if (currentUser) {
-      // Para usuário master com empresa selecionada
-      if (currentUser.role === 'master' && selectedCompanyId) {
-        query = query.eq('empresa_id', selectedCompanyId);
-      }
-      // Admin só vê usuários da mesma empresa (exceto masters)
-      else if (currentUser.role === 'admin' && currentUser.company_id) {
-        query = query.eq('empresa_id', currentUser.company_id);
-      } 
-      // Usuário comum não vê outros usuários (retorna lista vazia)
-      else if (currentUser.role === 'user') {
-        return [];
-      }
-      // Master sem empresa selecionada vê todos os usuários (sem filtro)
-    }
-    
-    const { data, error } = await query;
+    const { data, error } = await supabase
+      .from('appw_users')
+      .select('*');
     
     if (error) {
       console.error("Erro ao buscar usuários:", error);
@@ -85,7 +64,6 @@ export const fetchUsers = async (currentUser?: User | null, selectedCompanyId?: 
       email: user.email || '',
       created_at: user.created_at || new Date().toISOString(),
       role: user.role || 'user',
-      company_id: user.empresa_id || undefined,
       last_sign_in_at: user.last_sign_in_at || undefined
     })) || [];
     
@@ -98,8 +76,8 @@ export const fetchUsers = async (currentUser?: User | null, selectedCompanyId?: 
 };
 
 // Função para criar usuário na tabela appw_users
-export const createUser = async (email: string, password: string, role: string, companyId?: string): Promise<void> => {
-  console.log("Criando usuário:", { email, role, companyId });
+export const createUser = async (email: string, password: string, role: string): Promise<void> => {
+  console.log("Criando usuário:", { email, role });
   
   if (!email || !password) {
     throw new Error("Email e senha são obrigatórios");
@@ -134,8 +112,7 @@ export const createUser = async (email: string, password: string, role: string, 
         email: email,
         password: password, // Nota: em produção, isso deveria ser um hash
         role: role,
-        created_at: new Date().toISOString(),
-        empresa_id: companyId // Atribuir à empresa fornecida, se houver
+        created_at: new Date().toISOString()
       }]);
       
     if (insertError) {
@@ -191,20 +168,6 @@ export const deleteUser = async (userId: string): Promise<void> => {
     }
   } catch (error) {
     console.error("Erro deletando usuário:", error);
-    throw error;
-  }
-};
-
-export const assignUserToCompany = async (userId: string, companyId: string): Promise<void> => {
-  try {
-    const { error } = await supabase
-      .from('appw_users')
-      .update({ company_id: companyId })
-      .eq('user_id', userId);
-      
-    if (error) throw error;
-  } catch (error) {
-    console.error("Erro atribuindo usuário a empresa:", error);
     throw error;
   }
 };

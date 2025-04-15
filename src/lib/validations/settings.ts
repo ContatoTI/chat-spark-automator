@@ -20,6 +20,9 @@ export const settingsSchema = z.object({
   webhook_get_images: z.string().optional(),
   webhook_up_docs: z.string().optional(),
   webhook_instancias: z.string().optional(),
+  webhook_del_instancia: z.string().optional(), // Novo campo adicionado
+  webhook_on_qr_instancia: z.string().optional(), // Novo campo adicionado
+  webhook_off_instancia: z.string().optional(), // Novo campo adicionado
   ftp_url: z.string().optional(),
   ftp_user: z.string().optional(),
   ftp_port: z.coerce.number().default(21),

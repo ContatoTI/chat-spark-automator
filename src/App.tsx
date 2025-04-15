@@ -12,7 +12,6 @@ import Contacts from "./pages/Contacts";
 import Campaigns from "./pages/Campaigns";
 import Settings from "./pages/Settings";
 import Users from "./pages/Users";
-import Companies from "./pages/Companies";
 import WhatsAccounts from "./pages/WhatsAccounts";
 import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
@@ -39,15 +38,10 @@ const App = () => (
               </Route>
               
               {/* Rotas que apenas administradores podem acessar */}
-              <Route element={<ProtectedRoute allowedRoles={['admin', 'master']} />}>
+              <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
                 <Route path="/settings" element={<Settings />} />
                 <Route path="/users" element={<Users />} />
                 <Route path="/whatsapp-accounts" element={<WhatsAccounts />} />
-              </Route>
-              
-              {/* Rota que apenas usuários master podem acessar */}
-              <Route element={<ProtectedRoute allowedRoles={['master']} />}>
-                <Route path="/companies" element={<Companies />} />
               </Route>
               
               {/* Rota de fallback */}

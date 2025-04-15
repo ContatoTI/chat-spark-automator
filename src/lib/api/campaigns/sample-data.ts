@@ -16,8 +16,7 @@ export const sampleCampaigns: Campaign[] = [
     status: "completed",
     producao: false,
     limite_disparos: 2000,
-    enviados: 1200,
-    empresa_id: '1' // Added empresa_id
+    enviados: 1200
   },
   {
     nome: "Lançamento Produto X",
@@ -32,8 +31,7 @@ export const sampleCampaigns: Campaign[] = [
     status: "scheduled",
     producao: false,
     limite_disparos: 1500,
-    enviados: 0,
-    empresa_id: '1' // Added empresa_id
+    enviados: 0
   },
   {
     nome: "Pesquisa de Satisfação",
@@ -48,8 +46,7 @@ export const sampleCampaigns: Campaign[] = [
     status: "failed",
     producao: false,
     limite_disparos: 800,
-    enviados: 600,
-    empresa_id: '1' // Added empresa_id
+    enviados: 600
   },
   {
     nome: "Atualização do Sistema",
@@ -64,8 +61,7 @@ export const sampleCampaigns: Campaign[] = [
     status: "completed",
     producao: true,
     limite_disparos: 3000,
-    enviados: 2800,
-    empresa_id: '1' // Added empresa_id
+    enviados: 2800
   },
   {
     nome: "Convite para Evento",
@@ -80,8 +76,7 @@ export const sampleCampaigns: Campaign[] = [
     status: "draft",
     producao: false,
     limite_disparos: 500,
-    enviados: 0,
-    empresa_id: '1' // Added empresa_id
+    enviados: 0
   },
   {
     nome: "Confirmação de Pedido",
@@ -96,8 +91,6 @@ export const sampleCampaigns: Campaign[] = [
     status: "sending",
     producao: true,
     limite_disparos: 1,
-    enviados: 0,
-    empresa_id: '1' // Added empresa_id
+    enviados: 0
   }
 ];
-

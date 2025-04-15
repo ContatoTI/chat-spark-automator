@@ -20,8 +20,6 @@ import {
 } from "@/components/ui/select";
 import { createUser } from "@/lib/api/users";
 import { toast } from "sonner";
-import { useCompanies } from "@/hooks/useCompanies";
-import { useAuth } from "@/contexts/AuthContext";
 
 interface NewUserDialogProps {
   open: boolean;
@@ -38,27 +36,16 @@ export const NewUserDialog: React.FC<NewUserDialogProps> = ({
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [role, setRole] = useState('user');
-  const [companyId, setCompanyId] = useState('');
   const [isCreating, setIsCreating] = useState(false);
   const [error, setError] = useState('');
-  const { companies } = useCompanies();
-  const { isMaster, selectedCompany } = useAuth();
   
   const resetForm = () => {
     setEmail('');
     setPassword('');
     setConfirmPassword('');
     setRole('user');
-    setCompanyId('');
     setError('');
   };
-
-  // Initialize companyId with selectedCompany when dialog opens
-  React.useEffect(() => {
-    if (open && isMaster && selectedCompany) {
-      setCompanyId(selectedCompany);
-    }
-  }, [open, isMaster, selectedCompany]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -85,17 +72,9 @@ export const NewUserDialog: React.FC<NewUserDialogProps> = ({
       return;
     }
 
-    // Validar se uma empresa foi selecionada (apenas para master)
-    if (isMaster && !companyId) {
-      setError('Selecione uma empresa');
-      return;
-    }
-
     try {
       setIsCreating(true);
-      // Use o companyId selecionado para master
-      const finalCompanyId = isMaster ? companyId : undefined;
-      await createUser(email, password, role, finalCompanyId);
+      await createUser(email, password, role);
       toast.success('Usuário criado com sucesso');
       resetForm();
       onOpenChange(false);
@@ -173,29 +152,6 @@ export const NewUserDialog: React.FC<NewUserDialogProps> = ({
                 </SelectContent>
               </Select>
             </div>
-            
-            {/* Campo de seleção de empresa apenas para usuários master */}
-            {isMaster && (
-              <div className="grid gap-2">
-                <Label htmlFor="company">Empresa</Label>
-                <Select 
-                  value={companyId} 
-                  onValueChange={setCompanyId}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione uma empresa" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {companies.map(company => (
-                      <SelectItem key={company.id} value={company.id}>
-                        {company.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-            
             {error && (
               <p className="text-sm text-destructive">{error}</p>
             )}

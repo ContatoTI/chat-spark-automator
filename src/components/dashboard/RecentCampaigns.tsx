@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { 
   Check, 
@@ -17,13 +16,12 @@ import {
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { useAuth } from "@/contexts/AuthContext";
-import { useCampaignOperations } from "@/hooks/useCampaignOperations";
-import { Campaign } from "@/lib/api/campaigns";
+import { useQuery } from "@tanstack/react-query";
+import { fetchCampaigns, Campaign } from "@/lib/api/campaigns";
+import { Skeleton } from "@/components/ui/skeleton";
 import { EditCampaignDialog } from "@/components/campaigns/EditCampaignDialog";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Skeleton } from "@/components/ui/skeleton";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -35,6 +33,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { useCampaignOperations } from "@/hooks/useCampaignOperations";
 import { useCampaignStatusCalculator } from "@/hooks/useCampaignStatusCalculator";
 import { formatLocalDate } from "@/utils/dateUtils";
 
@@ -87,8 +86,6 @@ export const RecentCampaigns: React.FC = () => {
   const [editCampaignDialogOpen, setEditCampaignDialogOpen] = useState(false);
   const [selectedCampaign, setSelectedCampaign] = useState<Campaign | null>(null);
   
-  const { user, selectedCompany } = useAuth();
-  
   const { 
     campaigns = [], 
     isLoading, 
@@ -105,14 +102,7 @@ export const RecentCampaigns: React.FC = () => {
     return new Date(dateString).toLocaleDateString("pt-BR");
   };
   
-  const filteredCampaigns = React.useMemo(() => {
-    if (user?.role === 'master' && selectedCompany) {
-      return campaigns.filter(campaign => campaign.empresa_id === selectedCompany);
-    }
-    return campaigns;
-  }, [campaigns, user?.role, selectedCompany]);
-  
-  const processedCampaigns = updateCampaignsStatus(filteredCampaigns);
+  const processedCampaigns = updateCampaignsStatus(campaigns);
   
   const recentCampaigns = processedCampaigns.slice(0, 5);
   
