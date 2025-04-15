@@ -4,7 +4,7 @@ import { useWhatsAccountsCore } from "./whatsapp/useWhatsAccountsCore";
 import { useWhatsAccountConnection } from "./whatsapp/useWhatsAccountConnection";
 import { useWhatsAccountStatus } from "./whatsapp/useWhatsAccountStatus";
 import { useMutation } from "@tanstack/react-query";
-import { fetchInstanceStatus, mapStatusToText } from "@/lib/api/whatsapp/webhook";
+import { fetchAllInstancesStatus, mapStatusToText } from "@/lib/api/whatsapp/webhook";
 import { toast } from "sonner";
 
 export const useWhatsAccounts = () => {
@@ -13,15 +13,42 @@ export const useWhatsAccounts = () => {
   const connection = useWhatsAccountConnection();
   const status = useWhatsAccountStatus(queryClient);
 
-  // Check accounts status mutation
+  // Check all accounts status mutation - now using a single API call
   const refreshStatusMutation = useMutation({
     mutationFn: async () => {
-      const statusPromises = accounts.map(account => 
-        fetchInstanceStatus(account.nome_instancia)
-      );
-      return Promise.all(statusPromises);
+      console.log('[Webhook] Atualizando status de todas as instâncias em uma única chamada');
+      const response = await fetchAllInstancesStatus();
+      
+      if (!response.data || !Array.isArray(response.data)) {
+        throw new Error('Formato de resposta inválido do webhook');
+      }
+      
+      // Atualizamos o cache localmente para cada instância com seu novo status
+      accounts.forEach(account => {
+        const instanceStatus = response.data?.find(
+          instance => instance.name === account.nome_instancia
+        );
+        
+        if (instanceStatus) {
+          // Atualiza o status da conta no cache do React Query
+          queryClient.setQueryData(
+            ['whatsapp-accounts'], 
+            (oldData: any) => {
+              if (!oldData) return oldData;
+              return oldData.map((acc: any) => 
+                acc.id === account.id 
+                  ? { ...acc, status: instanceStatus.connectionStatus }
+                  : acc
+              );
+            }
+          );
+        }
+      });
+      
+      return response.data;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log('[Webhook] Status de todas as instâncias atualizado com sucesso:', data);
       queryClient.invalidateQueries({ queryKey: ['whatsapp-accounts'] });
       toast.success("Status das contas atualizado");
     },

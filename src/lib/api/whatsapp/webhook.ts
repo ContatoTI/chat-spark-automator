@@ -40,7 +40,38 @@ export const generateQRCodeData = async (instanceName: string): Promise<string> 
 };
 
 /**
- * Fetch the status of WhatsApp instances
+ * Fetch the status of all WhatsApp instances in a single request
+ */
+export const fetchAllInstancesStatus = async (): Promise<WhatsAppStatusResponse> => {
+  try {
+    const webhookUrl = localStorage.getItem('webhook_instancias');
+    
+    console.log(`[Webhook] Verificando status de todas as instâncias via webhook: ${webhookUrl}`);
+    
+    if (!webhookUrl) {
+      throw new Error('URL do webhook de instâncias não configurada');
+    }
+    
+    const response = await callWebhook(webhookUrl, {
+      action: 'status',
+      timestamp: new Date().toISOString()
+    }) as WhatsAppStatusResponse;
+    
+    if (!response.success) {
+      throw new Error(response.message || 'Falha ao verificar status das instâncias');
+    }
+    
+    console.log('[Webhook] Status de todas as instâncias recebido:', response.data);
+    return response;
+  } catch (error) {
+    console.error('[Webhook] Erro ao verificar status das instâncias:', error);
+    throw error;
+  }
+};
+
+/**
+ * Fetch the status of a specific WhatsApp instance
+ * @deprecated Use fetchAllInstancesStatus instead
  */
 export const fetchInstanceStatus = async (instanceName: string): Promise<string> => {
   try {
