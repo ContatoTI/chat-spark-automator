@@ -6,13 +6,15 @@ import { WhatsAccountsTable } from "@/components/whatsapp/WhatsAccountsTable";
 import { QRCodeDialog } from "@/components/whatsapp/QRCodeDialog";
 import { useWhatsAccounts } from "@/hooks/useWhatsAccounts";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
+import { Link } from "react-router-dom";
 
 const WhatsAccounts = () => {
   const { user, selectedCompany } = useAuth();
   const isMaster = user?.role === 'master';
+  const webhookUrl = localStorage.getItem('webhook_instancias');
   
   const {
     accounts,
@@ -48,6 +50,24 @@ const WhatsAccounts = () => {
           isCreating={isCreating} 
           isRefreshing={isRefreshing}
         />
+        
+        {!webhookUrl && (
+          <Alert variant="warning" className="bg-amber-50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-800">
+            <AlertTriangle className="h-4 w-4 text-amber-600" />
+            <AlertTitle>Webhook não configurado</AlertTitle>
+            <AlertDescription className="flex flex-col gap-2">
+              <p>URL do webhook de instâncias não configurada. Configure nas Configurações &gt; Webhooks.</p>
+              <div>
+                <Button variant="outline" size="sm" asChild className="mt-2">
+                  <Link to="/settings" className="flex items-center gap-2">
+                    <Settings className="h-4 w-4" />
+                    Ir para Configurações
+                  </Link>
+                </Button>
+              </div>
+            </AlertDescription>
+          </Alert>
+        )}
         
         {error ? (
           <div className="bg-destructive/15 p-4 rounded-md space-y-4">

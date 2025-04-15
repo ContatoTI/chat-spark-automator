@@ -58,7 +58,7 @@ export function useCompanySettings(companyId: string) {
   useEffect(() => {
     if (settings) {
       // Atualize o formulário com os dados da empresa específica
-      console.log(`Carregando configurações da empresa ${companyId}:`, settings);
+      console.log(`[useCompanySettings] Carregando configurações da empresa ${companyId}:`, settings);
       form.reset({
         ...settings,
         empresa_id: companyId,
@@ -67,7 +67,7 @@ export function useCompanySettings(companyId: string) {
       // Salvar webhook de instâncias no localStorage para uso em outros componentes
       if (settings.webhook_instancias) {
         localStorage.setItem('webhook_instancias', settings.webhook_instancias);
-        console.log(`Webhook de instâncias salvo no localStorage: ${settings.webhook_instancias}`);
+        console.log(`[useCompanySettings] Webhook de instâncias salvo no localStorage: ${settings.webhook_instancias}`);
       }
     }
   }, [settings, form, companyId]);
@@ -83,7 +83,7 @@ export function useCompanySettings(companyId: string) {
       const webhookInstancias = form.getValues('webhook_instancias');
       if (webhookInstancias) {
         localStorage.setItem('webhook_instancias', webhookInstancias);
-        console.log(`Webhook de instâncias atualizado no localStorage: ${webhookInstancias}`);
+        console.log(`[useCompanySettings] Webhook de instâncias atualizado no localStorage: ${webhookInstancias}`);
       }
     },
     onError: (error) => {

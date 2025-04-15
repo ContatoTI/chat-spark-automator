@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useEffect } from "react";
 import { FormField, FormItem, FormLabel, FormControl, FormDescription, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { UseFormReturn } from "react-hook-form";
@@ -18,7 +18,7 @@ export function InstanceWebhookSection({ form }: InstanceWebhookSectionProps) {
   const saveWebhookToLocalStorage = (url: string) => {
     if (url && url.trim() !== '') {
       localStorage.setItem('webhook_instancias', url);
-      console.log('Webhook de instâncias salvo no localStorage:', url);
+      console.log('[InstanceWebhookSection] Webhook de instâncias salvo no localStorage:', url);
     }
   };
 
@@ -26,8 +26,10 @@ export function InstanceWebhookSection({ form }: InstanceWebhookSectionProps) {
   const currentWebhookUrl = form.watch('webhook_instancias');
   
   // Salvar no localStorage sempre que o valor mudar
-  React.useEffect(() => {
-    saveWebhookToLocalStorage(currentWebhookUrl);
+  useEffect(() => {
+    if (currentWebhookUrl && currentWebhookUrl.trim() !== '') {
+      saveWebhookToLocalStorage(currentWebhookUrl);
+    }
   }, [currentWebhookUrl]);
 
   return (
