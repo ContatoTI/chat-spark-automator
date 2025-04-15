@@ -35,7 +35,7 @@ interface WhatsAccountsTableProps {
   onConnect: (id: number, nomeInstancia: string) => Promise<void>;
   onDisconnect: (id: number, nomeInstancia: string) => Promise<void>;
   isProcessing: { [id: number]: string };
-  getStatusInfo: (status: string | null) => { 
+  getStatusInfo: (status: string) => { 
     label: string; 
     color: string; 
     bgColor: string; 
@@ -74,10 +74,10 @@ export function WhatsAccountsTable({
     }
   };
 
-  const getStatusBadgeVariant = (colorClass: string) => {
-    if (colorClass.includes("green")) return "success";
-    if (colorClass.includes("red")) return "destructive";
-    if (colorClass.includes("yellow")) return "warning";
+  const getStatusBadgeVariant = (color: string) => {
+    if (color.includes("green")) return "success";
+    if (color.includes("red")) return "destructive";
+    if (color.includes("yellow")) return "warning";
     return "secondary";
   };
 
@@ -104,7 +104,7 @@ export function WhatsAccountsTable({
         </TableHeader>
         <TableBody>
           {accounts.map((account) => {
-            const statusInfo = getStatusInfo(account.status || null);
+            const statusInfo = getStatusInfo(account.status || "");
             const badgeVariant = getStatusBadgeVariant(statusInfo.color);
             const isConnected = isInstanceConnected(account.status);
             const isProcessingInstance = !!isProcessing[account.id];

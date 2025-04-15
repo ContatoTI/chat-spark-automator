@@ -33,6 +33,31 @@ export const useWhatsAccounts = () => {
     }
   });
 
+  // Create wrappers to match expected Promise<void> return types
+  const createAccount = async (data: { nome_instancia: string }) => {
+    setProcessingInstanceId(null);
+    return status.createAccount(data);
+  };
+
+  const deleteAccount = async (id: number, nomeInstancia: string) => {
+    setProcessingInstanceId(id);
+    return status.deleteAccount({ id, nomeInstancia });
+  };
+
+  const connectAccount = async (id: number, nomeInstancia: string) => {
+    setProcessingInstanceId(id);
+    return connection.connectAccount({ id, nomeInstancia });
+  };
+
+  const disconnectAccount = async (id: number, nomeInstancia: string) => {
+    setProcessingInstanceId(id);
+    return status.disconnectAccount({ id, nomeInstancia });
+  };
+
+  const refreshAccountsStatus = async () => {
+    return refreshStatusMutation.mutate();
+  };
+
   // Create a record of processing status by instance ID
   const processingStatus: { [id: number]: string } = {};
   if (processingInstanceId) {
@@ -45,23 +70,35 @@ export const useWhatsAccounts = () => {
     }
   }
 
+  // Adapt the mapStatusToText to match the expected signature
+  const getStatusInfo = (status: string) => {
+    const statusInfo = mapStatusToText(status);
+    return {
+      label: statusInfo.text,
+      color: statusInfo.color,
+      bgColor: statusInfo.color === "green" ? "bg-green-100" :
+               statusInfo.color === "red" ? "bg-red-100" :
+               statusInfo.color === "yellow" ? "bg-yellow-100" : "bg-gray-100"
+    };
+  };
+
   return {
     accounts,
     isLoading,
     error,
-    createAccount: status.createAccount,
-    deleteAccount: status.deleteAccount,
-    connectAccount: connection.connectAccount,
-    disconnectAccount: status.disconnectAccount,
+    createAccount,
+    deleteAccount,
+    connectAccount,
+    disconnectAccount,
     isCreating: status.isCreating,
     isProcessing: processingStatus,
     refreshAccounts: refetchAccounts,
-    refreshAccountsStatus: refreshStatusMutation.mutate,
+    refreshAccountsStatus,
     isRefreshing: refreshStatusMutation.isPending,
     qrCodeData: connection.qrCodeData,
     qrCodeDialogOpen: connection.qrCodeDialogOpen,
     currentInstance: connection.currentInstance,
     closeQrCodeDialog: connection.closeQrCodeDialog,
-    getStatusInfo: mapStatusToText,
+    getStatusInfo,
   };
 };
