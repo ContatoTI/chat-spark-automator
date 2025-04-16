@@ -27,14 +27,14 @@ export const useCompanies = () => {
     error,
     isError
   } = useQuery({
-    queryKey: ['companies', retryCount, selectedCompany?.id],
-    queryFn: () => fetchCompanies(selectedCompany?.id),
+    queryKey: ['companies', retryCount, selectedCompany],
+    queryFn: () => fetchCompanies(selectedCompany),
     refetchOnWindowFocus: false,
     retry: 1,
     staleTime: 300000, // 5 minutos
     gcTime: 600000, // 10 minutos,
     // Não mostrar loading se não houver empresa selecionada
-    enabled: !!selectedCompany?.id
+    enabled: !!selectedCompany
   });
 
   const forceRefresh = () => {
