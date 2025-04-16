@@ -28,7 +28,12 @@ export const useCompanies = () => {
     isError
   } = useQuery({
     queryKey: ['companies', retryCount, selectedCompany],
-    queryFn: () => fetchCompanies(selectedCompany),
+    queryFn: async () => {
+      console.log("Executando fetchCompanies com empresa:", selectedCompany);
+      const result = await fetchCompanies(selectedCompany);
+      console.log("Resultado fetchCompanies:", result);
+      return result;
+    },
     refetchOnWindowFocus: false,
     retry: 1,
     staleTime: 300000, // 5 minutos

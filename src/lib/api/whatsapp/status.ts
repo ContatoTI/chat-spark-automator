@@ -31,15 +31,15 @@ export const fetchAllInstancesStatus = async (): Promise<WhatsAppStatusResponse>
       // Se os dados já estiverem no formato esperado (array no campo data)
       if (response.data && Array.isArray(response.data)) {
         statusResponse.data = response.data.map(item => ({
-          name: item.name,
-          connectionStatus: item.connectionStatus
+          name: item.name || item.instance || item.instanceName || '',
+          connectionStatus: item.connectionStatus || item.status || item.state || 'unknown'
         }));
       } 
       // Se a própria resposta for um array (como descrito nos requisitos)
       else if (Array.isArray(response)) {
         statusResponse.data = response.map(item => ({
-          name: item.name,
-          connectionStatus: item.connectionStatus
+          name: item.name || item.instance || item.instanceName || '',
+          connectionStatus: item.connectionStatus || item.status || item.state || 'unknown'
         }));
       }
       // Se a resposta é um objeto que contém um campo que é um array
@@ -51,8 +51,8 @@ export const fetchAllInstancesStatus = async (): Promise<WhatsAppStatusResponse>
         
         if (arrayFields.length > 0) {
           statusResponse.data = response[arrayFields[0]].map(item => ({
-            name: item.name,
-            connectionStatus: item.connectionStatus
+            name: item.name || item.instance || item.instanceName || '',
+            connectionStatus: item.connectionStatus || item.status || item.state || 'unknown'
           }));
         }
       }
@@ -63,7 +63,7 @@ export const fetchAllInstancesStatus = async (): Promise<WhatsAppStatusResponse>
     // Filtrar qualquer item que não tenha name ou connectionStatus definidos
     if (statusResponse.data && Array.isArray(statusResponse.data)) {
       statusResponse.data = statusResponse.data.filter(item => 
-        item && item.name && item.connectionStatus
+        item && (item.name || item.connectionStatus)
       );
       console.log('[Webhook] Status filtrado:', statusResponse.data);
     }

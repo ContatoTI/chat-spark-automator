@@ -1,24 +1,33 @@
 
-export const isInstanceConnected = (status: string | null | undefined): boolean => {
-  return status === 'open';
-};
-
-export const mapStatusToText = (status: string | null | undefined): { 
-  text: string; 
-  color: "green" | "red" | "yellow" | "gray"; 
-} => {
+// Função para mapear status para informações legíveis
+export const mapStatusToText = (status: string | null | undefined) => {
   if (!status) {
     return { text: "Desconhecido", color: "gray" };
   }
   
-  switch (status.toLowerCase()) {
-    case "open":
-      return { text: "Conectado", color: "green" };
-    case "close":
-      return { text: "Desconectado", color: "red" };
-    case "connecting":
-      return { text: "QR Code", color: "yellow" };
-    default:
-      return { text: "Desconhecido", color: "gray" };
+  // Normalizar o status para minúsculas para comparação
+  const normalizedStatus = status.toLowerCase();
+  
+  // Mapear status para texto e cor
+  if (normalizedStatus === "open" || normalizedStatus === "connected") {
+    return { text: "Conectado", color: "green" };
   }
+  
+  if (normalizedStatus === "close" || normalizedStatus === "disconnected") {
+    return { text: "Desconectado", color: "red" };
+  }
+  
+  if (normalizedStatus === "connecting") {
+    return { text: "Conectando", color: "yellow" };
+  }
+  
+  return { text: status, color: "gray" };
+};
+
+// Verificar se a instância está conectada
+export const isInstanceConnected = (status: string | null | undefined): boolean => {
+  if (!status) return false;
+  
+  const normalizedStatus = status.toLowerCase();
+  return normalizedStatus === "open" || normalizedStatus === "connected";
 };
