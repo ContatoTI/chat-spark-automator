@@ -15,24 +15,67 @@ export const fetchAllInstancesStatus = async (): Promise<WhatsAppStatusResponse>
     const response = await callWebhook(webhookUrl, {
       action: 'status',
       timestamp: new Date().toISOString()
-    }) as WhatsAppStatusResponse;
+    });
     
-    if (!response.success) {
-      throw new Error(response.message || 'Falha ao verificar status das instâncias');
+    console.log('[Webhook] Resposta bruta do webhook:', response);
+    
+    // Garantir que temos um formato consistente para o retorno
+    const statusResponse: WhatsAppStatusResponse = {
+      success: response.success === false ? false : true,
+      message: response.message || '',
+      data: []
+    };
+    
+    // Processar dados dependendo do formato retornado
+    if (response.success !== false) {
+      // Se os dados já estiverem no formato esperado (array no campo data)
+      if (response.data && Array.isArray(response.data)) {
+        statusResponse.data = response.data.map(item => ({
+          name: item.name,
+          connectionStatus: item.connectionStatus
+        }));
+      } 
+      // Se a própria resposta for um array (como descrito nos requisitos)
+      else if (Array.isArray(response)) {
+        statusResponse.data = response.map(item => ({
+          name: item.name,
+          connectionStatus: item.connectionStatus
+        }));
+      }
+      // Se a resposta é um objeto que contém um campo que é um array
+      else {
+        // Tentar encontrar qualquer campo que seja um array
+        const arrayFields = Object.keys(response).filter(key => 
+          Array.isArray(response[key])
+        );
+        
+        if (arrayFields.length > 0) {
+          statusResponse.data = response[arrayFields[0]].map(item => ({
+            name: item.name,
+            connectionStatus: item.connectionStatus
+          }));
+        }
+      }
     }
     
-    console.log('[Webhook] Status de todas as instâncias recebido:', response.data);
+    console.log('[Webhook] Status de todas as instâncias processado:', statusResponse);
     
     // Filtrar qualquer item que não tenha name ou connectionStatus definidos
-    if (response.data && Array.isArray(response.data)) {
-      response.data = response.data.filter(item => item && item.name && item.connectionStatus);
-      console.log('[Webhook] Status filtrado:', response.data);
+    if (statusResponse.data && Array.isArray(statusResponse.data)) {
+      statusResponse.data = statusResponse.data.filter(item => 
+        item && item.name && item.connectionStatus
+      );
+      console.log('[Webhook] Status filtrado:', statusResponse.data);
     }
     
-    return response;
+    return statusResponse;
   } catch (error) {
     console.error('[Webhook] Erro ao verificar status das instâncias:', error);
-    throw error;
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : 'Erro desconhecido',
+      data: []
+    };
   }
 };
 
@@ -46,10 +89,8 @@ export const fetchInstanceStatus = async (instanceName: string): Promise<string>
       throw new Error('URL do webhook de instâncias não configurada');
     }
     
-    const response = await callWebhook(webhookUrl, {
-      action: 'status',
-      instance_name: instanceName,
-    }) as WhatsAppStatusResponse;
+    // Primeiro tentamos buscar o status de todas as instâncias
+    const response = await fetchAllInstancesStatus();
     
     if (!response.success) {
       throw new Error(response.message || 'Falha ao verificar status');
@@ -58,10 +99,12 @@ export const fetchInstanceStatus = async (instanceName: string): Promise<string>
     // Procurar a instância específica na resposta
     const instance = response.data?.find(inst => inst.name === instanceName);
     if (!instance) {
-      throw new Error('Instância não encontrada na resposta');
+      console.warn(`Instância '${instanceName}' não encontrada na resposta do webhook`);
+      return 'close'; // Fallback para desconectado se não encontrar
     }
     
     // Retorna o status da instância
+    console.log(`Status da instância '${instanceName}': ${instance.connectionStatus}`);
     return instance.connectionStatus;
   } catch (error) {
     console.error('Erro ao verificar status:', error);
