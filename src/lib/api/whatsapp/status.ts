@@ -28,22 +28,22 @@ export const fetchAllInstancesStatus = async (): Promise<WhatsAppStatusResponse>
     
     // Processar dados dependendo do formato retornado
     if (response.success !== false) {
+      // Se a resposta é um array diretamente (como mostrado no exemplo)
+      if (Array.isArray(response)) {
+        statusResponse.data = response.map(item => ({
+          name: item.name || item.instance || item.instanceName || '',
+          connectionStatus: item.connectionStatus || item.status || item.state || 'unknown'
+        }));
+      } 
       // Se os dados já estiverem no formato esperado (array no campo data)
-      if (response.data && Array.isArray(response.data)) {
+      else if (response.data && Array.isArray(response.data)) {
         statusResponse.data = response.data.map(item => ({
           name: item.name || item.instance || item.instanceName || '',
           connectionStatus: item.connectionStatus || item.status || item.state || 'unknown'
         }));
       } 
-      // Se a própria resposta for um array (como descrito nos requisitos)
-      else if (Array.isArray(response)) {
-        statusResponse.data = response.map(item => ({
-          name: item.name || item.instance || item.instanceName || '',
-          connectionStatus: item.connectionStatus || item.status || item.state || 'unknown'
-        }));
-      }
-      // Se a resposta é um objeto que contém um campo que é um array
-      else {
+      // Se a própria resposta for um objeto (mas não tem o campo success)
+      else if (typeof response === 'object' && response !== null) {
         // Tentar encontrar qualquer campo que seja um array
         const arrayFields = Object.keys(response).filter(key => 
           Array.isArray(response[key])

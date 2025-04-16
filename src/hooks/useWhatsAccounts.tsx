@@ -4,7 +4,8 @@ import { useWhatsAccountsCore } from "./whatsapp/useWhatsAccountsCore";
 import { useWhatsAccountConnection } from "./whatsapp/useWhatsAccountConnection";
 import { useWhatsAccountStatus } from "./whatsapp/useWhatsAccountStatus";
 import { useMutation } from "@tanstack/react-query";
-import { fetchAllInstancesStatus, mapStatusToText } from "@/lib/api/whatsapp/webhook";
+import { fetchAllInstancesStatus } from "@/lib/api/whatsapp/status";
+import { mapStatusToText } from "@/lib/api/whatsapp/utils";
 import { toast } from "sonner";
 
 export const useWhatsAccounts = () => {
@@ -13,7 +14,7 @@ export const useWhatsAccounts = () => {
   const connection = useWhatsAccountConnection();
   const status = useWhatsAccountStatus(queryClient);
 
-  // Check all accounts status mutation - now using a single API call
+  // Check all accounts status mutation - agora usando uma única chamada de API
   const refreshStatusMutation = useMutation({
     mutationFn: async () => {
       console.log('[Webhook] Atualizando status de todas as instâncias em uma única chamada');
