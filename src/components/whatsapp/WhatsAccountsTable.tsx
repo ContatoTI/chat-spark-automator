@@ -9,7 +9,7 @@ import {
   TableRow 
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Trash2, Plug, PlugZap, Loader2 } from "lucide-react";
+import { Trash2, Plug, PlugZap, Loader2, QrCode, WifiOff, Wifi } from "lucide-react";
 import { 
   AlertDialog,
   AlertDialogAction,
@@ -25,8 +25,9 @@ import { WhatsAccount } from "@/lib/api/whatsapp/types";
 import { EmptyState } from "@/components/whatsapp/EmptyState";
 import { LoadingState } from "@/components/whatsapp/LoadingState";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { isInstanceConnected } from "@/lib/api/whatsapp/webhook";
+import { isInstanceConnected } from "@/lib/api/whatsapp/utils";
 import { toast } from "sonner";
+import { Badge } from "@/components/ui/badge";
 
 interface WhatsAccountsTableProps {
   accounts: WhatsAccount[];
@@ -59,6 +60,57 @@ export function WhatsAccountsTable({
     return <EmptyState />;
   }
 
+  const getStatusIcon = (status: string | null | undefined) => {
+    if (!status) return null;
+    
+    const normalizedStatus = status.toLowerCase();
+    
+    switch (normalizedStatus) {
+      case "open":
+        return <Wifi className="h-4 w-4" />;
+      case "close":
+        return <WifiOff className="h-4 w-4" />;
+      case "connecting":
+        return <QrCode className="h-4 w-4" />;
+      default:
+        return null;
+    }
+  };
+
+  const getStatusBadgeVariant = (status: string | null | undefined) => {
+    if (!status) return "secondary";
+    
+    const normalizedStatus = status.toLowerCase();
+    
+    switch (normalizedStatus) {
+      case "open":
+        return "success";
+      case "close":
+        return "destructive";
+      case "connecting":
+        return "warning";
+      default:
+        return "secondary";
+    }
+  };
+
+  const getStatusLabel = (status: string | null | undefined) => {
+    if (!status) return "Desconhecido";
+    
+    const normalizedStatus = status.toLowerCase();
+    
+    switch (normalizedStatus) {
+      case "open":
+        return "Conectado";
+      case "close":
+        return "Desconectado";
+      case "connecting":
+        return "QR Code";
+      default:
+        return status;
+    }
+  };
+
   const handleConnectionToggle = (account: WhatsAccount) => {
     const connected = isInstanceConnected(account.status);
     if (connected) {
@@ -84,6 +136,7 @@ export function WhatsAccountsTable({
             <TableHead>ID</TableHead>
             <TableHead>Nome da Instância</TableHead>
             <TableHead>Empresa ID</TableHead>
+            <TableHead>Status</TableHead>
             <TableHead className="w-[180px] text-right">Ações</TableHead>
           </TableRow>
         </TableHeader>
@@ -92,12 +145,22 @@ export function WhatsAccountsTable({
             const isConnected = isInstanceConnected(account.status);
             const isProcessingInstance = !!isProcessing[account.id];
             const connectionAction = isConnected ? 'disconnecting' : 'connecting';
+            const badgeVariant = getStatusBadgeVariant(account.status);
             
             return (
               <TableRow key={account.id}>
                 <TableCell>{account.id}</TableCell>
                 <TableCell className="font-medium">{account.nome_instancia}</TableCell>
                 <TableCell>{account.empresa_id}</TableCell>
+                <TableCell>
+                  <Badge 
+                    variant={badgeVariant as any} 
+                    className="flex items-center gap-1 w-fit"
+                  >
+                    {getStatusIcon(account.status)}
+                    <span>{getStatusLabel(account.status)}</span>
+                  </Badge>
+                </TableCell>
                 <TableCell>
                   <div className="flex justify-end gap-2">
                     <TooltipProvider>
