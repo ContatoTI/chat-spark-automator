@@ -9,7 +9,7 @@ import {
   TableRow 
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Trash2, Plug, PlugZap, Loader2, Wifi, WifiOff, Clock } from "lucide-react";
+import { Trash2, Plug, PlugZap, Loader2 } from "lucide-react";
 import { 
   AlertDialog,
   AlertDialogAction,
@@ -25,7 +25,6 @@ import { WhatsAccount } from "@/lib/api/whatsapp/types";
 import { EmptyState } from "@/components/whatsapp/EmptyState";
 import { LoadingState } from "@/components/whatsapp/LoadingState";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Badge } from "@/components/ui/badge";
 import { isInstanceConnected } from "@/lib/api/whatsapp/webhook";
 import { toast } from "sonner";
 
@@ -60,28 +59,6 @@ export function WhatsAccountsTable({
     return <EmptyState />;
   }
 
-  const getStatusIcon = (status: string | null) => {
-    if (!status) return <Clock className="h-4 w-4" />;
-    
-    switch (status.toLowerCase()) {
-      case "open":
-        return <Wifi className="h-4 w-4 text-green-500" />;
-      case "close":
-        return <WifiOff className="h-4 w-4 text-red-500" />;
-      case "connecting":
-        return <Clock className="h-4 w-4 text-yellow-500" />;
-      default:
-        return <Clock className="h-4 w-4 text-gray-500" />;
-    }
-  };
-
-  const getStatusBadgeVariant = (color: string) => {
-    if (color.includes("green")) return "success";
-    if (color.includes("red")) return "destructive";
-    if (color.includes("yellow")) return "warning";
-    return "secondary";
-  };
-
   const handleConnectionToggle = (account: WhatsAccount) => {
     const connected = isInstanceConnected(account.status);
     if (connected) {
@@ -107,14 +84,11 @@ export function WhatsAccountsTable({
             <TableHead>ID</TableHead>
             <TableHead>Nome da Instância</TableHead>
             <TableHead>Empresa ID</TableHead>
-            <TableHead>Status</TableHead>
             <TableHead className="w-[180px] text-right">Ações</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {accounts.map((account) => {
-            const statusInfo = getStatusInfo(account.status || "");
-            const badgeVariant = getStatusBadgeVariant(statusInfo.color);
             const isConnected = isInstanceConnected(account.status);
             const isProcessingInstance = !!isProcessing[account.id];
             const connectionAction = isConnected ? 'disconnecting' : 'connecting';
@@ -124,12 +98,6 @@ export function WhatsAccountsTable({
                 <TableCell>{account.id}</TableCell>
                 <TableCell className="font-medium">{account.nome_instancia}</TableCell>
                 <TableCell>{account.empresa_id}</TableCell>
-                <TableCell>
-                  <Badge variant={badgeVariant as any} className="flex items-center gap-1 w-fit">
-                    {getStatusIcon(account.status || null)}
-                    <span>{statusInfo.label}</span>
-                  </Badge>
-                </TableCell>
                 <TableCell>
                   <div className="flex justify-end gap-2">
                     <TooltipProvider>

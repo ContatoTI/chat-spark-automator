@@ -7,7 +7,7 @@ import { useAuth } from "@/contexts/AuthContext";
 export const useCompanies = () => {
   const [retryCount, setRetryCount] = useState(0);
   const queryClient = useQueryClient();
-  const { selectedCompany } = useAuth();
+  const { selectedCompany, isMaster } = useAuth();
 
   // Efeito para ouvir por mudanças de empresa
   useEffect(() => {
@@ -49,7 +49,7 @@ export const useCompanies = () => {
 
   return {
     companies: companies || [],
-    isLoading,
+    isLoading: isLoading && !!selectedCompany, // Only show loading if there's a selected company
     error,
     refetch: forceRefresh,
     isError
