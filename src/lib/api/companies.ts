@@ -1,4 +1,3 @@
-
 import { supabase } from "@/lib/supabase";
 import { DisparoOptions } from "@/lib/api/settings";
 
@@ -9,25 +8,33 @@ export interface Company {
 }
 
 // Função para buscar empresas
-export const fetchCompanies = async (): Promise<Company[]> => {
-  console.log("Buscando empresas");
+export const fetchCompanies = async (empresa_id?: string): Promise<Company[]> => {
+  console.log("Buscando empresas", empresa_id ? `para empresa ${empresa_id}` : 'todas');
+  
+  // Se não houver empresa_id, retorna lista vazia
+  if (!empresa_id) {
+    console.log("Nenhuma empresa selecionada, retornando lista vazia");
+    return [];
+  }
   
   try {
     const start = performance.now();
     
-    // Otimizando a consulta para buscar apenas as colunas necessárias
-    const { data, error } = await supabase
+    // Query base com filtro por empresa_id
+    const query = supabase
       .from('AppW_Options')
       .select('empresa_id, nome_da_empresa, created_at')
+      .eq('empresa_id', empresa_id)
       .limit(100)
-      .order('created_at', { ascending: false }); // Ordenar por data de criação, mais recentes primeiro
+      .order('created_at', { ascending: false });
+    
+    const { data, error } = await query;
     
     if (error) {
       console.error("Erro ao buscar empresas:", error);
       throw new Error(`Falha ao buscar empresas: ${error.message}`);
     }
     
-    // Se não houver dados, retorne um array vazio
     if (!data || data.length === 0) {
       console.log("Nenhuma empresa encontrada");
       return [];
@@ -36,7 +43,6 @@ export const fetchCompanies = async (): Promise<Company[]> => {
     // Remover duplicatas usando Map para melhor performance
     const uniqueCompanies = new Map<string, Company>();
     
-    // Filtrar empresas únicas pelo ID
     data.forEach(company => {
       if (company.empresa_id && !uniqueCompanies.has(company.empresa_id)) {
         uniqueCompanies.set(company.empresa_id, {
@@ -47,7 +53,6 @@ export const fetchCompanies = async (): Promise<Company[]> => {
       }
     });
     
-    // Converter o Map para Array
     const companies = Array.from(uniqueCompanies.values());
     
     const end = performance.now();

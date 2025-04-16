@@ -27,15 +27,16 @@ export const useCompanies = () => {
     error,
     isError
   } = useQuery({
-    queryKey: ['companies', retryCount, selectedCompany],
-    queryFn: fetchCompanies,
+    queryKey: ['companies', retryCount, selectedCompany?.id],
+    queryFn: () => fetchCompanies(selectedCompany?.id),
     refetchOnWindowFocus: false,
     retry: 1,
-    staleTime: 300000, // Aumentar para 5 minutos para reduzir consultas
-    gcTime: 600000, // 10 minutos
+    staleTime: 300000, // 5 minutos
+    gcTime: 600000, // 10 minutos,
+    // Não mostrar loading se não houver empresa selecionada
+    enabled: !!selectedCompany?.id
   });
 
-  // Função para forçar uma atualização ao alterar a chave de consulta
   const forceRefresh = () => {
     setRetryCount(prev => prev + 1);
     queryClient.invalidateQueries({ queryKey: ['companies'] });
