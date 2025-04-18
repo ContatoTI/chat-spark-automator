@@ -1,3 +1,4 @@
+
 // Função para mapear status para informações legíveis
 export const mapStatusToText = (status: string | null | undefined) => {
   if (!status) {
@@ -16,7 +17,7 @@ export const mapStatusToText = (status: string | null | undefined) => {
     return { text: "Desconectado", color: "red" };
   }
   
-  if (normalizedStatus === "connecting") {
+  if (normalizedStatus === "connecting" || normalizedStatus === "qrcode") {
     return { text: "Conectando", color: "yellow" };
   }
   

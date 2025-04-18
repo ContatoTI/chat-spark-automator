@@ -30,26 +30,30 @@ export const useWhatsAccounts = () => {
       console.log('[Webhook] Contas existentes:', accounts.map(a => a.nome_instancia));
       
       // Atualizamos o cache localmente para cada instância com seu novo status
-      const updatedAccounts = accounts.map(account => {
-        // Buscar o status correspondente no array de resposta
-        const instanceStatus = response.data?.find(
-          instance => instance.name === account.nome_instancia
-        );
+      if (accounts && accounts.length > 0) {
+        const updatedAccounts = accounts.map(account => {
+          // Buscar o status correspondente no array de resposta
+          const instanceStatus = response.data?.find(
+            instance => instance.name === account.nome_instancia
+          );
+          
+          if (instanceStatus && instanceStatus.connectionStatus) {
+            console.log(`[Webhook] Atualizando status da instância ${account.nome_instancia} para ${instanceStatus.connectionStatus}`);
+            // Retornar conta com status atualizado
+            return { ...account, status: instanceStatus.connectionStatus };
+          }
+          
+          // Se não encontrou ou o status é inválido, manter o status atual
+          return account;
+        });
         
-        if (instanceStatus && instanceStatus.connectionStatus) {
-          console.log(`[Webhook] Atualizando status da instância ${account.nome_instancia} para ${instanceStatus.connectionStatus}`);
-          // Retornar conta com status atualizado
-          return { ...account, status: instanceStatus.connectionStatus };
-        }
+        console.log('[Webhook] Contas atualizadas:', updatedAccounts);
         
-        // Se não encontrou ou o status é inválido, manter o status atual
-        return account;
-      });
-      
-      console.log('[Webhook] Contas atualizadas:', updatedAccounts);
-      
-      // Atualizar o cache do React Query
-      queryClient.setQueryData(['whatsapp-accounts'], updatedAccounts);
+        // Atualizar o cache do React Query
+        queryClient.setQueryData(['whatsapp-accounts'], updatedAccounts);
+      } else {
+        console.log('[Webhook] Não há contas para atualizar');
+      }
       
       return response.data;
     },

@@ -10,15 +10,19 @@ interface StatusBadgeProps {
 export function StatusBadge({ status }: StatusBadgeProps) {
   if (!status) return null;
   
+  // Normalizar o status para minúsculas para comparação
   const normalizedStatus = status.toLowerCase();
   
   const getStatusIcon = () => {
     switch (normalizedStatus) {
       case "open":
+      case "connected":
         return <Wifi className="h-4 w-4" />;
       case "close":
+      case "disconnected":
         return <WifiOff className="h-4 w-4" />;
       case "connecting":
+      case "qrcode":
         return <QrCode className="h-4 w-4" />;
       default:
         return null;
@@ -28,10 +32,13 @@ export function StatusBadge({ status }: StatusBadgeProps) {
   const getStatusBadgeVariant = () => {
     switch (normalizedStatus) {
       case "open":
+      case "connected":
         return "success";
       case "close":
+      case "disconnected":
         return "destructive";
       case "connecting":
+      case "qrcode":
         return "warning";
       default:
         return "secondary";
@@ -41,10 +48,13 @@ export function StatusBadge({ status }: StatusBadgeProps) {
   const getStatusLabel = () => {
     switch (normalizedStatus) {
       case "open":
+      case "connected":
         return "Conectado";
       case "close":
+      case "disconnected":
         return "Desconectado";
       case "connecting":
+      case "qrcode":
         return "QR Code";
       default:
         return status;
