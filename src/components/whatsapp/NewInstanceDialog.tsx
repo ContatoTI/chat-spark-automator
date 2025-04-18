@@ -63,7 +63,7 @@ export function NewInstanceDialog({ open, onOpenChange, onSubmit }: NewInstanceD
             </div>
             {selectedCompany && (
               <div className="text-sm text-muted-foreground">
-                Esta instância será associada à empresa: {selectedCompany.name || selectedCompany.id}
+                Esta instância será associada à empresa: {selectedCompany}
               </div>
             )}
           </div>
