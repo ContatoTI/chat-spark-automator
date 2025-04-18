@@ -15,6 +15,11 @@ export function CompaniesHeader({ onRefresh, onToggleLogs, showLogs }: Companies
   const [dialogOpen, setDialogOpen] = useState(false);
   const { isMaster } = useAuth();
 
+  // Handle company creation success
+  const handleCompanyCreated = () => {
+    onRefresh();
+  };
+
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
@@ -51,7 +56,11 @@ export function CompaniesHeader({ onRefresh, onToggleLogs, showLogs }: Companies
           )}
         </div>
       </div>
-      <NewCompanyDialog open={dialogOpen} onOpenChange={setDialogOpen} />
+      <NewCompanyDialog 
+        open={dialogOpen} 
+        onOpenChange={setDialogOpen} 
+        onCompanyCreated={handleCompanyCreated} 
+      />
     </div>
   );
 }

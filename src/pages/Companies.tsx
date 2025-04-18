@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import { Layout } from "@/components/layout/Layout";
 import { CompaniesHeader } from "@/components/companies/CompaniesHeader";
@@ -70,7 +71,6 @@ const Companies = () => {
           isLoading={isLoading} 
           error={error} 
           refetch={handleRefresh}
-          onApiResponse={addApiLog}
         />
         {showLogs && (
           <LogWindow 

@@ -11,6 +11,12 @@ interface WhatsAccountRowProps {
   onConnect: (id: number, nomeInstancia: string, webhookInst: string) => Promise<void>;
   onDisconnect: (id: number, nomeInstancia: string) => Promise<void>;
   isProcessing: { [id: number]: string };
+  getStatusInfo?: (status: string) => { 
+    label: string; 
+    color: string; 
+    bgColor: string; 
+  };
+  onWebhookResponse?: (data: any) => void;
 }
 
 export function WhatsAccountRow({
@@ -18,7 +24,9 @@ export function WhatsAccountRow({
   onDelete,
   onConnect,
   onDisconnect,
-  isProcessing
+  isProcessing,
+  getStatusInfo,
+  onWebhookResponse
 }: WhatsAccountRowProps) {
   return (
     <TableRow>
@@ -35,6 +43,7 @@ export function WhatsAccountRow({
           onConnect={onConnect}
           onDisconnect={onDisconnect}
           isProcessing={isProcessing}
+          onWebhookResponse={onWebhookResponse}
         />
       </TableCell>
     </TableRow>

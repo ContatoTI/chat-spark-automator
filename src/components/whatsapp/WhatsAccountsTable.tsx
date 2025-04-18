@@ -25,6 +25,7 @@ interface WhatsAccountsTableProps {
     color: string; 
     bgColor: string; 
   };
+  onWebhookResponse?: (data: any) => void;
 }
 
 export function WhatsAccountsTable({ 
@@ -34,6 +35,8 @@ export function WhatsAccountsTable({
   onConnect,
   onDisconnect,
   isProcessing,
+  getStatusInfo,
+  onWebhookResponse
 }: WhatsAccountsTableProps) {
   if (isLoading) {
     return <LoadingState />;
@@ -64,6 +67,8 @@ export function WhatsAccountsTable({
               onConnect={onConnect}
               onDisconnect={onDisconnect}
               isProcessing={isProcessing}
+              getStatusInfo={getStatusInfo}
+              onWebhookResponse={onWebhookResponse}
             />
           ))}
         </TableBody>
