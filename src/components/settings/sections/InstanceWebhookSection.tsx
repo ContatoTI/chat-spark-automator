@@ -32,6 +32,17 @@ export function InstanceWebhookSection({ form }: InstanceWebhookSectionProps) {
     }
   }, [currentWebhookUrl]);
 
+  // Verificar se há um valor no localStorage ao carregar
+  useEffect(() => {
+    const storedUrl = localStorage.getItem('webhook_instancias');
+    console.log('[InstanceWebhookSection] Webhook de instâncias carregado do localStorage:', storedUrl);
+    
+    // Se o form está vazio e há valor no localStorage, preencha o form
+    if ((!currentWebhookUrl || currentWebhookUrl.trim() === '') && storedUrl) {
+      form.setValue('webhook_instancias', storedUrl);
+    }
+  }, []);
+
   return (
     <Card>
       <CardHeader>

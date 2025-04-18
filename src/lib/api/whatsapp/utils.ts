@@ -1,4 +1,3 @@
-
 // Função para mapear status para informações legíveis
 export const mapStatusToText = (status: string | null | undefined) => {
   if (!status) {
@@ -30,4 +29,10 @@ export const isInstanceConnected = (status: string | null | undefined): boolean 
   
   const normalizedStatus = status.toLowerCase();
   return normalizedStatus === "open" || normalizedStatus === "connected";
+};
+
+// Add additional utilities to help with debugging
+export const logWebhookResponse = (action: string, response: any) => {
+  console.log(`[Webhook] ${action} response:`, response);
+  return response;
 };

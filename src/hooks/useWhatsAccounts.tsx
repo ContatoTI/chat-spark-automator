@@ -21,11 +21,13 @@ export const useWhatsAccounts = () => {
       const response = await fetchAllInstancesStatus();
       
       if (!response.success || !response.data || !Array.isArray(response.data)) {
+        console.error('[Webhook] Erro na resposta do webhook:', response);
         throw new Error('Formato de resposta inválido do webhook');
       }
       
       // Log das instâncias retornadas pelo webhook
       console.log('[Webhook] Instâncias retornadas:', response.data.map(i => i.name));
+      console.log('[Webhook] Contas existentes:', accounts.map(a => a.nome_instancia));
       
       // Atualizamos o cache localmente para cada instância com seu novo status
       const updatedAccounts = accounts.map(account => {
@@ -43,6 +45,8 @@ export const useWhatsAccounts = () => {
         // Se não encontrou ou o status é inválido, manter o status atual
         return account;
       });
+      
+      console.log('[Webhook] Contas atualizadas:', updatedAccounts);
       
       // Atualizar o cache do React Query
       queryClient.setQueryData(['whatsapp-accounts'], updatedAccounts);

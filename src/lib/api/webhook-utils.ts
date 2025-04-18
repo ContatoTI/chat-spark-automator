@@ -45,7 +45,17 @@ export const callWebhook = async (
         
         try {
           const responseJson = await postResponse.json();
-          console.log('[Webhook] Resposta JSON:', JSON.stringify(responseJson));
+          console.log('[Webhook] Resposta JSON (POST):', JSON.stringify(responseJson));
+          
+          // Direct array response (common for status endpoints)
+          if (Array.isArray(responseJson)) {
+            console.log('[Webhook] Resposta é um array direto');
+            return { 
+              success: true, 
+              data: responseJson
+            };
+          }
+          
           return { 
             success: true, 
             data: responseJson,
@@ -55,6 +65,24 @@ export const callWebhook = async (
           // If can't parse as JSON, return text
           const text = await postResponse.text();
           console.log('[Webhook] Resposta TEXT:', text);
+          
+          // Try to parse text as JSON (sometimes API returns JSON but with wrong Content-Type)
+          try {
+            if (text.trim().startsWith('[') || text.trim().startsWith('{')) {
+              const jsonData = JSON.parse(text);
+              console.log('[Webhook] Resposta TEXT parsed as JSON:', jsonData);
+              
+              // Handle direct array response
+              if (Array.isArray(jsonData)) {
+                return { success: true, data: jsonData };
+              }
+              
+              return { success: true, data: jsonData };
+            }
+          } catch (parseError) {
+            console.log('[Webhook] Não foi possível fazer parse da resposta como JSON:', parseError);
+          }
+          
           return { 
             success: true, 
             message: text || "Operação realizada com sucesso" 
@@ -88,6 +116,12 @@ export const callWebhook = async (
           try {
             const responseJson = await getResponse.json();
             console.log('[Webhook] Resposta JSON (GET):', JSON.stringify(responseJson));
+            
+            // Direct array response
+            if (Array.isArray(responseJson)) {
+              return { success: true, data: responseJson };
+            }
+            
             return { 
               success: true, 
               data: responseJson,
@@ -97,6 +131,24 @@ export const callWebhook = async (
             // If can't parse as JSON, return text
             const text = await getResponse.text();
             console.log('[Webhook] Resposta TEXT (GET):', text);
+            
+            // Try to parse text as JSON
+            try {
+              if (text.trim().startsWith('[') || text.trim().startsWith('{')) {
+                const jsonData = JSON.parse(text);
+                console.log('[Webhook] Resposta TEXT (GET) parsed as JSON:', jsonData);
+                
+                // Handle direct array response
+                if (Array.isArray(jsonData)) {
+                  return { success: true, data: jsonData };
+                }
+                
+                return { success: true, data: jsonData };
+              }
+            } catch (parseError) {
+              console.log('[Webhook] Não foi possível fazer parse da resposta GET como JSON:', parseError);
+            }
+            
             return { 
               success: true, 
               message: text || "Operação realizada com sucesso" 

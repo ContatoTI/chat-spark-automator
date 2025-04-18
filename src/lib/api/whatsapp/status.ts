@@ -1,6 +1,7 @@
 
 import { WhatsAppStatusResponse } from "./types";
 import { callWebhook } from "../webhook-utils";
+import { logWebhookResponse } from "./utils";
 
 export const fetchAllInstancesStatus = async (): Promise<WhatsAppStatusResponse> => {
   try {
@@ -67,6 +68,9 @@ export const fetchAllInstancesStatus = async (): Promise<WhatsAppStatusResponse>
       );
       console.log('[Webhook] Status filtrado:', statusResponse.data);
     }
+    
+    // Log the final response for debugging
+    logWebhookResponse('Status final', statusResponse);
     
     return statusResponse;
   } catch (error) {
