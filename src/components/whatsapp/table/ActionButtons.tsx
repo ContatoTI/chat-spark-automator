@@ -16,6 +16,7 @@ import {
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { isInstanceConnected } from "@/lib/api/whatsapp/utils";
 import { WhatsAccount } from "@/lib/api/whatsapp/types";
+import { toast } from "sonner";
 
 interface ActionButtonsProps {
   account: WhatsAccount;
