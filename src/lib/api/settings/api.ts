@@ -24,16 +24,31 @@ export const fetchDisparoOptions = async (): Promise<DisparoOptions> => {
 
     if (!data || data.length === 0) {
       console.log("Nenhuma configuração encontrada. Retornando valores padrão...");
-      return { ...DEFAULT_OPTIONS };
+      // Return default options with a placeholder empresa_id
+      return { 
+        ...DEFAULT_OPTIONS,
+        empresa_id: 'default', // Providing a default empresa_id
+        ativo: true,
+        horario_limite: 17,
+        long_wait_min: 50,
+        long_wait_max: 240,
+        short_wait_min: 5,
+        short_wait_max: 10,
+        batch_size_min: 5,
+        batch_size_max: 10,
+        ftp_port: 21
+      } as DisparoOptions;
     }
 
     // The data is already in the right format - just return the first row
-    const options: DisparoOptions = data[0];
+    const options = data[0];
     
     // Handle any null values by providing defaults and ensure ativo is a boolean
     return {
       ...DEFAULT_OPTIONS,
       ...options,
+      // Ensure empresa_id is provided
+      empresa_id: options.empresa_id || 'default',
       // Convert ativo to boolean if it's a string or other type
       ativo: typeof options.ativo === 'boolean' ? options.ativo : 
              options.ativo === true || options.ativo === 'true' || options.ativo === '1',

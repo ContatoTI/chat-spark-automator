@@ -84,6 +84,8 @@ export function useSettingsFormData(initialSettings: DisparoOptions) {
   const onSubmit = (values: SettingsFormValues) => {
     const updatedSettings: DisparoOptions = {
       ...values,
+      // Ensure empresa_id is always provided
+      empresa_id: values.empresa_id || initialSettings.empresa_id,
       // Ensuring all required fields have values
       ativo: values.ativo ?? true,
       horario_limite: values.horario_limite,

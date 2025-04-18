@@ -3,7 +3,7 @@ import { z } from "zod";
 
 export const settingsSchema = z.object({
   id: z.number().optional(),
-  empresa_id: z.string().optional(),
+  empresa_id: z.string(), // Make it required in the schema
   instancia: z.string().optional(),
   ativo: z.boolean().default(true),
   horario_limite: z.coerce.number().min(0).max(23),

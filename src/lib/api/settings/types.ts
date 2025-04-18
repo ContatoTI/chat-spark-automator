@@ -1,7 +1,7 @@
 
 export interface DisparoOptions {
   id?: number;
-  empresa_id: string;
+  empresa_id: string;  // Ensuring this is required (no ? mark)
   nome_da_empresa?: string;
   instancia?: string;
   ativo: boolean;
