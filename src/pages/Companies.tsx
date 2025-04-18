@@ -11,7 +11,7 @@ import { LogWindow } from "@/components/debug/LogWindow";
 
 const Companies = () => {
   const { companies, isLoading, error, refetch, isError } = useCompanies();
-  const { selectedCompany } = useAuth();
+  const { selectedCompany, isMaster } = useAuth();
   const queryClient = useQueryClient();
   const [showLogs, setShowLogs] = useState(true);
   const [apiLogs, setApiLogs] = useState<Array<{ timestamp: string; data: any }>>([]);
@@ -23,6 +23,7 @@ const Companies = () => {
     }]);
   };
 
+  // Log when companies data changes
   useEffect(() => {
     if (companies) {
       addApiLog({
@@ -32,15 +33,26 @@ const Companies = () => {
     }
   }, [companies]);
 
+  // Log when component mounts to debug loading issues
+  useEffect(() => {
+    console.log("Companies component mounted, isMaster:", isMaster, "selectedCompany:", selectedCompany);
+    addApiLog({
+      type: 'COMPONENT_MOUNTED',
+      isMaster,
+      selectedCompany,
+      timestamp: new Date().toISOString()
+    });
+  }, []);
+
   useEffect(() => {
     queryClient.invalidateQueries({ queryKey: ['company-settings'] });
   }, [queryClient]);
 
   useEffect(() => {
-    if (selectedCompany) {
+    if (isMaster || selectedCompany) {
       refetch();
     }
-  }, [selectedCompany, refetch]);
+  }, [selectedCompany, isMaster, refetch]);
 
   const handleRefresh = () => {
     toast.info("Atualizando lista de empresas...");

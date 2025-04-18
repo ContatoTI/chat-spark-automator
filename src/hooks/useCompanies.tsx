@@ -29,9 +29,9 @@ export const useCompanies = () => {
   } = useQuery({
     queryKey: ['companies', retryCount, selectedCompany],
     queryFn: async () => {
-      console.log("Executando fetchCompanies com empresa:", selectedCompany);
+      console.log("Executando fetchCompanies com empresa:", selectedCompany?.id || 'nenhuma');
       // Para usuários master, podemos buscar todas empresas mesmo sem selecionado uma específica
-      const result = await fetchCompanies(isMaster ? '*' : selectedCompany);
+      const result = await fetchCompanies(isMaster ? '*' : selectedCompany?.id);
       console.log("Resultado fetchCompanies:", result);
       return result;
     },
@@ -39,8 +39,8 @@ export const useCompanies = () => {
     retry: 1,
     staleTime: 300000, // 5 minutos
     gcTime: 600000, // 10 minutos,
-    // Mostrar empresas para usuários master independente de empresa selecionada
-    enabled: isMaster || !!selectedCompany
+    // Crucial change: Enable the query for master users regardless of selectedCompany
+    enabled: isMaster || !!selectedCompany?.id
   });
 
   const forceRefresh = () => {
@@ -50,7 +50,7 @@ export const useCompanies = () => {
 
   return {
     companies: companies || [],
-    isLoading: isLoading && (isMaster || !!selectedCompany), // Adjusted loading state
+    isLoading,
     error,
     refetch: forceRefresh,
     isError

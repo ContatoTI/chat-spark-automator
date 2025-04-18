@@ -7,8 +7,8 @@ export const fetchCompanies = async (empresa_id?: string): Promise<Company[]> =>
   console.log("Buscando empresas", empresa_id ? `para empresa ${empresa_id}` : 'todas');
   
   // Se não houver empresa_id e não for uma busca de todas as empresas ('*'), retorna lista vazia
-  if (!empresa_id || (empresa_id !== '*' && !empresa_id.trim())) {
-    console.log("Nenhuma empresa selecionada ou ID inválido, retornando lista vazia");
+  if (!empresa_id) {
+    console.log("Nenhuma empresa selecionada, retornando lista vazia");
     return [];
   }
   
