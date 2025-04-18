@@ -1,5 +1,4 @@
-
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Layout } from "@/components/layout/Layout";
 import { CompaniesHeader } from "@/components/companies/CompaniesHeader";
 import { CompaniesTable } from "@/components/companies/CompaniesTable";
@@ -7,35 +6,48 @@ import { useCompanies } from "@/hooks/useCompanies";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQueryClient } from "@tanstack/react-query";
+import { LogWindow } from "@/components/debug/LogWindow";
 
 const Companies = () => {
   const { companies, isLoading, error, refetch, isError } = useCompanies();
   const { selectedCompany } = useAuth();
   const queryClient = useQueryClient();
+  const [showLogs, setShowLogs] = useState(true);
+  const [apiLogs, setApiLogs] = useState<Array<{ timestamp: string; data: any }>>([]);
   
-  // Limpar cache de configurações quando mudar a página para garantir
-  // que carregamos os dados atualizados para cada empresa
+  const addApiLog = (data: any) => {
+    setApiLogs(prev => [...prev, {
+      timestamp: new Date().toISOString(),
+      data
+    }]);
+  };
+
+  useEffect(() => {
+    if (companies) {
+      addApiLog({
+        type: 'FETCH_COMPANIES',
+        companies
+      });
+    }
+  }, [companies]);
+
   useEffect(() => {
     queryClient.invalidateQueries({ queryKey: ['company-settings'] });
   }, [queryClient]);
 
-  // Se houver uma mudança na empresa selecionada, recarregar os dados
   useEffect(() => {
     if (selectedCompany) {
       refetch();
     }
   }, [selectedCompany, refetch]);
 
-  // Função para forçar uma atualização dos dados
   const handleRefresh = () => {
     toast.info("Atualizando lista de empresas...");
-    // Invalidar todas as queries relacionadas a empresas
     queryClient.invalidateQueries({ queryKey: ['companies'] });
     queryClient.invalidateQueries({ queryKey: ['company-settings'] });
     refetch();
   };
 
-  // Se houver erro, mostra uma toast
   React.useEffect(() => {
     if (error) {
       console.error("Erro ao carregar empresas:", error);
@@ -48,13 +60,25 @@ const Companies = () => {
   return (
     <Layout>
       <div className="flex flex-col gap-8">
-        <CompaniesHeader onRefresh={handleRefresh} />
+        <CompaniesHeader 
+          onRefresh={handleRefresh} 
+          onToggleLogs={() => setShowLogs(prev => !prev)}
+          showLogs={showLogs}
+        />
         <CompaniesTable 
           companies={companies} 
           isLoading={isLoading} 
           error={error} 
-          refetch={handleRefresh} 
+          refetch={handleRefresh}
+          onApiResponse={addApiLog}
         />
+        {showLogs && (
+          <LogWindow 
+            title="API Logs" 
+            logs={apiLogs}
+            onClose={() => setShowLogs(false)}
+          />
+        )}
       </div>
     </Layout>
   );
