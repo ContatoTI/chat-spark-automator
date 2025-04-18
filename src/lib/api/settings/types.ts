@@ -1,13 +1,12 @@
 
-/**
- * Types related to application settings
- */
-
 export interface DisparoOptions {
   id?: number;
-  empresa_id?: string;
+  empresa_id: string;
+  nome_da_empresa?: string;
   instancia?: string;
   ativo: boolean;
+  
+  // Configurações de Limite e Intervalos
   horario_limite: number;
   long_wait_min: number;
   long_wait_max: number;
@@ -15,6 +14,8 @@ export interface DisparoOptions {
   short_wait_max: number;
   batch_size_min: number;
   batch_size_max: number;
+  
+  // API e Webhooks
   url_api?: string;
   apikey?: string;
   webhook_disparo?: string;
@@ -22,14 +23,18 @@ export interface DisparoOptions {
   webhook_get_images?: string;
   webhook_up_docs?: string;
   webhook_instancias?: string;
+  
+  // Configurações FTP
   ftp_url?: string;
   ftp_user?: string;
   ftp_port: number;
   ftp_password?: string;
+  
+  // Métricas
   numero_de_contatos?: number;
 }
 
-export const DEFAULT_OPTIONS: DisparoOptions = {
+export const DEFAULT_OPTIONS: Partial<DisparoOptions> = {
   instancia: 'Padrão',
   ativo: true,
   horario_limite: 17,
@@ -39,16 +44,6 @@ export const DEFAULT_OPTIONS: DisparoOptions = {
   short_wait_max: 10,
   batch_size_min: 5,
   batch_size_max: 10,
-  url_api: '',
-  apikey: '',
-  webhook_disparo: '',
-  webhook_contatos: '',
-  webhook_get_images: '',
-  webhook_up_docs: '',
-  webhook_instancias: '',
-  ftp_url: '',
-  ftp_user: '',
   ftp_port: 21,
-  ftp_password: '',
   numero_de_contatos: 0,
 };

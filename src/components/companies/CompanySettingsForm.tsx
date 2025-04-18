@@ -2,13 +2,14 @@
 import React from "react";
 import { Form } from "@/components/ui/form";
 import { useToast } from "@/components/ui/use-toast";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { useCompanySettings } from "@/hooks/useCompanySettings";
 import { GeneralSettings } from "@/components/settings/GeneralSettings";
 import { FtpSettings } from "@/components/settings/FtpSettings";
 import { SaveButton } from "@/components/settings/SaveButton";
 import { AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { CompanySettingsHeader } from "@/components/settings/CompanySettingsHeader";
 
 interface CompanySettingsFormProps {
   companyId: string;
@@ -48,28 +49,17 @@ export function CompanySettingsForm({ companyId }: CompanySettingsFormProps) {
 
   return (
     <div className="space-y-6">
+      <CompanySettingsHeader />
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           <Card>
-            <CardHeader>
-              <CardTitle>Configurações Gerais</CardTitle>
-              <CardDescription>
-                Configurações gerais de API e webhooks para esta empresa
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
+            <CardContent className="pt-6">
               <GeneralSettings form={form} />
             </CardContent>
           </Card>
 
           <Card>
-            <CardHeader>
-              <CardTitle>Configurações FTP</CardTitle>
-              <CardDescription>
-                Configurações para o servidor FTP desta empresa
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
+            <CardContent className="pt-6">
               <FtpSettings form={form} />
             </CardContent>
           </Card>
