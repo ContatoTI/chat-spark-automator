@@ -1,11 +1,9 @@
-
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { 
   LayoutDashboard, 
   MessageSquare, 
-  Settings,
   Users,
   LogOut,
   Phone,
@@ -117,16 +115,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ open }) => {
                 icon={Building}
                 label="Empresas"
                 active={currentPath === "/companies"}
-              />
-            )}
-            
-            {/* Link de configurações para admin ou master */}
-            {(isAdmin || isMaster) && (
-              <SidebarLink
-                to="/settings"
-                icon={Settings}
-                label="Configurações"
-                active={currentPath === "/settings"}
               />
             )}
           </nav>
