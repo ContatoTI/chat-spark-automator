@@ -27,10 +27,9 @@ export const useWhatsAccounts = () => {
       
       // Log das instâncias retornadas pelo webhook
       console.log('[Webhook] Instâncias retornadas:', response.data.map(i => i.name));
-      console.log('[Webhook] Contas existentes:', accounts.map(a => a.nome_instancia));
       
-      // Atualizamos o cache localmente para cada instância com seu novo status
       if (accounts && accounts.length > 0) {
+        // Atualizamos o cache localmente para cada instância com seu novo status
         const updatedAccounts = accounts.map(account => {
           // Buscar o status correspondente no array de resposta
           const instanceStatus = response.data?.find(
@@ -51,8 +50,6 @@ export const useWhatsAccounts = () => {
         
         // Atualizar o cache do React Query
         queryClient.setQueryData(['whatsapp-accounts'], updatedAccounts);
-      } else {
-        console.log('[Webhook] Não há contas para atualizar');
       }
       
       return response.data;
@@ -91,8 +88,14 @@ export const useWhatsAccounts = () => {
     return status.disconnectAccount({ id, nomeInstancia });
   };
 
-  const refreshAccountsStatus = async () => {
-    return refreshStatusMutation.mutate();
+  const refreshAccounts = async () => {
+    try {
+      await refreshStatusMutation.mutateAsync();
+      // Garante que os dados são atualizados após a mutação
+      queryClient.invalidateQueries({ queryKey: ['whatsapp-accounts'] });
+    } catch (error) {
+      console.error("Erro ao atualizar contas:", error);
+    }
   };
 
   // Create a record of processing status by instance ID
@@ -129,8 +132,7 @@ export const useWhatsAccounts = () => {
     disconnectAccount,
     isCreating: status.isCreating,
     isProcessing: processingStatus,
-    refreshAccounts: refetchAccounts,
-    refreshAccountsStatus,
+    refreshAccounts,
     isRefreshing: refreshStatusMutation.isPending,
     qrCodeData: connection.qrCodeData,
     qrCodeDialogOpen: connection.qrCodeDialogOpen,

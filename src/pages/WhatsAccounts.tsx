@@ -48,7 +48,15 @@ const WhatsAccounts = () => {
       const status = await fetchInstanceStatus(instanceName);
       console.log(`Status atualizado: ${status}`);
       
-      // Atualizar o cache do React Query com o novo status
+      // Update accounts list with new status
+      const updatedAccounts = accounts.map(account => {
+        if (account.nome_instancia === instanceName) {
+          return { ...account, status };
+        }
+        return account;
+      });
+      
+      // Force refresh after status update
       refreshAccounts();
       
       toast.success(`Status da instância atualizado: ${status}`);

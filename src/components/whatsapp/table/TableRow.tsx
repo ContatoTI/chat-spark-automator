@@ -32,6 +32,12 @@ export function WhatsAccountRow({
   getStatusInfo,
   onWebhookResponse
 }: WhatsAccountRowProps) {
+  // Handler para atualizar o status com prevenção de múltiplos cliques
+  const handleStatusUpdate = async () => {
+    console.log("Atualizando status para:", account.nome_instancia);
+    await onUpdateStatus(account.nome_instancia);
+  };
+
   return (
     <TableRow>
       <TableCell>{account.id}</TableCell>
@@ -42,7 +48,7 @@ export function WhatsAccountRow({
         <Button
           variant="ghost"
           size="icon"
-          onClick={() => onUpdateStatus(account.nome_instancia)}
+          onClick={handleStatusUpdate}
           className="h-8 w-8"
           title="Atualizar status"
         >
