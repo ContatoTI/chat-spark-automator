@@ -19,6 +19,7 @@ interface WhatsAccountsTableProps {
   onDelete: (id: number, nomeInstancia: string) => Promise<void>;
   onConnect: (id: number, nomeInstancia: string, webhookInst: string) => Promise<void>;
   onDisconnect: (id: number, nomeInstancia: string) => Promise<void>;
+  onUpdateStatus: (nomeInstancia: string) => Promise<void>;
   isProcessing: { [id: number]: string };
   getStatusInfo: (status: string) => { 
     label: string; 
@@ -34,6 +35,7 @@ export function WhatsAccountsTable({
   onDelete, 
   onConnect,
   onDisconnect,
+  onUpdateStatus,
   isProcessing,
   getStatusInfo,
   onWebhookResponse
@@ -66,6 +68,7 @@ export function WhatsAccountsTable({
               onDelete={onDelete}
               onConnect={onConnect}
               onDisconnect={onDisconnect}
+              onUpdateStatus={onUpdateStatus}
               isProcessing={isProcessing}
               getStatusInfo={getStatusInfo}
               onWebhookResponse={onWebhookResponse}

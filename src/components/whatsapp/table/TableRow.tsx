@@ -4,12 +4,15 @@ import { TableCell, TableRow } from "@/components/ui/table";
 import { WhatsAccount } from "@/lib/api/whatsapp/types";
 import { StatusBadge } from "./StatusBadge";
 import { ActionButtons } from "./ActionButtons";
+import { Button } from "@/components/ui/button";
+import { RefreshCw } from "lucide-react";
 
 interface WhatsAccountRowProps {
   account: WhatsAccount;
   onDelete: (id: number, nomeInstancia: string) => Promise<void>;
   onConnect: (id: number, nomeInstancia: string, webhookInst: string) => Promise<void>;
   onDisconnect: (id: number, nomeInstancia: string) => Promise<void>;
+  onUpdateStatus: (nomeInstancia: string) => Promise<void>;
   isProcessing: { [id: number]: string };
   getStatusInfo?: (status: string) => { 
     label: string; 
@@ -24,6 +27,7 @@ export function WhatsAccountRow({
   onDelete,
   onConnect,
   onDisconnect,
+  onUpdateStatus,
   isProcessing,
   getStatusInfo,
   onWebhookResponse
@@ -33,8 +37,17 @@ export function WhatsAccountRow({
       <TableCell>{account.id}</TableCell>
       <TableCell className="font-medium">{account.nome_instancia}</TableCell>
       <TableCell>{account.empresa_id}</TableCell>
-      <TableCell>
+      <TableCell className="flex items-center gap-2">
         <StatusBadge status={account.status} />
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => onUpdateStatus(account.nome_instancia)}
+          className="h-8 w-8"
+          title="Atualizar status"
+        >
+          <RefreshCw className="h-4 w-4" />
+        </Button>
       </TableCell>
       <TableCell>
         <ActionButtons

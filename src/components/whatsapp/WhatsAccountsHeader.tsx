@@ -1,23 +1,19 @@
 
 import { Button } from "@/components/ui/button";
-import { Plus, RefreshCcw, Terminal } from "lucide-react";
+import { Plus, Terminal } from "lucide-react";
 import { NewInstanceDialog } from "./NewInstanceDialog";
 import { useState } from "react";
 
 interface WhatsAccountsHeaderProps {
   onCreate: (data: { nome_instancia: string }) => Promise<void>;
-  onRefreshStatus: () => void;
   isCreating: boolean;
-  isRefreshing: boolean;
   onToggleLogs: () => void;
   showLogs: boolean;
 }
 
 export function WhatsAccountsHeader({ 
   onCreate, 
-  onRefreshStatus, 
-  isCreating, 
-  isRefreshing,
+  isCreating,
   onToggleLogs,
   showLogs 
 }: WhatsAccountsHeaderProps) {
@@ -41,16 +37,6 @@ export function WhatsAccountsHeader({
           >
             <Terminal className="h-4 w-4" />
             Logs
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={onRefreshStatus}
-            disabled={isRefreshing}
-            className="gap-2"
-          >
-            <RefreshCcw className="h-4 w-4" />
-            Atualizar Status
           </Button>
           <Button 
             onClick={() => setDialogOpen(true)} 

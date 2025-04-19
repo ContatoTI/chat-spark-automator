@@ -11,6 +11,8 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { Link } from "react-router-dom";
 import { LogWindow } from "@/components/debug/LogWindow";
+import { fetchInstanceStatus } from "@/lib/api/whatsapp/status";
+import { toast } from "sonner";
 
 const WhatsAccounts = () => {
   const { user, selectedCompany } = useAuth();
@@ -28,7 +30,6 @@ const WhatsAccounts = () => {
     isCreating,
     isProcessing,
     refreshAccounts,
-    refreshAccountsStatus,
     isRefreshing,
     qrCodeData,
     qrCodeDialogOpen,
@@ -40,9 +41,30 @@ const WhatsAccounts = () => {
   const [showLogs, setShowLogs] = useState(true);
   const [webhookLogs, setWebhookLogs] = useState<Array<{ timestamp: string; data: any }>>([]);
 
-  const handleRefreshAccounts = (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.preventDefault();
-    refreshAccounts();
+  const handleUpdateStatus = async (instanceName: string) => {
+    try {
+      console.log(`Atualizando status da instância: ${instanceName}`);
+      
+      const status = await fetchInstanceStatus(instanceName);
+      console.log(`Status atualizado: ${status}`);
+      
+      // Atualizar o cache do React Query com o novo status
+      refreshAccounts();
+      
+      toast.success(`Status da instância atualizado: ${status}`);
+      
+      // Adicionar log
+      addWebhookLog({
+        type: 'UPDATE_STATUS',
+        instance: instanceName,
+        status,
+        timestamp: new Date().toISOString()
+      });
+      
+    } catch (error) {
+      console.error('Erro ao atualizar status:', error);
+      toast.error('Erro ao atualizar status da instância');
+    }
   };
 
   const addWebhookLog = (data: any) => {
@@ -57,9 +79,7 @@ const WhatsAccounts = () => {
       <div className="flex flex-col gap-8">
         <WhatsAccountsHeader 
           onCreate={createAccount} 
-          onRefreshStatus={refreshAccountsStatus}
-          isCreating={isCreating} 
-          isRefreshing={isRefreshing}
+          isCreating={isCreating}
           onToggleLogs={() => setShowLogs(prev => !prev)}
           showLogs={showLogs}
         />
@@ -112,6 +132,7 @@ const WhatsAccounts = () => {
               onDelete={deleteAccount}
               onConnect={connectAccount}
               onDisconnect={disconnectAccount}
+              onUpdateStatus={handleUpdateStatus}
               isProcessing={isProcessing}
               getStatusInfo={getStatusInfo}
               onWebhookResponse={addWebhookLog}
