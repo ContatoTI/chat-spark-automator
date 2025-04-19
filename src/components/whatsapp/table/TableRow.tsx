@@ -32,10 +32,29 @@ export function WhatsAccountRow({
   getStatusInfo,
   onWebhookResponse
 }: WhatsAccountRowProps) {
+  // Estado para controlar quando o botão está em processo de atualização
+  const [isUpdating, setIsUpdating] = React.useState(false);
+
   // Handler para atualizar o status com prevenção de múltiplos cliques
   const handleStatusUpdate = async () => {
-    console.log("Atualizando status para:", account.nome_instancia);
-    await onUpdateStatus(account.nome_instancia);
+    try {
+      setIsUpdating(true);
+      console.log("Atualizando status para:", account.nome_instancia);
+      await onUpdateStatus(account.nome_instancia);
+      
+      // Log para webhook response se disponível
+      if (onWebhookResponse) {
+        onWebhookResponse({
+          action: 'update_status',
+          instance: account.nome_instancia,
+          timestamp: new Date().toISOString()
+        });
+      }
+    } catch (error) {
+      console.error("Erro ao atualizar status:", error);
+    } finally {
+      setIsUpdating(false);
+    }
   };
 
   return (
@@ -50,9 +69,10 @@ export function WhatsAccountRow({
           size="icon"
           onClick={handleStatusUpdate}
           className="h-8 w-8"
+          disabled={isUpdating}
           title="Atualizar status"
         >
-          <RefreshCw className="h-4 w-4" />
+          <RefreshCw className={`h-4 w-4 ${isUpdating ? 'animate-spin' : ''}`} />
         </Button>
       </TableCell>
       <TableCell>

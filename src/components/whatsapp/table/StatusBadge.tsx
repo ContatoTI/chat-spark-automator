@@ -8,7 +8,7 @@ interface StatusBadgeProps {
 }
 
 export function StatusBadge({ status }: StatusBadgeProps) {
-  if (!status) return null;
+  if (!status) return <Badge variant="secondary" className="flex items-center gap-1 w-fit">Desconhecido</Badge>;
   
   const getStatusIcon = () => {
     switch (status.toLowerCase()) {

@@ -121,12 +121,14 @@ export const fetchInstanceStatus = async (instanceName: string): Promise<string>
     }
     
     // Se a resposta contiver dados específicos para esta instância
-    if (response.data) {
+    if (response.data && !Array.isArray(response.data)) {
       // Caso seja um objeto com status direto para esta instância
       if (response.data.connectionStatus || response.data.status) {
         instanceStatus = response.data.connectionStatus || response.data.status;
       }
     }
+
+    console.log(`[Webhook] Status encontrado para instância ${instanceName}: ${instanceStatus}`);
 
     // Atualizar o status na tabela AppW_Instancias
     const { error: updateError } = await supabase

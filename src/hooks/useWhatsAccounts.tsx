@@ -7,6 +7,7 @@ import { useMutation } from "@tanstack/react-query";
 import { fetchAllInstancesStatus } from "@/lib/api/whatsapp/status";
 import { mapStatusToText } from "@/lib/api/whatsapp/utils";
 import { toast } from "sonner";
+import { supabase } from "@/lib/supabase";
 
 export const useWhatsAccounts = () => {
   const [processingInstanceId, setProcessingInstanceId] = useState<number | null>(null);
@@ -14,7 +15,7 @@ export const useWhatsAccounts = () => {
   const connection = useWhatsAccountConnection();
   const status = useWhatsAccountStatus(queryClient);
 
-  // Check all accounts status mutation - agora usando uma única chamada de API
+  // Check all accounts status mutation - usando uma única chamada de API
   const refreshStatusMutation = useMutation({
     mutationFn: async () => {
       console.log('[Webhook] Atualizando status de todas as instâncias em uma única chamada');
@@ -28,9 +29,10 @@ export const useWhatsAccounts = () => {
       // Log das instâncias retornadas pelo webhook
       console.log('[Webhook] Instâncias retornadas:', response.data.map(i => i.name));
       
+      // Temos que atualizar o banco de dados para cada instância
       if (accounts && accounts.length > 0) {
-        // Atualizamos o cache localmente para cada instância com seu novo status
-        const updatedAccounts = accounts.map(account => {
+        // Para cada instância nas contas, vamos tentar encontrar seu status na resposta
+        const updatePromises = accounts.map(async (account) => {
           // Buscar o status correspondente no array de resposta
           const instanceStatus = response.data?.find(
             instance => instance.name === account.nome_instancia
@@ -38,13 +40,27 @@ export const useWhatsAccounts = () => {
           
           if (instanceStatus && instanceStatus.connectionStatus) {
             console.log(`[Webhook] Atualizando status da instância ${account.nome_instancia} para ${instanceStatus.connectionStatus}`);
-            // Retornar conta com status atualizado
+            
+            // Atualizar o banco de dados
+            const { error } = await supabase
+              .from('AppW_Instancias')
+              .update({ status: instanceStatus.connectionStatus })
+              .eq('nome_instancia', account.nome_instancia);
+            
+            if (error) {
+              console.error(`[Webhook] Erro ao atualizar o status da instância ${account.nome_instancia}:`, error);
+            }
+            
+            // Retornar conta com status atualizado para o cache
             return { ...account, status: instanceStatus.connectionStatus };
           }
           
-          // Se não encontrou ou o status é inválido, manter o status atual
+          // Se não encontrou, manter o status atual
           return account;
         });
+        
+        // Esperar todas as atualizações de banco terminarem
+        const updatedAccounts = await Promise.all(updatePromises);
         
         console.log('[Webhook] Contas atualizadas:', updatedAccounts);
         
@@ -92,7 +108,7 @@ export const useWhatsAccounts = () => {
     try {
       await refreshStatusMutation.mutateAsync();
       // Garante que os dados são atualizados após a mutação
-      queryClient.invalidateQueries({ queryKey: ['whatsapp-accounts'] });
+      await queryClient.invalidateQueries({ queryKey: ['whatsapp-accounts'] });
     } catch (error) {
       console.error("Erro ao atualizar contas:", error);
     }
