@@ -28,6 +28,7 @@ const Companies = () => {
     if (companies) {
       addApiLog({
         type: 'FETCH_COMPANIES',
+        count: companies.length,
         companies
       });
     }
@@ -44,16 +45,7 @@ const Companies = () => {
     });
   }, []);
 
-  useEffect(() => {
-    queryClient.invalidateQueries({ queryKey: ['company-settings'] });
-  }, [queryClient]);
-
-  useEffect(() => {
-    if (isMaster || selectedCompany) {
-      refetch();
-    }
-  }, [selectedCompany, isMaster, refetch]);
-
+  // Evitar chamadas repetidas durante a montagem do componente
   const handleRefresh = () => {
     toast.info("Atualizando lista de empresas...");
     queryClient.invalidateQueries({ queryKey: ['companies'] });
@@ -61,6 +53,7 @@ const Companies = () => {
     refetch();
   };
 
+  // Tratamento de erros
   React.useEffect(() => {
     if (error) {
       console.error("Erro ao carregar empresas:", error);

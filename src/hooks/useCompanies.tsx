@@ -30,7 +30,14 @@ export const useCompanies = () => {
     queryKey: ['companies', retryCount, selectedCompany],
     queryFn: async () => {
       console.log("Executando fetchCompanies com empresa:", selectedCompany || 'nenhuma');
-      // Para usuários master, podemos buscar todas empresas mesmo sem selecionado uma específica
+      
+      // Se não houver empresa selecionada e o usuário não for master, retornamos um array vazio
+      if (!selectedCompany && !isMaster) {
+        console.log("Sem empresa selecionada e usuário não é master, retornando lista vazia");
+        return [];
+      }
+      
+      // Para usuários master, podemos buscar todas empresas mesmo sem selecionar uma específica
       const result = await fetchCompanies(isMaster ? '*' : selectedCompany);
       console.log("Resultado fetchCompanies:", result);
       return result;
@@ -39,7 +46,7 @@ export const useCompanies = () => {
     retry: 1,
     staleTime: 300000, // 5 minutos
     gcTime: 600000, // 10 minutos,
-    // Crucial change: Enable the query for master users regardless of selectedCompany
+    // Crucial: habilita a query apenas quando tivermos selectedCompany OU for um usuário master
     enabled: isMaster || !!selectedCompany
   });
 
