@@ -111,7 +111,7 @@ const WhatsAccounts = () => {
                 {error.message}
               </AlertDescription>
             </Alert>
-            <Button onClick={handleRefreshAccounts} variant="outline">
+            <Button onClick={refreshAccounts} variant="outline">
               Tentar novamente
             </Button>
             {/* Mostrar informações de debug apenas para usuários master */}

@@ -93,15 +93,43 @@ export const fetchInstanceStatus = async (instanceName: string): Promise<string>
       throw new Error('URL do webhook de instâncias não configurada');
     }
     
-    // Primeiro tentamos buscar o status de todas as instâncias
-    const response = await fetchAllInstancesStatus();
+    // Enviar o nome da instância específica no payload
+    const response = await callWebhook(webhookUrl, {
+      action: 'status',
+      instance_name: instanceName,
+      timestamp: new Date().toISOString()
+    });
+    
+    console.log('[Webhook] Resposta para instância específica:', response);
     
     if (!response.success) {
       throw new Error(response.message || 'Falha ao verificar status');
     }
     
+    // Se a resposta contiver dados específicos para esta instância
+    if (response.data) {
+      // Caso seja um objeto com status direto para esta instância
+      if (response.data.connectionStatus || response.data.status) {
+        return response.data.connectionStatus || response.data.status;
+      }
+      
+      // Caso seja um array, procurar a instância específica
+      if (Array.isArray(response.data)) {
+        const instance = response.data.find(inst => 
+          inst.name === instanceName || inst.instance === instanceName || inst.instanceName === instanceName
+        );
+        
+        if (instance) {
+          return instance.connectionStatus || instance.status || instance.state || 'close';
+        }
+      }
+    }
+    
+    // Como fallback, tentamos buscar o status de todas as instâncias
+    const allStatusResponse = await fetchAllInstancesStatus();
+    
     // Procurar a instância específica na resposta
-    const instance = response.data?.find(inst => inst.name === instanceName);
+    const instance = allStatusResponse.data?.find(inst => inst.name === instanceName);
     if (!instance) {
       console.warn(`Instância '${instanceName}' não encontrada na resposta do webhook`);
       return 'close'; // Fallback para desconectado se não encontrar
