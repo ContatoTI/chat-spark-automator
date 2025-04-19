@@ -74,6 +74,11 @@ const WhatsAccounts = () => {
     }]);
   };
 
+  // Create a wrapper function to handle the click event
+  const handleRefreshClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    refreshAccounts();
+  };
+
   return (
     <Layout>
       <div className="flex flex-col gap-8">
@@ -111,7 +116,7 @@ const WhatsAccounts = () => {
                 {error.message}
               </AlertDescription>
             </Alert>
-            <Button onClick={refreshAccounts} variant="outline">
+            <Button onClick={handleRefreshClick} variant="outline">
               Tentar novamente
             </Button>
             {/* Mostrar informações de debug apenas para usuários master */}
