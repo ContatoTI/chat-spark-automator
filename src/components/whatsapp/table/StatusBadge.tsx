@@ -36,18 +36,13 @@ export function StatusBadge({ status }: StatusBadgeProps) {
     }
   };
 
-  const getStatusLabel = () => {
-    // Directly return the status without conversion
-    return status.toLowerCase();
-  };
-
   return (
     <Badge 
       variant={getStatusBadgeVariant() as any}
       className="flex items-center gap-1 w-fit"
     >
       {getStatusIcon()}
-      <span>{getStatusLabel()}</span>
+      <span>{status}</span>
     </Badge>
   );
 }

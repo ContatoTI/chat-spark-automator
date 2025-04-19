@@ -1,6 +1,8 @@
+
 import { WhatsAppStatusResponse } from "./types";
 import { callWebhook } from "../webhook-utils";
 import { logWebhookResponse } from "./utils";
+import { supabase } from "@/lib/supabase";
 
 export const fetchAllInstancesStatus = async (): Promise<WhatsAppStatusResponse> => {
   try {
@@ -105,6 +107,8 @@ export const fetchInstanceStatus = async (instanceName: string): Promise<string>
       throw new Error(response.message || 'Falha ao verificar status');
     }
     
+    let instanceStatus = 'close'; // Default status
+    
     // Verificar se a resposta está no formato de array
     if (Array.isArray(response.data)) {
       const instance = response.data.find(
@@ -112,7 +116,7 @@ export const fetchInstanceStatus = async (instanceName: string): Promise<string>
       );
       
       if (instance) {
-        return instance.connectionStatus || instance.status || 'close';
+        instanceStatus = instance.connectionStatus || instance.status || 'close';
       }
     }
     
@@ -120,12 +124,23 @@ export const fetchInstanceStatus = async (instanceName: string): Promise<string>
     if (response.data) {
       // Caso seja um objeto com status direto para esta instância
       if (response.data.connectionStatus || response.data.status) {
-        return response.data.connectionStatus || response.data.status;
+        instanceStatus = response.data.connectionStatus || response.data.status;
       }
     }
+
+    // Atualizar o status na tabela AppW_Instancias
+    const { error: updateError } = await supabase
+      .from('AppW_Instancias')
+      .update({ status: instanceStatus })
+      .eq('nome_instancia', instanceName);
+
+    if (updateError) {
+      console.error('Erro ao atualizar status na tabela:', updateError);
+    } else {
+      console.log(`Status da instância ${instanceName} atualizado para: ${instanceStatus}`);
+    }
     
-    console.warn(`Instância '${instanceName}' não encontrada na resposta do webhook`);
-    return 'close'; // Fallback para desconectado se não encontrar
+    return instanceStatus;
     
   } catch (error) {
     console.error('Erro ao verificar status:', error);
