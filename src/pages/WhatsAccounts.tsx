@@ -11,8 +11,6 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { Link } from "react-router-dom";
 import { LogWindow } from "@/components/debug/LogWindow";
-import { fetchInstanceStatus } from "@/lib/api/whatsapp/status";
-import { toast } from "sonner";
 
 const WhatsAccounts = () => {
   const { user, selectedCompany } = useAuth();
@@ -35,7 +33,8 @@ const WhatsAccounts = () => {
     qrCodeDialogOpen,
     currentInstance,
     closeQrCodeDialog,
-    getStatusInfo
+    getStatusInfo,
+    updateInstanceStatus
   } = useWhatsAccounts();
 
   const [showLogs, setShowLogs] = useState(true);
@@ -43,35 +42,20 @@ const WhatsAccounts = () => {
 
   const handleUpdateStatus = async (instanceName: string) => {
     try {
-      console.log(`Atualizando status da instância: ${instanceName}`);
+      console.log(`Atualizando status para: ${instanceName}`);
       
-      const status = await fetchInstanceStatus(instanceName);
-      console.log(`Status atualizado: ${status}`);
-      
-      // Update accounts list with new status
-      const updatedAccounts = accounts.map(account => {
-        if (account.nome_instancia === instanceName) {
-          return { ...account, status };
-        }
-        return account;
-      });
-      
-      // Force refresh after status update
-      refreshAccounts();
-      
-      toast.success(`Status da instância atualizado: ${status}`);
+      const result = await updateInstanceStatus(instanceName);
       
       // Adicionar log
       addWebhookLog({
         type: 'UPDATE_STATUS',
         instance: instanceName,
-        status,
+        status: result.status,
         timestamp: new Date().toISOString()
       });
       
     } catch (error) {
       console.error('Erro ao atualizar status:', error);
-      toast.error('Erro ao atualizar status da instância');
     }
   };
 

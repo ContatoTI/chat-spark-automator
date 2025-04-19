@@ -37,6 +37,8 @@ export function WhatsAccountRow({
 
   // Handler para atualizar o status com prevenção de múltiplos cliques
   const handleStatusUpdate = async () => {
+    if (isUpdating) return; // Prevenir múltiplos cliques
+
     try {
       setIsUpdating(true);
       console.log("Atualizando status para:", account.nome_instancia);
