@@ -1,10 +1,10 @@
 
 import { supabase } from "@/lib/supabase";
 import { WhatsAccount } from "./types";
-import { AuthUser } from "@/contexts/AuthContext";
+import { User } from "@/lib/api/users";
 
 export const getWhatsAccounts = async (
-  user: AuthUser | null, 
+  user: User | null, 
   selectedCompany: string | null
 ): Promise<WhatsAccount[]> => {
   try {
@@ -35,7 +35,7 @@ export const getWhatsAccounts = async (
 };
 
 export const createWhatsAccount = async (
-  data: { nome_instancia: string },
+  data: { nome_instancia: string; empresa_id?: string }, 
   companyId: string
 ): Promise<WhatsAccount> => {
   try {
