@@ -114,7 +114,11 @@ export const updateWhatsAccountStatus = async (instanceName: string, status: str
       throw error;
     }
     
-    console.log(`Status da instância ${instanceName} atualizado para ${status}:`, data);
+    if (data && data.length === 0) {
+      console.warn(`[DB] Nenhum registro encontrado para instância ${instanceName}. Verifique se o nome está correto.`);
+    } else {
+      console.log(`Status da instância ${instanceName} atualizado para ${status}:`, data);
+    }
   } catch (error) {
     console.error("Erro ao atualizar status:", error);
     throw error;

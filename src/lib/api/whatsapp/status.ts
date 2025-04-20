@@ -121,31 +121,52 @@ export const fetchInstanceStatus = async (instanceName: string): Promise<string>
     
     // Extrair o status da instância da resposta
     let instanceStatus = 'close'; // Default status
+    let foundInstance = false;
     
     // Verificar diferentes formatos de resposta
     if (Array.isArray(response.data)) {
-      const instance = response.data.find(
-        inst => inst.name === instanceName || inst.instance === instanceName || inst.instanceName === instanceName
+      // Tenta encontrar a instância pelo nome exato primeiro
+      let instance = response.data.find(
+        inst => (inst.name === instanceName || inst.instance === instanceName || inst.instanceName === instanceName)
       );
+      
+      // Se não encontrar pelo nome exato, vamos verificar a primeira instância na lista
+      // Isso é útil quando o webhook retorna uma instância diferente da solicitada
+      if (!instance && response.data.length > 0) {
+        console.log(`[Webhook] Instância ${instanceName} não encontrada na resposta. Usando a primeira instância disponível.`);
+        instance = response.data[0];
+        foundInstance = true;
+      }
       
       if (instance) {
         instanceStatus = instance.connectionStatus || instance.status || instance.state || 'close';
+        foundInstance = true;
       }
     } else if (response.data && typeof response.data === 'object') {
       // Caso seja um objeto com status direto
       instanceStatus = response.data.connectionStatus || response.data.status || response.data.state || 'close';
+      foundInstance = true;
     } else if (Array.isArray(response)) {
       // Se a resposta for um array diretamente
-      const instance = response.find(
-        inst => inst.name === instanceName || inst.instance === instanceName || inst.instanceName === instanceName
+      // Tenta encontrar a instância pelo nome exato primeiro
+      let instance = response.find(
+        inst => (inst.name === instanceName || inst.instance === instanceName || inst.instanceName === instanceName)
       );
+      
+      // Se não encontrar pelo nome exato, vamos verificar a primeira instância na lista
+      if (!instance && response.length > 0) {
+        console.log(`[Webhook] Instância ${instanceName} não encontrada na resposta. Usando a primeira instância disponível.`);
+        instance = response[0];
+        foundInstance = true;
+      }
       
       if (instance) {
         instanceStatus = instance.connectionStatus || instance.status || instance.state || 'close';
+        foundInstance = true;
       }
     }
 
-    console.log(`[Webhook] Status encontrado para instância ${instanceName}: ${instanceStatus}`);
+    console.log(`[Webhook] Status encontrado para instância ${instanceName}: ${instanceStatus} (instância encontrada: ${foundInstance})`);
 
     // Atualizar o status na tabela AppW_Instancias usando a função dedicada
     try {

@@ -20,8 +20,8 @@ export const useWhatsAccountsCore = () => {
       console.log("Buscando contas de WhatsApp com filtros - User:", user?.role, "Empresa:", selectedCompany);
       return getWhatsAccounts(user, selectedCompany);
     },
-    staleTime: 1000 * 30, // 30 segundos - reduzido para atualizar mais frequentemente
-    refetchInterval: 1000 * 60 // Atualizar a cada 1 minuto automaticamente
+    staleTime: 1000 * 15, // 15 segundos - reduzido para atualizar mais frequentemente
+    refetchInterval: 1000 * 30 // Atualizar a cada 30 segundos automaticamente
   });
 
   return {
