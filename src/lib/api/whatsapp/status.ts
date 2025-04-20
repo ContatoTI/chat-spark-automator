@@ -1,4 +1,3 @@
-
 import { WhatsAppStatusResponse } from "./types";
 import { callWebhook } from "../webhook-utils";
 import { logWebhookResponse } from "./utils";
