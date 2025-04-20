@@ -9,12 +9,23 @@ export const getWhatsAccounts = async (
 ): Promise<WhatsAccount[]> => {
   try {
     console.log("Buscando contas de WhatsApp da tabela: AppW_Instancias");
+    console.log("Usuário:", user?.role, "Empresa selecionada:", selectedCompany);
     
     let query = supabase
       .from("AppW_Instancias")
       .select("*");
     
+    // Se tiver uma empresa selecionada E não for usuário master, filtra pela empresa
     if (selectedCompany && user?.role !== 'master') {
+      console.log("Filtrando pela empresa:", selectedCompany);
+      query = query.eq('empresa_id', selectedCompany);
+    } else if (user?.company_id && user?.role !== 'master') {
+      // Se não tiver empresa selecionada mas o usuário tem uma empresa associada e não é master
+      console.log("Filtrando pela empresa do usuário:", user.company_id);
+      query = query.eq('empresa_id', user.company_id);
+    } else if (selectedCompany && user?.role === 'master') {
+      // Se for master E tiver empresa selecionada, filtra pela empresa selecionada
+      console.log("Master com empresa selecionada:", selectedCompany);
       query = query.eq('empresa_id', selectedCompany);
     }
     
@@ -92,17 +103,18 @@ export const updateWhatsAccountStatus = async (instanceName: string, status: str
   try {
     console.log(`Atualizando status da instância ${instanceName} para ${status}`);
     
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from('AppW_Instancias')
       .update({ status })
-      .eq('nome_instancia', instanceName);
+      .eq('nome_instancia', instanceName)
+      .select();
     
     if (error) {
       console.error("Erro ao atualizar status:", error);
       throw error;
     }
     
-    console.log(`Status da instância ${instanceName} atualizado para ${status}`);
+    console.log(`Status da instância ${instanceName} atualizado para ${status}:`, data);
   } catch (error) {
     console.error("Erro ao atualizar status:", error);
     throw error;

@@ -2,7 +2,7 @@
 import { WhatsAppStatusResponse } from "./types";
 import { callWebhook } from "../webhook-utils";
 import { logWebhookResponse } from "./utils";
-import { supabase } from "@/lib/supabase";
+import { updateWhatsAccountStatus } from "./api";
 
 export const fetchAllInstancesStatus = async (): Promise<WhatsAppStatusResponse> => {
   try {
@@ -79,15 +79,11 @@ export const fetchAllInstancesStatus = async (): Promise<WhatsAppStatusResponse>
         if (instance.name && instance.connectionStatus) {
           console.log(`[DB] Atualizando status da instância ${instance.name} para ${instance.connectionStatus}`);
           
-          const { error } = await supabase
-            .from('AppW_Instancias')
-            .update({ status: instance.connectionStatus })
-            .eq('nome_instancia', instance.name);
-            
-          if (error) {
-            console.error(`[DB] Erro ao atualizar status para ${instance.name}:`, error);
-          } else {
+          try {
+            await updateWhatsAccountStatus(instance.name, instance.connectionStatus);
             console.log(`[DB] Status de ${instance.name} atualizado com sucesso para ${instance.connectionStatus}`);
+          } catch (error) {
+            console.error(`[DB] Erro ao atualizar status para ${instance.name}:`, error);
           }
         }
       }));
@@ -151,16 +147,12 @@ export const fetchInstanceStatus = async (instanceName: string): Promise<string>
 
     console.log(`[Webhook] Status encontrado para instância ${instanceName}: ${instanceStatus}`);
 
-    // Atualizar o status na tabela AppW_Instancias
-    const { error } = await supabase
-      .from('AppW_Instancias')
-      .update({ status: instanceStatus })
-      .eq('nome_instancia', instanceName);
-
-    if (error) {
-      console.error('[DB] Erro ao atualizar status na tabela:', error);
-    } else {
+    // Atualizar o status na tabela AppW_Instancias usando a função dedicada
+    try {
+      await updateWhatsAccountStatus(instanceName, instanceStatus);
       console.log(`[DB] Status da instância ${instanceName} atualizado para: ${instanceStatus}`);
+    } catch (error) {
+      console.error('[DB] Erro ao atualizar status na tabela:', error);
     }
     
     return instanceStatus;

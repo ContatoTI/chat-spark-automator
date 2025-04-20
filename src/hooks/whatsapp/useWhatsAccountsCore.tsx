@@ -1,7 +1,6 @@
 
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getWhatsAccounts } from "@/lib/api/whatsapp/api";
-import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { WhatsAccount } from "@/lib/api/whatsapp/types";
 
@@ -17,9 +16,12 @@ export const useWhatsAccountsCore = () => {
     refetch: refetchAccounts
   } = useQuery({
     queryKey: ['whatsapp-accounts', user?.id, selectedCompany],
-    queryFn: () => getWhatsAccounts(user, selectedCompany),
-    staleTime: 1000 * 60, // 1 minuto - reduzido para atualizar mais frequentemente
-    refetchInterval: 1000 * 60 * 2 // Atualizar a cada 2 minutos automaticamente
+    queryFn: async () => {
+      console.log("Buscando contas de WhatsApp com filtros - User:", user?.role, "Empresa:", selectedCompany);
+      return getWhatsAccounts(user, selectedCompany);
+    },
+    staleTime: 1000 * 30, // 30 segundos - reduzido para atualizar mais frequentemente
+    refetchInterval: 1000 * 60 // Atualizar a cada 1 minuto automaticamente
   });
 
   return {
