@@ -100,9 +100,9 @@ export const deleteWhatsAccount = async (id: number): Promise<void> => {
 };
 
 export const updateWhatsAccountStatus = async (instanceName: string, status: string): Promise<void> => {
+  console.log(`[DB] Atualizando status da instância ${instanceName} para ${status}`);
+  
   try {
-    console.log(`Atualizando status da instância ${instanceName} para ${status}`);
-    
     const { data, error } = await supabase
       .from('AppW_Instancias')
       .update({ status })
@@ -110,17 +110,18 @@ export const updateWhatsAccountStatus = async (instanceName: string, status: str
       .select();
     
     if (error) {
-      console.error("Erro ao atualizar status:", error);
+      console.error("[DB] Erro ao atualizar status:", error);
       throw error;
     }
     
-    if (data && data.length === 0) {
-      console.warn(`[DB] Nenhum registro encontrado para instância ${instanceName}. Verifique se o nome está correto.`);
+    // Log mais detalhado do resultado
+    if (data && data.length > 0) {
+      console.log(`[DB] Status atualizado com sucesso para instância ${instanceName}:`, data[0]);
     } else {
-      console.log(`Status da instância ${instanceName} atualizado para ${status}:`, data);
+      console.warn(`[DB] Nenhum registro atualizado para instância ${instanceName}`);
     }
   } catch (error) {
-    console.error("Erro ao atualizar status:", error);
+    console.error("[DB] Erro ao atualizar status:", error);
     throw error;
   }
 };
