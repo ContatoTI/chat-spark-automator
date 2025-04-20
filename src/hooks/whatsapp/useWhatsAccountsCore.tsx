@@ -18,7 +18,8 @@ export const useWhatsAccountsCore = () => {
   } = useQuery({
     queryKey: ['whatsapp-accounts', user?.id, selectedCompany],
     queryFn: () => getWhatsAccounts(user, selectedCompany),
-    staleTime: 1000 * 60 * 5, // 5 minutes
+    staleTime: 1000 * 60, // 1 minuto - reduzido para atualizar mais frequentemente
+    refetchInterval: 1000 * 60 * 2 // Atualizar a cada 2 minutos automaticamente
   });
 
   return {

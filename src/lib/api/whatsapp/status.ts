@@ -1,3 +1,4 @@
+
 import { WhatsAppStatusResponse } from "./types";
 import { callWebhook } from "../webhook-utils";
 import { logWebhookResponse } from "./utils";
@@ -137,6 +138,15 @@ export const fetchInstanceStatus = async (instanceName: string): Promise<string>
     } else if (response.data && typeof response.data === 'object') {
       // Caso seja um objeto com status direto
       instanceStatus = response.data.connectionStatus || response.data.status || response.data.state || 'close';
+    } else if (Array.isArray(response)) {
+      // Se a resposta for um array diretamente
+      const instance = response.find(
+        inst => inst.name === instanceName || inst.instance === instanceName || inst.instanceName === instanceName
+      );
+      
+      if (instance) {
+        instanceStatus = instance.connectionStatus || instance.status || instance.state || 'close';
+      }
     }
 
     console.log(`[Webhook] Status encontrado para instância ${instanceName}: ${instanceStatus}`);
