@@ -27,7 +27,6 @@ export function useCompanySettings(companyId: string) {
       url_api: "",
       apikey: "",
       webhook_disparo: "",
-      webhook_contatos: "",
       webhook_get_images: "",
       webhook_up_docs: "",
       webhook_instancias: "",

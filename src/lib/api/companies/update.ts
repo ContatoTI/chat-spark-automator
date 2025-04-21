@@ -30,7 +30,6 @@ export const updateCompanySettings = async (options: DisparoOptions): Promise<vo
         url_api: options.url_api,
         apikey: options.apikey,
         webhook_disparo: options.webhook_disparo,
-        webhook_contatos: options.webhook_contatos,
         webhook_get_images: options.webhook_get_images,
         webhook_up_docs: options.webhook_up_docs,
         webhook_instancias: options.webhook_instancias,

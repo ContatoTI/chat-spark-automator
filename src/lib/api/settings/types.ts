@@ -19,7 +19,6 @@ export interface DisparoOptions {
   url_api?: string;
   apikey?: string;
   webhook_disparo?: string;
-  webhook_contatos?: string;
   webhook_get_images?: string;
   webhook_up_docs?: string;
   webhook_instancias?: string;
