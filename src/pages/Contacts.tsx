@@ -28,9 +28,15 @@ const Contacts = () => {
   const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
 
   const handleCreateList = async () => {
-    const success = await createContactList();
-    if (success) {
-      refetch();
+    try {
+      const success = await createContactList();
+      if (success) {
+        refetch();
+      }
+      return success; // Return the success boolean value
+    } catch (error) {
+      console.error("Error creating contact list:", error);
+      return false; // Return false in case of error
     }
   };
 
