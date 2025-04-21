@@ -1,10 +1,11 @@
-
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Campaign } from "@/lib/api/campaigns/types";
 import { fetchCampaigns, deleteCampaign, updateCampaign, createCampaign } from "@/lib/api/campaigns";
 import { useAuth } from "@/contexts/AuthContext";
+import { callWebhook } from "@/lib/api/webhook-utils";
+import { supabase } from "@/lib/supabase";
 
 export const useCampaignOperations = () => {
   const [selectedCampaign, setSelectedCampaign] = useState<Campaign | null>(null);
@@ -50,11 +51,46 @@ export const useCampaignOperations = () => {
 
   // Send campaign now mutation
   const sendNowMutation = useMutation({
-    mutationFn: (campaign: Campaign) => {
-      return updateCampaign(campaign.id!, {
+    mutationFn: async (campaign: Campaign) => {
+      // Primeiro atualizamos o status da campanha no banco de dados
+      await updateCampaign(campaign.id!, {
         status: 'sending',
         data_disparo: new Date().toISOString()
       });
+      
+      // Em seguida, tentamos enviar a notificação via webhook
+      try {
+        // Buscar a URL do webhook de disparo
+        const { data: settingsData } = await supabase
+          .from('AppW_Options')
+          .select('text')
+          .eq('option', 'webhook_disparo')
+          .single();
+          
+        const webhookUrl = settingsData?.text;
+        
+        if (webhookUrl) {
+          console.log(`[Campaign] Notificando webhook de disparo: ${webhookUrl}`);
+          
+          // Chamar o webhook com a função que lida com CORS
+          await callWebhook(webhookUrl, {
+            action: 'send_campaign',
+            campaign_id: campaign.id,
+            empresa_id: campaign.empresa_id,
+            timestamp: new Date().toISOString()
+          });
+          
+          console.log(`[Campaign] Webhook notificado com sucesso`);
+        } else {
+          console.warn(`[Campaign] URL do webhook de disparo não configurada`);
+        }
+      } catch (webhookError) {
+        console.error(`[Campaign] Erro ao notificar webhook:`, webhookError);
+        // Não falharemos a mutation se apenas o webhook falhar
+        // A campanha já está marcada como 'sending' no banco de dados
+      }
+      
+      return campaign;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['campaigns'] });
