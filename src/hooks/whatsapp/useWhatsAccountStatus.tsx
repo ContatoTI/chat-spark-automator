@@ -24,7 +24,7 @@ export const useWhatsAccountStatus = (queryClient: any) => {
       const newAccount = await createWhatsAccount({ 
         nome_instancia: data.nome_instancia, 
         empresa_id 
-      }, empresa_id);
+      }, user, selectedCompany);
       
       await createInstance(data.nome_instancia, empresa_id);
       
