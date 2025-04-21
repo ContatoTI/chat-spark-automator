@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -54,17 +55,19 @@ export const useCampaignOperations = () => {
       });
       
       try {
-        const { data: settingsData } = await supabase
+        // Buscar configurações da empresa para obter o webhook de disparo
+        const { data: companySettings } = await supabase
           .from('AppW_Options')
-          .select('text')
-          .eq('option', 'webhook_disparo')
+          .select('*')
+          .eq('empresa_id', campaign.empresa_id)
           .single();
           
-        const webhookUrl = settingsData?.text;
+        const webhookUrl = companySettings?.webhook_disparo;
         
         if (webhookUrl) {
           console.log(`[Campaign] Notificando webhook de disparo: ${webhookUrl}`);
           
+          // Envio com payload corretamente formatado
           await callWebhook(webhookUrl, {
             action: 'disparar',
             campaign_id: campaign.id,

@@ -33,6 +33,7 @@ export function TestWebhookButton({ url, label = "Testar", onSuccessCallback }: 
     setLastTestStatus(null);
 
     try {
+      // Teste com formato de payload correto
       await testWebhook(url);
       setLastTestStatus('success');
       toast.success("Webhook testado com sucesso", {

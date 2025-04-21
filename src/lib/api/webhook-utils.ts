@@ -22,35 +22,44 @@ export const callWebhook = async (
   }
 
   try {
-    console.log(`[Webhook] Chamando webhook: ${url} com payload:`, JSON.stringify(payload));
+    console.log(`[Webhook] Chamando webhook: ${url} com payload:`, payload);
     const startTime = performance.now();
     
     // Try POST request first with no-cors mode
     try {
-      console.log('[Webhook] Tentando requisição POST com mode: no-cors');
+      console.log('[Webhook] Tentando requisição POST');
       const postResponse = await fetch(url, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        mode: 'no-cors', // Adiciona mode no-cors para evitar problemas de CORS
         body: JSON.stringify(payload),
       });
       
       const endTime = performance.now();
       console.log(`[Webhook] Requisição POST enviada em ${(endTime - startTime).toFixed(2)}ms`);
       
-      // Com mode: no-cors, não podemos ler a resposta, então assumimos sucesso se não houver erro
-      console.log('[Webhook] Requisição POST bem-sucedida (assumindo sucesso com no-cors)');
-      return { 
-        success: true, 
-        message: "Requisição enviada com sucesso (não podemos verificar a resposta devido ao modo no-cors)" 
-      };
+      // Attempt to parse the response
+      try {
+        const responseData = await postResponse.json();
+        console.log('[Webhook] Resposta do servidor:', responseData);
+        return { 
+          success: true,
+          data: responseData
+        };
+      } catch (parseErr) {
+        // If we can't parse the response JSON, return success with the status
+        console.log('[Webhook] Não foi possível analisar a resposta JSON, mas a requisição foi enviada');
+        return { 
+          success: postResponse.ok, 
+          message: `Requisição enviada com status: ${postResponse.status}`
+        };
+      }
     } catch (err) {
       console.error('[Webhook] Erro ao enviar requisição POST:', err);
       
       // Se POST falhar, tente GET
-      console.log('[Webhook] Tentando requisição GET com mode: no-cors');
+      console.log('[Webhook] Tentando requisição GET como fallback');
       
       // Build URL with query parameters
       const queryParams = new URLSearchParams();
@@ -64,18 +73,24 @@ export const callWebhook = async (
       try {
         const getResponse = await fetch(getUrl, {
           method: 'GET',
-          mode: 'no-cors', // Adiciona mode no-cors para evitar problemas de CORS
         });
         
         const endTime = performance.now();
         console.log(`[Webhook] Requisição GET enviada em ${(endTime - startTime).toFixed(2)}ms`);
         
-        // Com mode: no-cors, não podemos ler a resposta, então assumimos sucesso se não houver erro
-        console.log('[Webhook] Requisição GET bem-sucedida (assumindo sucesso com no-cors)');
-        return { 
-          success: true, 
-          message: "Requisição enviada com sucesso (não podemos verificar a resposta devido ao modo no-cors)" 
-        };
+        try {
+          const responseData = await getResponse.json();
+          console.log('[Webhook] Resposta do servidor (GET):', responseData);
+          return { 
+            success: true,
+            data: responseData
+          };
+        } catch (parseErr) {
+          return { 
+            success: getResponse.ok, 
+            message: `Requisição GET enviada com status: ${getResponse.status}`
+          };
+        }
       } catch (getErr) {
         console.error('[Webhook] Erro também ao tentar requisição GET:', getErr);
         throw getErr;
