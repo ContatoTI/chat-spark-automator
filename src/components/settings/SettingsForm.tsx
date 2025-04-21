@@ -1,41 +1,67 @@
 
 import React from "react";
 import { Form } from "@/components/ui/form";
-import { DisparoOptions } from "@/lib/api/settings";
-import { LimitsSettings } from "./LimitsSettings";
+import { SaveButton } from "./SaveButton";
+import { WebhookSection } from "./sections/WebhookSection";
+import { GeneralSettings } from "./GeneralSettings";
 import { IntervalSettings } from "./IntervalSettings";
 import { BatchSettings } from "./BatchSettings";
-import { SaveButton } from "./SaveButton";
-import { useSettingsFormData } from "@/hooks/useSettingsFormData";
-import { InstanceWebhookSection } from "./sections/InstanceWebhookSection";
+import { FtpSettings } from "./FtpSettings";
+import { SystemActiveToggle } from "./sections/SystemActiveToggle";
+import { InstanceApiSection } from "./sections/InstanceApiSection";
+import { LimitsSettings } from "./LimitsSettings";
+import { Separator } from "@/components/ui/separator";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Webhook } from "lucide-react";
+import { UseFormReturn } from "react-hook-form";
+import { SettingsFormValues } from "@/lib/validations/settings";
 
 interface SettingsFormProps {
-  initialSettings: DisparoOptions;
-  userRole?: string;
+  form: UseFormReturn<SettingsFormValues>;
+  onSubmit: (values: SettingsFormValues) => Promise<void>;
+  isSaving: boolean;
 }
 
-export function SettingsForm({ initialSettings, userRole }: SettingsFormProps) {
-  const { form, isSubmitting, onSubmit } = useSettingsFormData(initialSettings);
-  const isAdmin = userRole === 'admin' || userRole === 'master';
-
+export function SettingsForm({ form, onSubmit, isSaving }: SettingsFormProps) {
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-        {/* Mostrar configurações de limites para qualquer tipo de usuário */}
-        <LimitsSettings form={form} />
-        
-        {/* Mostrar webhook de instâncias para todos os tipos de usuários */}
-        <InstanceWebhookSection form={form} />
-        
-        {/* Mostrar configurações de intervalo e lote apenas para usuários admin */}
-        {isAdmin && (
-          <>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8 pb-12">
+        <div className="space-y-6">
+          <SystemActiveToggle form={form} />
+          
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Webhook className="h-5 w-5" />
+                Webhooks
+              </CardTitle>
+              <CardDescription>
+                Configure as URLs de webhooks para integração com outros sistemas
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <WebhookSection form={form} />
+            </CardContent>
+          </Card>
+          
+          <Separator />
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <GeneralSettings form={form} />
+            <LimitsSettings form={form} />
+          </div>
+          
+          <InstanceApiSection form={form} />
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <IntervalSettings form={form} />
             <BatchSettings form={form} />
-          </>
-        )}
+          </div>
+          
+          <FtpSettings form={form} />
+        </div>
         
-        <SaveButton isPending={isSubmitting} />
+        <SaveButton isSaving={isSaving} />
       </form>
     </Form>
   );

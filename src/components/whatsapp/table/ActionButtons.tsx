@@ -25,7 +25,7 @@ export const ActionButtons = ({
 }: ActionButtonsProps) => {
   const isConnected = isInstanceConnected(account.status);
   const processing = isProcessing[account.id];
-  const webhookUrl = localStorage.getItem('webhook_instancias') || '';
+  const webhookUrl = localStorage.getItem('webhook_disparo') || '';
 
   const handleActionClick = async (action: 'connect' | 'disconnect' | 'delete') => {
     try {

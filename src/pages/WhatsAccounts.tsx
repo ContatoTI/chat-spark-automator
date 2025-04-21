@@ -15,7 +15,7 @@ import { LogWindow } from "@/components/debug/LogWindow";
 const WhatsAccounts = () => {
   const { user, selectedCompany } = useAuth();
   const isMaster = user?.role === 'master';
-  const webhookUrl = localStorage.getItem('webhook_instancias');
+  const webhookUrl = localStorage.getItem('webhook_disparo');
   
   const {
     accounts,
@@ -86,7 +86,7 @@ const WhatsAccounts = () => {
             <AlertTriangle className="h-4 w-4 text-amber-600" />
             <AlertTitle>Webhook não configurado</AlertTitle>
             <AlertDescription className="flex flex-col gap-2">
-              <p>URL do webhook de instâncias não configurada. Configure nas Configurações &gt; Webhooks.</p>
+              <p>URL do webhook principal não configurada. Configure nas Configurações &gt; Webhooks.</p>
               <div>
                 <Button variant="outline" size="sm" asChild className="mt-2">
                   <Link to="/settings" className="flex items-center gap-2">

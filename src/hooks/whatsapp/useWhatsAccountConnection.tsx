@@ -17,7 +17,7 @@ export const useWhatsAccountConnection = () => {
       console.log(`[WebhookConnection] Conectando instância: ${params.nomeInstancia} via ${params.webhookUrl}`);
       
       if (!params.webhookUrl) {
-        throw new Error('URL do webhook não configurada');
+        throw new Error('URL do webhook principal não configurada');
       }
       
       const response = await callWebhook(params.webhookUrl, {
