@@ -1,8 +1,7 @@
-
 import { WhatsAppStatusResponse } from "./types";
 import { callWebhook } from "../webhook-utils";
 import { logWebhookResponse } from "./utils";
-import { supabase } from "@/lib/supabase";
+import { updateWhatsAccountStatus } from "./api";
 
 export const fetchAllInstancesStatus = async (): Promise<WhatsAppStatusResponse> => {
   try {
@@ -79,15 +78,11 @@ export const fetchAllInstancesStatus = async (): Promise<WhatsAppStatusResponse>
         if (instance.name && instance.connectionStatus) {
           console.log(`[DB] Atualizando status da instância ${instance.name} para ${instance.connectionStatus}`);
           
-          const { error } = await supabase
-            .from('AppW_Instancias')
-            .update({ status: instance.connectionStatus })
-            .eq('nome_instancia', instance.name);
-            
-          if (error) {
-            console.error(`[DB] Erro ao atualizar status para ${instance.name}:`, error);
-          } else {
+          try {
+            await updateWhatsAccountStatus(instance.name, instance.connectionStatus);
             console.log(`[DB] Status de ${instance.name} atualizado com sucesso para ${instance.connectionStatus}`);
+          } catch (error) {
+            console.error(`[DB] Erro ao atualizar status para ${instance.name}:`, error);
           }
         }
       }));
@@ -114,50 +109,37 @@ export const fetchInstanceStatus = async (instanceName: string): Promise<string>
       throw new Error('URL do webhook de instâncias não configurada');
     }
     
-    // Enviar o nome da instância específica no payload
     const response = await callWebhook(webhookUrl, {
       action: 'status',
       instance_name: instanceName,
       timestamp: new Date().toISOString()
     });
     
-    console.log('[Webhook] Resposta para instância específica:', response);
-    
-    // Extrair o status da instância da resposta
+    console.log('[Webhook] Resposta bruta:', response);
+
+    // Processar a resposta no formato específico [{ name: string, connectionStatus: string }]
     let instanceStatus = 'close'; // Default status
     
-    // Verificar diferentes formatos de resposta
-    if (Array.isArray(response.data)) {
-      const instance = response.data.find(
-        inst => inst.name === instanceName || inst.instance === instanceName || inst.instanceName === instanceName
-      );
-      
-      if (instance) {
-        instanceStatus = instance.connectionStatus || instance.status || instance.state || 'close';
+    if (Array.isArray(response)) {
+      const instance = response[0]; // Pegamos o primeiro item do array
+      if (instance && instance.connectionStatus) {
+        instanceStatus = instance.connectionStatus;
       }
-    } else if (response.data && typeof response.data === 'object') {
-      // Caso seja um objeto com status direto
-      instanceStatus = response.data.connectionStatus || response.data.status || response.data.state || 'close';
+    } else if (Array.isArray(response.data)) {
+      const instance = response.data[0]; // Se a resposta estiver dentro de data
+      if (instance && instance.connectionStatus) {
+        instanceStatus = instance.connectionStatus;
+      }
     }
 
     console.log(`[Webhook] Status encontrado para instância ${instanceName}: ${instanceStatus}`);
 
-    // Atualizar o status na tabela AppW_Instancias
-    const { error } = await supabase
-      .from('AppW_Instancias')
-      .update({ status: instanceStatus })
-      .eq('nome_instancia', instanceName);
-
-    if (error) {
-      console.error('[DB] Erro ao atualizar status na tabela:', error);
-    } else {
-      console.log(`[DB] Status da instância ${instanceName} atualizado para: ${instanceStatus}`);
-    }
+    // Atualizar o status no banco
+    await updateWhatsAccountStatus(instanceName, instanceStatus);
     
     return instanceStatus;
-    
   } catch (error) {
     console.error('[Webhook] Erro ao verificar status:', error);
-    return 'close'; // Fallback para desconectado em caso de erro
+    return 'close';
   }
 };
