@@ -53,22 +53,11 @@ export const useContacts = () => {
     }
   };
 
-  // Effect to check if table exists when company changes
-  useEffect(() => {
-    if (companyId) {
-      checkTableExists(companyId).then(exists => {
-        setTableExists(exists);
-      });
-    } else {
-      setTableExists(null);
-    }
-  }, [companyId]);
-
   // Function to create contact list
   const createContactList = async () => {
     if (!companyId) {
       toast.error("Nenhuma empresa selecionada");
-      return;
+      return false;
     }
 
     toast.info("Criando lista de contatos...");
@@ -119,7 +108,18 @@ export const useContacts = () => {
     }
   };
 
-  // Query to fetch contacts
+  // Effect to check if table exists when company changes
+  useEffect(() => {
+    if (companyId) {
+      checkTableExists(companyId).then(exists => {
+        setTableExists(exists);
+      });
+    } else {
+      setTableExists(null);
+    }
+  }, [companyId]);
+
+  // Query to fetch contacts from the company-specific table
   const {
     data: contacts = [],
     isLoading,
