@@ -16,38 +16,35 @@ export const testWebhook = async (url: string): Promise<boolean> => {
   try {
     console.log(`Iniciando teste de webhook para: ${url}`);
     
-    // First attempt with POST using no-cors
+    // First attempt with POST using no-cors and teste action
     const postResponse = await fetch(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      mode: 'no-cors', // Add no-cors mode to handle CORS issues
+      mode: 'no-cors',
       body: JSON.stringify({
-        action: 'test',
-        instance: 'test_instance',
+        action: 'teste',
         timestamp: new Date().toISOString(),
       }),
     });
     
     console.log(`Teste de webhook enviado com sucesso para: ${url} (modo no-cors)`);
-    // Com no-cors, não podemos verificar o status da resposta
-    // Assumimos que se não lançou exceção, o teste foi bem-sucedido
     return true;
   } catch (error) {
     console.error('Erro detalhado no teste do webhook:', error);
     
-    // Tente novamente com GET + no-cors como fallback
+    // Try again with GET + no-cors as fallback
     try {
       console.log(`Tentando teste de webhook com GET + no-cors para: ${url}`);
       
       const testUrl = new URL(url);
-      testUrl.searchParams.append('test', 'true');
+      testUrl.searchParams.append('action', 'teste');
       testUrl.searchParams.append('timestamp', Date.now().toString());
       
       await fetch(testUrl.toString(), {
         method: 'GET',
-        mode: 'no-cors', // Add no-cors mode to handle CORS issues
+        mode: 'no-cors',
       });
       
       console.log(`Teste de webhook GET enviado com sucesso para: ${url} (modo no-cors)`);

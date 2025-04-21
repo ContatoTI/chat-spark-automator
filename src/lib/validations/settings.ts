@@ -3,7 +3,7 @@ import { z } from "zod";
 
 export const settingsSchema = z.object({
   id: z.number().optional(),
-  empresa_id: z.string(), // Make it required in the schema
+  empresa_id: z.string(),
   instancia: z.string().optional(),
   ativo: z.boolean().default(true),
   horario_limite: z.coerce.number().min(0).max(23),
@@ -16,7 +16,6 @@ export const settingsSchema = z.object({
   url_api: z.string().optional(),
   apikey: z.string().optional(),
   webhook_disparo: z.string().optional(),
-  webhook_contatos: z.string().optional(),
   webhook_get_images: z.string().optional(),
   webhook_up_docs: z.string().optional(),
   webhook_instancias: z.string().optional(),

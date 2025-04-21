@@ -19,7 +19,7 @@ export function WebhookSection({ form }: WebhookSectionProps) {
           name="webhook_disparo"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Webhook Disparo</FormLabel>
+              <FormLabel>Webhook Principal</FormLabel>
               <div className="flex gap-2">
                 <FormControl className="flex-1">
                   <Input {...field} />
@@ -27,27 +27,7 @@ export function WebhookSection({ form }: WebhookSectionProps) {
                 <TestWebhookButton url={field.value} />
               </div>
               <FormDescription>
-                URL do webhook para campanhas de disparo
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        
-        <FormField
-          control={form.control}
-          name="webhook_contatos"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Webhook Contatos</FormLabel>
-              <div className="flex gap-2">
-                <FormControl className="flex-1">
-                  <Input {...field} />
-                </FormControl>
-                <TestWebhookButton url={field.value} />
-              </div>
-              <FormDescription>
-                URL do webhook para sincronização de contatos
+                URL do webhook principal para disparos e outras funcionalidades
               </FormDescription>
               <FormMessage />
             </FormItem>
@@ -90,28 +70,6 @@ export function WebhookSection({ form }: WebhookSectionProps) {
               </div>
               <FormDescription>
                 URL do webhook para envio de arquivos da biblioteca de mídia
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-      </div>
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <FormField
-          control={form.control}
-          name="webhook_instancias"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Webhook Instâncias</FormLabel>
-              <div className="flex gap-2">
-                <FormControl className="flex-1">
-                  <Input {...field} />
-                </FormControl>
-                <TestWebhookButton url={field.value} />
-              </div>
-              <FormDescription>
-                URL do webhook para gerenciamento de instâncias de WhatsApp
               </FormDescription>
               <FormMessage />
             </FormItem>
