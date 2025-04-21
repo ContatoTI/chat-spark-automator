@@ -4,21 +4,24 @@ import { Button } from "@/components/ui/button";
 import { Loader2, Save } from "lucide-react";
 
 interface SaveButtonProps {
-  isPending: boolean;
+  isPending?: boolean;
+  isSaving?: boolean;
 }
 
-export function SaveButton({ isPending }: SaveButtonProps) {
+export function SaveButton({ isPending, isSaving }: SaveButtonProps) {
+  const isLoading = isPending || isSaving || false;
+  
   return (
     <div className="flex justify-end">
       <Button 
         type="submit" 
-        disabled={isPending}
+        disabled={isLoading}
         className="w-full sm:w-auto"
       >
-        {isPending && (
+        {isLoading && (
           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
         )}
-        {!isPending && (
+        {!isLoading && (
           <Save className="mr-2 h-4 w-4" />
         )}
         Salvar Configurações

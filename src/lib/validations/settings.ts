@@ -18,6 +18,7 @@ export const settingsSchema = z.object({
   webhook_disparo: z.string().optional(),
   webhook_get_images: z.string().optional(),
   webhook_up_docs: z.string().optional(),
+  webhook_instancias: z.string().optional(),
   ftp_url: z.string().optional(),
   ftp_user: z.string().optional(),
   ftp_port: z.coerce.number().default(21),

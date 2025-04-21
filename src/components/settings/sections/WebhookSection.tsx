@@ -5,7 +5,8 @@ import { Input } from "@/components/ui/input";
 import { UseFormReturn } from "react-hook-form";
 import { SettingsFormValues } from "@/lib/validations/settings";
 import { TestWebhookButton } from "../TestWebhookButton";
-import { Alert, AlertCircle, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { AlertCircle } from "lucide-react";
 
 interface WebhookSectionProps {
   form: UseFormReturn<SettingsFormValues>;

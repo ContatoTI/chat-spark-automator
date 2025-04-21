@@ -1,3 +1,4 @@
+
 import { WhatsAppStatusResponse } from "./types";
 import { callWebhook } from "../webhook-utils";
 import { logWebhookResponse } from "./utils";
@@ -5,12 +6,12 @@ import { updateWhatsAccountStatus } from "./api";
 
 export const fetchAllInstancesStatus = async (): Promise<WhatsAppStatusResponse> => {
   try {
-    const webhookUrl = localStorage.getItem('webhook_instancias');
+    const webhookUrl = localStorage.getItem('webhook_disparo');
     
     console.log(`[Webhook] Verificando status de todas as instâncias via webhook: ${webhookUrl}`);
     
     if (!webhookUrl) {
-      throw new Error('URL do webhook de instâncias não configurada');
+      throw new Error('URL do webhook principal não configurada');
     }
     
     const response = await callWebhook(webhookUrl, {
@@ -101,12 +102,12 @@ export const fetchAllInstancesStatus = async (): Promise<WhatsAppStatusResponse>
 
 export const fetchInstanceStatus = async (instanceName: string): Promise<string> => {
   try {
-    const webhookUrl = localStorage.getItem('webhook_instancias');
+    const webhookUrl = localStorage.getItem('webhook_disparo');
     
     console.log(`Verificando status para instância: ${instanceName} via webhook: ${webhookUrl}`);
     
     if (!webhookUrl) {
-      throw new Error('URL do webhook de instâncias não configurada');
+      throw new Error('URL do webhook principal não configurada');
     }
     
     const response = await callWebhook(webhookUrl, {

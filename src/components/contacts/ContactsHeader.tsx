@@ -12,6 +12,10 @@ interface ContactsHeaderProps {
   onSync: () => void;
   isSyncing: boolean;
   totalContacts: number;
+  onCreateList?: () => Promise<boolean>;
+  onRefresh?: () => Promise<any>;
+  tableExists?: boolean;
+  isLoading?: boolean;
 }
 
 export const ContactsHeader: React.FC<ContactsHeaderProps> = ({
@@ -19,6 +23,10 @@ export const ContactsHeader: React.FC<ContactsHeaderProps> = ({
   onSync,
   isSyncing,
   totalContacts,
+  onCreateList,
+  onRefresh,
+  tableExists,
+  isLoading
 }) => {
   const [syncDialogOpen, setSyncDialogOpen] = useState(false);
   const [isCreatingList, setIsCreatingList] = useState(false);
@@ -27,6 +35,11 @@ export const ContactsHeader: React.FC<ContactsHeaderProps> = ({
   const companyId = selectedCompany || user?.company_id;
 
   const handleCreateList = async () => {
+    if (onCreateList) {
+      await onCreateList();
+      return;
+    }
+    
     if (!companyId) {
       toast.error("Empresa não identificada");
       return;
@@ -64,6 +77,14 @@ export const ContactsHeader: React.FC<ContactsHeaderProps> = ({
     }
   };
 
+  const handleRefresh = () => {
+    if (onRefresh) {
+      onRefresh();
+    } else {
+      onSync();
+    }
+  };
+
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between">
@@ -78,7 +99,7 @@ export const ContactsHeader: React.FC<ContactsHeaderProps> = ({
             variant="outline"
             size="sm"
             onClick={handleCreateList}
-            disabled={isCreatingList}
+            disabled={isCreatingList || isLoading}
             className="flex items-center gap-2"
           >
             {isCreatingList ? (
@@ -115,7 +136,7 @@ export const ContactsHeader: React.FC<ContactsHeaderProps> = ({
       <ContactsSyncDialog
         open={syncDialogOpen}
         onOpenChange={setSyncDialogOpen}
-        onSync={onSync}
+        onSync={handleRefresh}
         isSyncing={isSyncing}
       />
     </div>

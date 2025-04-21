@@ -61,7 +61,7 @@ export function SettingsForm({ form, onSubmit, isSaving }: SettingsFormProps) {
           <FtpSettings form={form} />
         </div>
         
-        <SaveButton isSaving={isSaving} />
+        <SaveButton isPending={isSaving} />
       </form>
     </Form>
   );

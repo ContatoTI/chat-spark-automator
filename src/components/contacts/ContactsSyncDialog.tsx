@@ -15,11 +15,15 @@ import { useSyncContacts } from "./sync/useSyncContacts";
 interface ContactsSyncDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onSync?: () => void;
+  isSyncing?: boolean;
 }
 
 export const ContactsSyncDialog: React.FC<ContactsSyncDialogProps> = ({ 
   open, 
-  onOpenChange 
+  onOpenChange,
+  onSync,
+  isSyncing = false
 }) => {
   const {
     status,
@@ -31,6 +35,15 @@ export const ContactsSyncDialog: React.FC<ContactsSyncDialogProps> = ({
 
   const handleClose = () => {
     onOpenChange(false);
+  };
+
+  // If external onSync is provided, use that instead
+  const handleSync = () => {
+    if (onSync) {
+      onSync();
+    } else {
+      startSync();
+    }
   };
 
   return (
@@ -53,7 +66,7 @@ export const ContactsSyncDialog: React.FC<ContactsSyncDialogProps> = ({
         
         <SyncDialogFooter 
           status={status}
-          onSync={startSync}
+          onSync={handleSync}
           onClose={handleClose}
         />
       </DialogContent>

@@ -6,8 +6,8 @@ import { UseFormReturn } from "react-hook-form";
 import { SettingsFormValues } from "@/lib/validations/settings";
 import { TestWebhookButton } from "../TestWebhookButton";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { AlertCircle, Webhook } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { AlertCircle, Webhook } from "lucide-react";
 
 interface InstanceWebhookSectionProps {
   form: UseFormReturn<SettingsFormValues>;
@@ -17,13 +17,13 @@ export function InstanceWebhookSection({ form }: InstanceWebhookSectionProps) {
   // Quando o webhook for testado com sucesso, salve no localStorage
   const saveWebhookToLocalStorage = (url: string) => {
     if (url && url.trim() !== '') {
-      localStorage.setItem('webhook_instancias', url);
-      console.log('[InstanceWebhookSection] Webhook de instâncias salvo no localStorage:', url);
+      localStorage.setItem('webhook_disparo', url);
+      console.log('[InstanceWebhookSection] Webhook principal salvo no localStorage:', url);
     }
   };
 
   // Pegar o valor atual do form
-  const currentWebhookUrl = form.watch('webhook_instancias');
+  const currentWebhookUrl = form.watch('webhook_disparo');
   
   // Salvar no localStorage sempre que o valor mudar
   useEffect(() => {
@@ -34,12 +34,12 @@ export function InstanceWebhookSection({ form }: InstanceWebhookSectionProps) {
 
   // Verificar se há um valor no localStorage ao carregar
   useEffect(() => {
-    const storedUrl = localStorage.getItem('webhook_instancias');
-    console.log('[InstanceWebhookSection] Webhook de instâncias carregado do localStorage:', storedUrl);
+    const storedUrl = localStorage.getItem('webhook_disparo');
+    console.log('[InstanceWebhookSection] Webhook principal carregado do localStorage:', storedUrl);
     
     // Se o form está vazio e há valor no localStorage, preencha o form
     if ((!currentWebhookUrl || currentWebhookUrl.trim() === '') && storedUrl) {
-      form.setValue('webhook_instancias', storedUrl);
+      form.setValue('webhook_disparo', storedUrl);
     }
   }, []);
 
@@ -66,10 +66,10 @@ export function InstanceWebhookSection({ form }: InstanceWebhookSectionProps) {
 
         <FormField
           control={form.control}
-          name="webhook_instancias"
+          name="webhook_disparo"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Webhook de Instâncias WhatsApp</FormLabel>
+              <FormLabel>Webhook Principal para Instâncias WhatsApp</FormLabel>
               <div className="flex gap-2">
                 <FormControl className="flex-1">
                   <Input 

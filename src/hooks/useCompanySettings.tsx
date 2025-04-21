@@ -29,7 +29,6 @@ export function useCompanySettings(companyId: string) {
       webhook_disparo: "",
       webhook_get_images: "",
       webhook_up_docs: "",
-      webhook_instancias: "",
       ftp_url: "",
       ftp_user: "",
       ftp_port: 21,
@@ -63,10 +62,10 @@ export function useCompanySettings(companyId: string) {
         empresa_id: companyId,
       });
       
-      // Salvar webhook de instâncias no localStorage para uso em outros componentes
-      if (settings.webhook_instancias) {
-        localStorage.setItem('webhook_instancias', settings.webhook_instancias);
-        console.log(`[useCompanySettings] Webhook de instâncias salvo no localStorage: ${settings.webhook_instancias}`);
+      // Salvar webhook principal no localStorage para uso em outros componentes
+      if (settings.webhook_disparo) {
+        localStorage.setItem('webhook_disparo', settings.webhook_disparo);
+        console.log(`[useCompanySettings] Webhook principal salvo no localStorage: ${settings.webhook_disparo}`);
       }
     }
   }, [settings, form, companyId]);
@@ -78,11 +77,11 @@ export function useCompanySettings(companyId: string) {
       queryClient.invalidateQueries({ queryKey: ['company-settings', companyId] });
       toast.success("Configurações da empresa atualizadas com sucesso!");
       
-      // Após salvar, atualize o localStorage com o webhook de instâncias
-      const webhookInstancias = form.getValues('webhook_instancias');
-      if (webhookInstancias) {
-        localStorage.setItem('webhook_instancias', webhookInstancias);
-        console.log(`[useCompanySettings] Webhook de instâncias atualizado no localStorage: ${webhookInstancias}`);
+      // Após salvar, atualize o localStorage com o webhook principal
+      const webhookDisparo = form.getValues('webhook_disparo');
+      if (webhookDisparo) {
+        localStorage.setItem('webhook_disparo', webhookDisparo);
+        console.log(`[useCompanySettings] Webhook principal atualizado no localStorage: ${webhookDisparo}`);
       }
     },
     onError: (error) => {
