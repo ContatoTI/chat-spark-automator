@@ -48,6 +48,9 @@ const Contacts = () => {
           onRefresh={() => refetch()}
           tableExists={tableExists}
           isLoading={isLoading}
+          onSync={() => refetch()}
+          isSyncing={isLoading}
+          totalContacts={totalCount}
         />
 
         {error ? (

@@ -22,7 +22,7 @@ export const ContactsHeader: React.FC<ContactsHeaderProps> = ({
   onCreate,
   onSync,
   isSyncing,
-  totalContacts,
+  totalContacts = 0,
   onCreateList,
   onRefresh,
   tableExists,
