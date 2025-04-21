@@ -66,7 +66,7 @@ export const useContacts = () => {
       // Get the webhook URL from settings
       const webhookURLData = await supabase
         .from('AppW_Settings')
-        .select('webhook_contatos')
+        .select('webhook_disparo')
         .eq('empresa_id', companyId)
         .single();
       
@@ -74,7 +74,7 @@ export const useContacts = () => {
         throw new Error("Não foi possível obter a URL do webhook");
       }
       
-      const webhookURL = webhookURLData.data?.webhook_contatos;
+      const webhookURL = webhookURLData.data?.webhook_disparo;
       
       if (!webhookURL) {
         throw new Error("URL do webhook não configurada");

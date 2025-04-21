@@ -39,7 +39,7 @@ export const ContactsTable: React.FC<ContactsTableProps> = ({
     
     // Order known columns first
     const orderedColumns: string[] = [];
-    const knownColumns = ["id", "Nome", "Numero", "Enviado", "Nome_Real", "Invalido"];
+    const knownColumns = ["id", "Nome", "Numero", "Enviado", "Nome_Real", "Invalido", "tag"];
     
     knownColumns.forEach(col => {
       if (allColumns.has(col)) {
@@ -73,6 +73,14 @@ export const ContactsTable: React.FC<ContactsTableProps> = ({
     if (column === "Invalido" && value) {
       return (
         <Badge className="bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300">
+          {value}
+        </Badge>
+      );
+    }
+
+    if (column === "tag" && value) {
+      return (
+        <Badge variant="outline" className="bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">
           {value}
         </Badge>
       );

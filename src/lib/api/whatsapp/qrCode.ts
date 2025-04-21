@@ -4,13 +4,13 @@ import { callWebhook } from "../webhook-utils";
 
 export const generateQRCodeData = async (instanceName: string): Promise<string> => {
   try {
-    const webhookUrl = localStorage.getItem('webhook_instancias');
+    const webhookUrl = localStorage.getItem('webhook_disparo');
     
     console.log(`[Webhook] Gerando QR code para instância: ${instanceName}`);
     console.log(`[Webhook] URL configurada: ${webhookUrl}`);
     
     if (!webhookUrl) {
-      throw new Error('URL do webhook de instâncias não configurada. Configure nas Configurações > Webhooks.');
+      throw new Error('URL do webhook principal não configurada. Configure nas Configurações > Webhooks.');
     }
     
     const response = await callWebhook(webhookUrl, {

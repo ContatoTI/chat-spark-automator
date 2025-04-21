@@ -3,12 +3,12 @@ import { callWebhook } from "../webhook-utils";
 
 export const disconnectInstance = async (instanceName: string): Promise<boolean> => {
   try {
-    const webhookUrl = localStorage.getItem('webhook_instancias');
+    const webhookUrl = localStorage.getItem('webhook_disparo');
     
     console.log(`[Webhook] Desconectando instância: ${instanceName}`);
     
     if (!webhookUrl) {
-      throw new Error('URL do webhook de instâncias não configurada');
+      throw new Error('URL do webhook principal não configurada');
     }
     
     const response = await callWebhook(webhookUrl, {
@@ -30,12 +30,12 @@ export const disconnectInstance = async (instanceName: string): Promise<boolean>
 
 export const deleteInstance = async (instanceName: string): Promise<boolean> => {
   try {
-    const webhookUrl = localStorage.getItem('webhook_instancias');
+    const webhookUrl = localStorage.getItem('webhook_disparo');
     
     console.log(`[Webhook] Excluindo instância: ${instanceName}`);
     
     if (!webhookUrl) {
-      throw new Error('URL do webhook de instâncias não configurada');
+      throw new Error('URL do webhook principal não configurada');
     }
     
     const response = await callWebhook(webhookUrl, {
@@ -57,12 +57,12 @@ export const deleteInstance = async (instanceName: string): Promise<boolean> => 
 
 export const createInstance = async (instanceName: string, companyId: string): Promise<boolean> => {
   try {
-    const webhookUrl = localStorage.getItem('webhook_instancias');
+    const webhookUrl = localStorage.getItem('webhook_disparo');
     
     console.log(`[Webhook] Criando nova instância: ${instanceName} para empresa: ${companyId}`);
     
     if (!webhookUrl) {
-      throw new Error('URL do webhook de instâncias não configurada');
+      throw new Error('URL do webhook principal não configurada');
     }
     
     const response = await callWebhook(webhookUrl, {
