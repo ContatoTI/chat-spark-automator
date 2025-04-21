@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
@@ -8,7 +9,8 @@ import {
   LogOut,
   Phone,
   Building,
-  Info
+  Info,
+  User
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -82,6 +84,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ open }) => {
               icon={LayoutDashboard}
               label="Dashboard"
               active={currentPath === "/"}
+            />
+            <SidebarLink
+              to="/contacts"
+              icon={User}
+              label="Contatos"
+              active={currentPath === "/contacts"}
             />
             <SidebarLink
               to="/campaigns"
