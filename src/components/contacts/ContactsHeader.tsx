@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Plus, RefreshCw, Loader2, Download, Tag } from "lucide-react";
@@ -7,6 +6,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { callWebhook } from "@/lib/api/webhook-utils";
 import { toast } from "sonner";
 import { ContactTagsDialog } from "./ContactTagsDialog";
+import { supabase } from "@/lib/supabase";
 
 interface ContactsHeaderProps {
   onCreate?: () => void;
