@@ -17,18 +17,19 @@ export function useCompanySettings(companyId: string) {
     defaultValues: {
       instancia: "",
       ativo: true,
-      horario_limite: 0,
-      long_wait_min: 0,
-      long_wait_max: 0,
-      short_wait_min: 0,
-      short_wait_max: 0,
-      batch_size_min: 0,
-      batch_size_max: 0,
+      horario_limite: 17,
+      long_wait_min: 50,
+      long_wait_max: 240,
+      short_wait_min: 5,
+      short_wait_max: 10,
+      batch_size_min: 5,
+      batch_size_max: 10,
       url_api: "",
       apikey: "",
       webhook_disparo: "",
       webhook_get_images: "",
       webhook_up_docs: "",
+      webhook_instancias: "",
       ftp_url: "",
       ftp_user: "",
       ftp_port: 21,
@@ -90,20 +91,21 @@ export function useCompanySettings(companyId: string) {
   });
 
   // Função para salvar as configurações
-  const onSubmit = (values: SettingsFormValues) => {
-    updateSettingsMutation.mutate({
+  const onSubmit = async (values: SettingsFormValues) => {
+    console.log("[useCompanySettings] Salvando configurações:", values);
+    
+    // Garantir que o empresa_id esteja correto
+    const settingsToUpdate = {
       ...values,
       empresa_id: companyId,
-      ativo: values.ativo ?? true,
-      horario_limite: values.horario_limite || 0,
-      long_wait_min: values.long_wait_min || 0,
-      long_wait_max: values.long_wait_max || 0,
-      short_wait_min: values.short_wait_min || 0,
-      short_wait_max: values.short_wait_max || 0,
-      batch_size_min: values.batch_size_min || 0,
-      batch_size_max: values.batch_size_max || 0,
-      ftp_port: values.ftp_port || 21
-    });
+    };
+    
+    try {
+      await updateSettingsMutation.mutateAsync(settingsToUpdate);
+      console.log("[useCompanySettings] Configurações salvas com sucesso!");
+    } catch (error) {
+      console.error("[useCompanySettings] Erro ao salvar configurações:", error);
+    }
   };
 
   return {

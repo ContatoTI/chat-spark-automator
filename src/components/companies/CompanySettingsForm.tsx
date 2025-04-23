@@ -19,6 +19,15 @@ export function CompanySettingsForm({ companyId }: CompanySettingsFormProps) {
   const { settings, isLoading, error, form, isSubmitting, onSubmit } = useCompanySettings(companyId);
   const { toast } = useToast();
 
+  const handleSubmit = async (values: any) => {
+    console.log("Form submitted with values:", values);
+    try {
+      await onSubmit(values);
+    } catch (error) {
+      console.error("Error during form submission:", error);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-40">
@@ -51,7 +60,7 @@ export function CompanySettingsForm({ companyId }: CompanySettingsFormProps) {
     <div className="space-y-6">
       <CompanySettingsHeader />
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
           <Card>
             <CardContent className="pt-6">
               <GeneralSettings form={form} />

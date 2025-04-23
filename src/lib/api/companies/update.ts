@@ -23,21 +23,16 @@ export const updateCompany = async (id: string, name: string): Promise<void> => 
 // Função para atualizar as configurações de uma empresa específica
 export const updateCompanySettings = async (options: DisparoOptions): Promise<void> => {
   try {
+    console.log("Atualizando configurações da empresa:", options);
+    
+    // Remove undefined values to prevent overriding with null in database
+    const settingsToUpdate = Object.fromEntries(
+      Object.entries(options).filter(([_, value]) => value !== undefined)
+    );
+    
     const { error } = await supabase
       .from('AppW_Options')
-      .update({
-        ativo: options.ativo,
-        url_api: options.url_api,
-        apikey: options.apikey,
-        webhook_disparo: options.webhook_disparo,
-        webhook_get_images: options.webhook_get_images,
-        webhook_up_docs: options.webhook_up_docs,
-        webhook_instancias: options.webhook_instancias,
-        ftp_url: options.ftp_url,
-        ftp_user: options.ftp_user,
-        ftp_port: options.ftp_port,
-        ftp_password: options.ftp_password
-      })
+      .update(settingsToUpdate)
       .eq('empresa_id', options.empresa_id);
     
     if (error) {
