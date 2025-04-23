@@ -108,7 +108,8 @@ export const NewCampaignDialog: React.FC<NewCampaignDialogProps> = ({
       limite_disparos: limiteDisparos,
       enviados: enviados,
       empresa_id: empresa_id,
-      selected_instance: selectedInstance
+      selected_instance: selectedInstance,
+      instancia: selectedInstance // Adding the instancia property here
     };
     
     createMutation.mutate(newCampaign);
