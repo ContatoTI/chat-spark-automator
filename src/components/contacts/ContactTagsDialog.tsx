@@ -82,3 +82,4 @@ export const ContactTagsDialog = ({ isOpen, onClose, companyId }: ContactTagsDia
       </DialogContent>
     </Dialog>
   );
+};
