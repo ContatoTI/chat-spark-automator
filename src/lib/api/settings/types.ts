@@ -4,16 +4,16 @@ export interface DisparoOptions {
   empresa_id: string;  // Ensuring this is required (no ? mark)
   nome_da_empresa?: string;
   instancia?: string;
-  ativo: boolean;
+  ativo?: boolean;     // Making this optional
   
   // Configurações de Limite e Intervalos
-  horario_limite: number;
-  long_wait_min: number;
-  long_wait_max: number;
-  short_wait_min: number;
-  short_wait_max: number;
-  batch_size_min: number;
-  batch_size_max: number;
+  horario_limite?: number;
+  long_wait_min?: number;
+  long_wait_max?: number;
+  short_wait_min?: number;
+  short_wait_max?: number;
+  batch_size_min?: number;
+  batch_size_max?: number;
   
   // API e Webhooks
   url_api?: string;
@@ -26,7 +26,7 @@ export interface DisparoOptions {
   // Configurações FTP
   ftp_url?: string;
   ftp_user?: string;
-  ftp_port: number;
+  ftp_port?: number;
   ftp_password?: string;
   
   // Métricas

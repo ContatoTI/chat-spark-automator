@@ -101,6 +101,7 @@ export function useCompanySettings(companyId: string) {
     };
     
     try {
+      console.log("[useCompanySettings] Enviando dados para API:", settingsToUpdate);
       await updateSettingsMutation.mutateAsync(settingsToUpdate);
       console.log("[useCompanySettings] Configurações salvas com sucesso!");
     } catch (error) {

@@ -5,7 +5,7 @@ export const settingsSchema = z.object({
   id: z.number().optional(),
   empresa_id: z.string(),
   instancia: z.string().optional(),
-  ativo: z.boolean().default(true),
+  ativo: z.boolean().default(true).optional(),
   horario_limite: z.coerce.number().min(0).max(23).optional(),
   long_wait_min: z.coerce.number().min(1).optional(),
   long_wait_max: z.coerce.number().min(1).optional(),

@@ -30,15 +30,23 @@ export const updateCompanySettings = async (options: DisparoOptions): Promise<vo
       Object.entries(options).filter(([_, value]) => value !== undefined)
     );
     
+    // Ensure empresa_id is included in the query condition
+    const empresaId = options.empresa_id;
+    
+    // Log the final data being sent to the database
+    console.log("Dados a serem enviados:", settingsToUpdate);
+    
     const { error } = await supabase
       .from('AppW_Options')
       .update(settingsToUpdate)
-      .eq('empresa_id', options.empresa_id);
+      .eq('empresa_id', empresaId);
     
     if (error) {
       console.error("Erro ao atualizar configurações da empresa:", error);
       throw new Error(`Falha ao atualizar configurações da empresa: ${error.message}`);
     }
+    
+    console.log("Configurações atualizadas com sucesso");
   } catch (error) {
     console.error("Erro ao atualizar configurações da empresa:", error);
     throw error;

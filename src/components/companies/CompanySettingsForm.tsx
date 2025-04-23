@@ -10,6 +10,7 @@ import { SaveButton } from "@/components/settings/SaveButton";
 import { AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CompanySettingsHeader } from "@/components/settings/CompanySettingsHeader";
+import { toast } from "sonner";
 
 interface CompanySettingsFormProps {
   companyId: string;
@@ -17,14 +18,16 @@ interface CompanySettingsFormProps {
 
 export function CompanySettingsForm({ companyId }: CompanySettingsFormProps) {
   const { settings, isLoading, error, form, isSubmitting, onSubmit } = useCompanySettings(companyId);
-  const { toast } = useToast();
+  const { toast: uiToast } = useToast();
 
   const handleSubmit = async (values: any) => {
     console.log("Form submitted with values:", values);
     try {
       await onSubmit(values);
+      toast.success("Configurações salvas com sucesso!");
     } catch (error) {
       console.error("Error during form submission:", error);
+      toast.error("Erro ao salvar configurações");
     }
   };
 
@@ -45,7 +48,7 @@ export function CompanySettingsForm({ companyId }: CompanySettingsFormProps) {
         </p>
         <Button 
           variant="outline" 
-          onClick={() => toast({
+          onClick={() => uiToast({
             title: "Ação necessária",
             description: "Verifique as permissões de acesso e tente novamente."
           })}
