@@ -8,10 +8,10 @@ import { toast } from "sonner";
 
 interface ActionButtonsProps {
   account: WhatsAccount;
-  onDelete: (id: number, nomeInstancia: string) => Promise<void>;
-  onConnect: (id: number, nomeInstancia: string, webhookInst: string) => Promise<void>;
-  onDisconnect: (id: number, nomeInstancia: string) => Promise<void>;
-  isProcessing: { [id: number]: string };
+  onDelete: (id: string, nomeInstancia: string) => Promise<void>;
+  onConnect: (id: string, nomeInstancia: string, webhookInst: string) => Promise<void>;
+  onDisconnect: (id: string, nomeInstancia: string) => Promise<void>;
+  isProcessing: { [id: string]: string };
   onWebhookResponse?: (data: any) => void;
 }
 

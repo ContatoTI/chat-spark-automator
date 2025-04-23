@@ -10,7 +10,7 @@ import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 
 export const useWhatsAccounts = () => {
-  const [processingInstanceId, setProcessingInstanceId] = useState<number | null>(null);
+  const [processingInstanceId, setProcessingInstanceId] = useState<string | null>(null);
   const { accounts, isLoading, error, refetchAccounts, queryClient } = useWhatsAccountsCore();
   const connection = useWhatsAccountConnection();
   const status = useWhatsAccountStatus(queryClient);
@@ -79,17 +79,17 @@ export const useWhatsAccounts = () => {
     return status.createAccount(data);
   };
 
-  const deleteAccount = async (id: number, nomeInstancia: string) => {
+  const deleteAccount = async (id: string, nomeInstancia: string) => {
     setProcessingInstanceId(id);
     return status.deleteAccount({ id, nomeInstancia });
   };
 
-  const connectAccount = async (id: number, nomeInstancia: string, webhookUrl: string) => {
+  const connectAccount = async (id: string, nomeInstancia: string, webhookUrl: string) => {
     setProcessingInstanceId(id);
     return connection.connectAccount({ id, nomeInstancia, webhookUrl });
   };
 
-  const disconnectAccount = async (id: number, nomeInstancia: string) => {
+  const disconnectAccount = async (id: string, nomeInstancia: string) => {
     setProcessingInstanceId(id);
     return status.disconnectAccount({ id, nomeInstancia });
   };
@@ -109,7 +109,7 @@ export const useWhatsAccounts = () => {
   };
 
   // Create a record of processing status by instance ID
-  const processingStatus: { [id: number]: string } = {};
+  const processingStatus: { [id: string]: string } = {};
   if (processingInstanceId) {
     if (connection.isConnecting) {
       processingStatus[processingInstanceId] = 'connecting';
