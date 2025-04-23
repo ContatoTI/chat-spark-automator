@@ -18,7 +18,6 @@ export const sampleCampaigns: Campaign[] = [
     limite_disparos: 2000,
     enviados: 1200,
     empresa_id: '1',
-    selected_instance: null,
     instancia: null
   },
   {
@@ -36,7 +35,6 @@ export const sampleCampaigns: Campaign[] = [
     limite_disparos: 1500,
     enviados: 0,
     empresa_id: '1',
-    selected_instance: null,
     instancia: null
   },
   {
@@ -54,7 +52,6 @@ export const sampleCampaigns: Campaign[] = [
     limite_disparos: 800,
     enviados: 600,
     empresa_id: '1',
-    selected_instance: null,
     instancia: null
   },
   {
@@ -72,7 +69,6 @@ export const sampleCampaigns: Campaign[] = [
     limite_disparos: 3000,
     enviados: 2800,
     empresa_id: '1',
-    selected_instance: null,
     instancia: null
   },
   {
@@ -90,7 +86,6 @@ export const sampleCampaigns: Campaign[] = [
     limite_disparos: 500,
     enviados: 0,
     empresa_id: '1',
-    selected_instance: null,
     instancia: null
   },
   {
@@ -108,7 +103,6 @@ export const sampleCampaigns: Campaign[] = [
     limite_disparos: 1,
     enviados: 0,
     empresa_id: '1',
-    selected_instance: null,
     instancia: null
   }
 ];
