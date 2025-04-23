@@ -13,7 +13,7 @@ export const useWhatsAccountConnection = () => {
 
   // Connect account mutation
   const connectAccountMutation = useMutation({
-    mutationFn: async (params: { id: number, nomeInstancia: string, webhookUrl: string }) => {
+    mutationFn: async (params: { id: string, nomeInstancia: string, webhookUrl: string }) => {
       console.log(`[WebhookConnection] Conectando instância: ${params.nomeInstancia} via ${params.webhookUrl}`);
       
       if (!params.webhookUrl) {
