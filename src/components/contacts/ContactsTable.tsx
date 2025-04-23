@@ -13,7 +13,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useCompanyTags } from "@/hooks/useCompanyTags";
-import { Tag } from "lucide-react";
+import { Tag, X } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
@@ -77,13 +77,43 @@ export const ContactsTable: React.FC<ContactsTableProps> = ({
 
       toast.success('Tags atualizadas com sucesso');
       setSelectedContacts([]);
-      
-      if (queryClient) {
-        queryClient.invalidateQueries({ queryKey: ['contacts'] });
-      }
+      queryClient.invalidateQueries({ queryKey: ['contacts'] });
     } catch (error) {
       console.error('Erro ao atualizar tags:', error);
       toast.error('Erro ao atualizar tags dos contatos');
+    }
+  };
+
+  const handleRemoveTag = async (contactId: number, tagToRemove: string) => {
+    if (!companyId) return;
+
+    try {
+      const { data: contact, error: fetchError } = await supabase
+        .from('appw_lista_' + companyId)
+        .select('id, tag')
+        .eq('id', contactId)
+        .single();
+
+      if (fetchError) throw fetchError;
+
+      const currentTags = contact.tag ? 
+        (Array.isArray(contact.tag) ? contact.tag : JSON.parse(contact.tag)) : 
+        [];
+      
+      const updatedTags = currentTags.filter((tag: string) => tag !== tagToRemove);
+
+      const { error: updateError } = await supabase
+        .from('appw_lista_' + companyId)
+        .update({ tag: updatedTags })
+        .eq('id', contactId);
+
+      if (updateError) throw updateError;
+
+      toast.success('Tag removida com sucesso');
+      queryClient.invalidateQueries({ queryKey: ['contacts'] });
+    } catch (error) {
+      console.error('Erro ao remover tag:', error);
+      toast.error('Erro ao remover tag do contato');
     }
   };
 
@@ -116,7 +146,7 @@ export const ContactsTable: React.FC<ContactsTableProps> = ({
     return [...orderedColumns, ...Array.from(allColumns)];
   };
 
-  const formatCellValue = (value: any, column: string) => {
+  const formatCellValue = (value: any, column: string, contactId: number) => {
     if (value === null || value === undefined) {
       return <span className="text-muted-foreground">-</span>;
     }
@@ -149,10 +179,19 @@ export const ContactsTable: React.FC<ContactsTableProps> = ({
             <Badge 
               key={`${tag}-${index}`}
               variant="outline" 
-              className="bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300"
+              className="bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300 flex items-center gap-1"
             >
-              <Tag className="h-3 w-3 mr-1" />
+              <Tag className="h-3 w-3" />
               {tag}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleRemoveTag(contactId, tag);
+                }}
+                className="ml-1 hover:bg-red-100 rounded-full p-0.5"
+              >
+                <X className="h-3 w-3" />
+              </button>
             </Badge>
           ))}
         </div>
@@ -223,7 +262,7 @@ export const ContactsTable: React.FC<ContactsTableProps> = ({
                 </TableCell>
                 {columns.map((column) => (
                   <TableCell key={`${contact.id}-${column}`}>
-                    {formatCellValue(contact[column], column)}
+                    {formatCellValue(contact[column], column, contact.id)}
                   </TableCell>
                 ))}
               </TableRow>

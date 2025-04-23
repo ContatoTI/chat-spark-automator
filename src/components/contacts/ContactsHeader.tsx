@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Plus, RefreshCw, Loader2, Download, Tag } from "lucide-react";
@@ -48,7 +49,17 @@ export const ContactsHeader: React.FC<ContactsHeaderProps> = ({
 
     setIsCreatingList(true);
     try {
-      const webhookUrl = localStorage.getItem('webhook_disparo');
+      const { data: settingsData, error: settingsError } = await supabase
+        .from('AppW_Settings')
+        .select('webhook_disparo')
+        .eq('empresa_id', companyId)
+        .single();
+      
+      if (settingsError) {
+        throw new Error("Não foi possível obter a URL do webhook");
+      }
+      
+      const webhookUrl = settingsData?.webhook_disparo || localStorage.getItem('webhook_disparo');
       
       if (!webhookUrl) {
         throw new Error("Webhook principal não configurado");
