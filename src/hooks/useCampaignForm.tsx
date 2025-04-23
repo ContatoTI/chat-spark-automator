@@ -73,7 +73,7 @@ export const useCampaignForm = (campaign: Campaign | null, open: boolean) => {
       
       setActiveTab("message");
       
-      setSelectedInstance(campaign.instancia || campaign.selected_instance || null);
+      setSelectedInstance(campaign.instancia);
       setProducao(campaign.producao !== undefined ? campaign.producao : false);
       setLimiteDisparos(campaign.limite_disparos || 1000);
     }

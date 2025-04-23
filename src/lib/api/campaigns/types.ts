@@ -25,9 +25,6 @@ export interface Campaign {
   // Campo para vincular campanha à empresa
   empresa_id: string;
   
-  // Campo para vincular a instância WhatsApp selecionada
-  selected_instance: string | null;
-  
-  // Novo campo para armazenar a instância na tabela AppW_Campanhas
+  // Instância do WhatsApp selecionada (nome da coluna no banco: "instancia") 
   instancia: string | null;
 }

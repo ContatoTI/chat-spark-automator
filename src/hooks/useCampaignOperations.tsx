@@ -54,7 +54,6 @@ export const useCampaignOperations = () => {
       });
       
       try {
-        // Buscar configurações da empresa para obter o webhook de disparo
         const { data: companySettings } = await supabase
           .from('AppW_Options')
           .select('*')
@@ -66,12 +65,11 @@ export const useCampaignOperations = () => {
         if (webhookUrl) {
           console.log(`[Campaign] Notificando webhook de disparo: ${webhookUrl}`);
           
-          // Envio com payload incluindo a instância selecionada
           await callWebhook(webhookUrl, {
             action: 'disparar',
             campaign_id: campaign.id,
             empresa_id: campaign.empresa_id,
-            instance_id: campaign.selected_instance,
+            instance_id: campaign.instancia,
             timestamp: new Date().toISOString()
           });
           

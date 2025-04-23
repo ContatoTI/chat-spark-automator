@@ -53,7 +53,6 @@ export const formatCampaignForUpdate = ({
     producao,
     limite_disparos: limiteDisparos,
     enviados,
-    selected_instance: selectedInstance,
-    instancia: selectedInstance // Salvando a instância selecionada no novo campo
+    instancia: selectedInstance  // Using "instancia" instead of "selected_instance"
   };
 };

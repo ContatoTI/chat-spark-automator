@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { useCampaignForm } from "@/hooks/useCampaignForm";
@@ -108,8 +107,7 @@ export const NewCampaignDialog: React.FC<NewCampaignDialogProps> = ({
       limite_disparos: limiteDisparos,
       enviados: enviados,
       empresa_id: empresa_id,
-      selected_instance: selectedInstance,
-      instancia: selectedInstance // Adding the instancia property here
+      instancia: selectedInstance
     };
     
     createMutation.mutate(newCampaign);
