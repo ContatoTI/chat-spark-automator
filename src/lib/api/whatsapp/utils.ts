@@ -1,26 +1,16 @@
 // Função para mapear status para informações legíveis
-export const mapStatusToText = (status: string | null | undefined) => {
-  if (!status) {
-    return { text: "Desconhecido", color: "gray" };
+export const mapStatusToText = (status: string) => {
+  const lowerStatus = (status || '').toLowerCase();
+  
+  if (['connected', 'open', 'opened'].includes(lowerStatus)) {
+    return { text: 'Conectado', color: 'green' };
+  } else if (['connecting', 'loading', 'starting'].includes(lowerStatus)) {
+    return { text: 'Conectando', color: 'yellow' };
+  } else if (['disconnected', 'close', 'closed', 'inactive'].includes(lowerStatus)) {
+    return { text: 'Desconectado', color: 'red' };
+  } else {
+    return { text: status || 'Desconhecido', color: 'gray' };
   }
-  
-  // Normalizar o status para minúsculas para comparação
-  const normalizedStatus = status.toLowerCase();
-  
-  // Mapear status para texto e cor
-  if (normalizedStatus === "connecting") {
-    return { text: "QR Code", color: "yellow" };
-  }
-  
-  if (normalizedStatus === "close") {
-    return { text: "Desconectado", color: "red" };
-  }
-  
-  if (normalizedStatus === "open") {
-    return { text: "Conectado", color: "green" };
-  }
-  
-  return { text: status, color: "gray" };
 };
 
 // Verificar se a instância está conectada
@@ -32,7 +22,16 @@ export const isInstanceConnected = (status: string | null | undefined): boolean 
 };
 
 // Add additional utilities to help with debugging
-export const logWebhookResponse = (action: string, response: any) => {
-  console.log(`[Webhook] ${action} response:`, response);
-  return response;
+export const logWebhookResponse = (description: string, data: any) => {
+  console.log(`[Webhook] ${description}:`, JSON.stringify(data, null, 2));
+  
+  // Log adicional para debugging específico de instâncias
+  if (data && data.data && Array.isArray(data.data)) {
+    console.log(`[Webhook] Instâncias encontradas (${data.data.length}):`, 
+      data.data.map(inst => ({
+        name: inst.name || inst.instance || inst.instanceName || '',
+        status: inst.connectionStatus || inst.status || inst.state || 'unknown'
+      }))
+    );
+  }
 };

@@ -7,7 +7,6 @@ import { useMutation } from "@tanstack/react-query";
 import { fetchAllInstancesStatus, fetchInstanceStatus } from "@/lib/api/whatsapp/status";
 import { mapStatusToText } from "@/lib/api/whatsapp/utils";
 import { toast } from "sonner";
-import { supabase } from "@/lib/supabase";
 
 export const useWhatsAccounts = () => {
   const [processingInstanceId, setProcessingInstanceId] = useState<string | null>(null);
@@ -131,6 +130,14 @@ export const useWhatsAccounts = () => {
                statusInfo.color === "yellow" ? "bg-yellow-100" : "bg-gray-100"
     };
   };
+
+  // Log adicional para debugging
+  console.log("Todas as contas disponíveis:", accounts);
+  console.log("Contas com status 'open' ou 'connected':", 
+    accounts.filter(account => 
+      ["connected", "open", "opened", "CONNECTED", "OPEN", "OPENED"].includes(account.status?.toLowerCase() || "")
+    )
+  );
 
   return {
     accounts,
