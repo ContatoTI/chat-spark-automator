@@ -29,7 +29,7 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
 }) => {
   const { accounts, isLoading } = useWhatsAccountsCore();
   
-  // Filter only connected instances
+  // Filtrar apenas instâncias conectadas
   const connectedAccounts = accounts.filter(account => account.status === "connected");
 
   return (
@@ -65,7 +65,7 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
               </div>
             ) : (
               connectedAccounts.map((account) => (
-                <SelectItem key={account.id} value={account.id}>
+                <SelectItem key={account.nome_instancia} value={account.nome_instancia}>
                   {account.nome_instancia}
                 </SelectItem>
               ))

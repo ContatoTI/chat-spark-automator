@@ -27,4 +27,7 @@ export interface Campaign {
   
   // Campo para vincular a instância WhatsApp selecionada
   selected_instance: string | null;
+  
+  // Novo campo para armazenar a instância na tabela AppW_Campanhas
+  instancia: string | null;
 }
