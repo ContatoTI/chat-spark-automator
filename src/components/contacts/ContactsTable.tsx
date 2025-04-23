@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { 
   Table, 
@@ -43,7 +44,7 @@ export const ContactsTable: React.FC<ContactsTableProps> = ({
     );
   };
 
-  const handleApplyTag = async (tag: string) => {
+  const handleApplyTag = async (tagName: string) => {
     if (!companyId || selectedContacts.length === 0) return;
 
     try {
@@ -59,8 +60,8 @@ export const ContactsTable: React.FC<ContactsTableProps> = ({
           (Array.isArray(contact.tag) ? contact.tag : JSON.parse(contact.tag)) : 
           [];
         
-        if (!currentTags.includes(tag)) {
-          currentTags.push(tag);
+        if (!currentTags.includes(tagName)) {
+          currentTags.push(tagName);
         }
 
         return {
@@ -219,8 +220,8 @@ export const ContactsTable: React.FC<ContactsTableProps> = ({
             </DropdownMenuTrigger>
             <DropdownMenuContent>
               {tags.map((tag) => (
-                <DropdownMenuItem key={tag} onClick={() => handleApplyTag(tag)}>
-                  {tag}
+                <DropdownMenuItem key={tag.name} onClick={() => handleApplyTag(tag.name)}>
+                  {tag.name}
                 </DropdownMenuItem>
               ))}
             </DropdownMenuContent>
