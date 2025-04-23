@@ -105,25 +105,27 @@ export const ContactsHeader: React.FC<ContactsHeaderProps> = ({
             Gerenciar Tags
           </Button>
 
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleCreateList}
-            disabled={isCreatingList || isLoading}
-            className="flex items-center gap-2"
-          >
-            {isCreatingList ? (
-              <>
-                <Loader2 className="h-4 w-4 animate-spin" />
-                Criando...
-              </>
-            ) : (
-              <>
-                <Download className="h-4 w-4" />
-                Criar Lista
-              </>
-            )}
-          </Button>
+          {(!tableExists && companyId) && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleCreateList}
+              disabled={isCreatingList || isLoading}
+              className="flex items-center gap-2"
+            >
+              {isCreatingList ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Criando...
+                </>
+              ) : (
+                <>
+                  <Download className="h-4 w-4" />
+                  Criar Lista
+                </>
+              )}
+            </Button>
+          )}
           
           <Button
             variant="outline"

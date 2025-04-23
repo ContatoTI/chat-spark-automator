@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { 
   Table, 
@@ -17,6 +16,7 @@ import { useCompanyTags } from "@/hooks/useCompanyTags";
 import { Tag } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface ContactsTableProps {
   contacts: Contact[];
@@ -31,6 +31,7 @@ export const ContactsTable: React.FC<ContactsTableProps> = ({
 }) => {
   const [selectedContacts, setSelectedContacts] = useState<number[]>([]);
   const { tags } = useCompanyTags(companyId);
+  const queryClient = useQueryClient();
 
   const handleSelectAll = (checked: boolean) => {
     setSelectedContacts(checked ? contacts.map(c => c.id) : []);
@@ -46,16 +47,40 @@ export const ContactsTable: React.FC<ContactsTableProps> = ({
     if (!companyId || selectedContacts.length === 0) return;
 
     try {
-      const { error } = await supabase
+      const { data: currentContacts, error: fetchError } = await supabase
         .from('appw_lista_' + companyId)
-        .update({ tag })
+        .select('id, tag')
         .in('id', selectedContacts);
 
-      if (error) throw error;
+      if (fetchError) throw fetchError;
+
+      const updates = currentContacts.map(contact => {
+        const currentTags = contact.tag ? 
+          (Array.isArray(contact.tag) ? contact.tag : JSON.parse(contact.tag)) : 
+          [];
+        
+        if (!currentTags.includes(tag)) {
+          currentTags.push(tag);
+        }
+
+        return {
+          id: contact.id,
+          tag: currentTags
+        };
+      });
+
+      const { error: updateError } = await supabase
+        .from('appw_lista_' + companyId)
+        .upsert(updates);
+
+      if (updateError) throw updateError;
 
       toast.success('Tags atualizadas com sucesso');
-      // Limpa seleção após atualizar
       setSelectedContacts([]);
+      
+      if (queryClient) {
+        queryClient.invalidateQueries({ queryKey: ['contacts'] });
+      }
     } catch (error) {
       console.error('Erro ao atualizar tags:', error);
       toast.error('Erro ao atualizar tags dos contatos');
@@ -70,7 +95,6 @@ export const ContactsTable: React.FC<ContactsTableProps> = ({
     );
   }
 
-  // Get all unique column names from contacts
   const getColumns = () => {
     const allColumns = new Set<string>();
     contacts.forEach(contact => {
@@ -79,7 +103,6 @@ export const ContactsTable: React.FC<ContactsTableProps> = ({
       });
     });
     
-    // Order known columns first
     const orderedColumns: string[] = [];
     const knownColumns = ["id", "Nome", "Numero", "Enviado", "Nome_Real", "Invalido", "tag"];
     
@@ -93,7 +116,6 @@ export const ContactsTable: React.FC<ContactsTableProps> = ({
     return [...orderedColumns, ...Array.from(allColumns)];
   };
 
-  // Format cell value based on type
   const formatCellValue = (value: any, column: string) => {
     if (value === null || value === undefined) {
       return <span className="text-muted-foreground">-</span>;
@@ -120,11 +142,20 @@ export const ContactsTable: React.FC<ContactsTableProps> = ({
     }
 
     if (column === "tag" && value) {
+      const tags = Array.isArray(value) ? value : JSON.parse(value);
       return (
-        <Badge variant="outline" className="bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">
-          <Tag className="h-3 w-3 mr-1" />
-          {value}
-        </Badge>
+        <div className="flex flex-wrap gap-1">
+          {tags.map((tag: string, index: number) => (
+            <Badge 
+              key={`${tag}-${index}`}
+              variant="outline" 
+              className="bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300"
+            >
+              <Tag className="h-3 w-3 mr-1" />
+              {tag}
+            </Badge>
+          ))}
+        </div>
       );
     }
 
