@@ -55,6 +55,8 @@ export const EditCampaignDialog: React.FC<EditCampaignDialogProps> = ({
     setProducao,
     limiteDisparos,
     setLimiteDisparos,
+    selectedInstance,
+    setSelectedInstance,
     handleNext,
     handleBack,
     calculateStatus,
@@ -81,7 +83,8 @@ export const EditCampaignDialog: React.FC<EditCampaignDialogProps> = ({
       scheduleTime,
       producao,
       limiteDisparos,
-      enviados: campaign.enviados || 0
+      enviados: campaign.enviados || 0,
+      selectedInstance
     });
     
     updateMutation.mutate({ id: campaign.id, updatedCampaign });
@@ -140,6 +143,8 @@ export const EditCampaignDialog: React.FC<EditCampaignDialogProps> = ({
               enviados={campaign.enviados || 0}
               producao={producao}
               setProducao={setProducao}
+              selectedInstance={selectedInstance}
+              setSelectedInstance={setSelectedInstance}
             />
           )}
           

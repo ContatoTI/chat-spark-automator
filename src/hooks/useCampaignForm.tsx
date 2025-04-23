@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Campaign } from "@/lib/api/campaigns";
 import { toast } from "sonner";
@@ -17,6 +16,7 @@ export const useCampaignForm = (campaign: Campaign | null, open: boolean) => {
   
   const [producao, setProducao] = useState(false);
   const [limiteDisparos, setLimiteDisparos] = useState(1000);
+  const [selectedInstance, setSelectedInstance] = useState<string | null>(null);
   
   useEffect(() => {
     if (campaign && open) {
@@ -80,6 +80,7 @@ export const useCampaignForm = (campaign: Campaign | null, open: boolean) => {
       
       setActiveTab("message");
       
+      setSelectedInstance(campaign.selected_instance || null);
       setProducao(campaign.producao !== undefined ? campaign.producao : false);
       setLimiteDisparos(campaign.limite_disparos || 1000);
     }
@@ -97,6 +98,7 @@ export const useCampaignForm = (campaign: Campaign | null, open: boolean) => {
       setScheduleDate(undefined);
       setScheduleTime("");
       setActiveTab("message");
+      setSelectedInstance(null);
       setProducao(false);
       setLimiteDisparos(1000);
     }
@@ -192,6 +194,8 @@ export const useCampaignForm = (campaign: Campaign | null, open: boolean) => {
     calculateStatus,
     handleMediaSelection,
     generateTimeOptions,
+    selectedInstance,
+    setSelectedInstance,
     isValid: Boolean(campaignName.trim() && message1.trim())
   };
 };

@@ -1,7 +1,7 @@
 
 import { Campaign } from "@/lib/api/campaigns";
 
-interface CampaignFormData {
+interface CampaignUpdateParams {
   campaignName: string;
   message1: string;
   message2: string;
@@ -14,47 +14,40 @@ interface CampaignFormData {
   producao: boolean;
   limiteDisparos: number;
   enviados: number;
+  selectedInstance: string | null;
 }
 
-export const formatCampaignForUpdate = (formData: CampaignFormData): Partial<Campaign> => {
-  // Format date as YYYY-MM-DD string without timezone conversion
-  let formattedDate = null;
-  if (formData.scheduleDate && formData.scheduleTime) {
-    // Get year, month, day parts from the date
-    const year = formData.scheduleDate.getFullYear();
-    const month = String(formData.scheduleDate.getMonth() + 1).padStart(2, '0');
-    const day = String(formData.scheduleDate.getDate()).padStart(2, '0');
-    
-    // Create formatted date string in YYYY-MM-DD format
-    formattedDate = `${year}-${month}-${day} ${formData.scheduleTime}:00`;
-    console.log("Data formatada sem timezone:", formattedDate);
-  }
-  
-  const status = calculateStatus(formData.enviados, formData.limiteDisparos, formData.scheduleDate);
-  
+export const formatCampaignForUpdate = ({
+  campaignName,
+  message1,
+  message2,
+  message3,
+  message4,
+  mediaType,
+  mediaUrl,
+  scheduleDate,
+  scheduleTime,
+  producao,
+  limiteDisparos,
+  enviados,
+  selectedInstance
+}: CampaignUpdateParams): Partial<Campaign> => {
   return {
-    nome: formData.campaignName,
-    mensagem01: formData.message1,
-    mensagem02: formData.message2 || null,
-    mensagem03: formData.message3 || null,
-    mensagem04: formData.message4 || null,
-    tipo_midia: formData.mediaType,
-    url_midia: formData.mediaUrl || null,
-    data_disparo: formattedDate, // Store as string without timezone information
-    status: status,
-    producao: formData.producao,
-    limite_disparos: formData.limiteDisparos
+    nome: campaignName,
+    mensagem01: message1,
+    mensagem02: message2 || null,
+    mensagem03: message3 || null,
+    mensagem04: message4 || null,
+    tipo_midia: mediaType,
+    url_midia: mediaUrl || null,
+    data_disparo: scheduleDate ? new Date(scheduleDate.setHours(
+      parseInt(scheduleTime.split(':')[0]),
+      parseInt(scheduleTime.split(':')[1])
+    )).toISOString() : null,
+    producao,
+    limite_disparos: limiteDisparos,
+    enviados,
+    selected_instance: selectedInstance,
+    status: enviados > 0 ? 'em_andamento' : scheduleDate ? 'agendada' : 'rascunho'
   };
-};
-
-const calculateStatus = (enviados: number, limite: number, dataDisparo: Date | null): string => {
-  if (enviados === 0 && dataDisparo) {
-    return "agendada";
-  } else if (enviados > 0 && enviados < limite) {
-    return "em_andamento";
-  } else if (enviados >= limite) {
-    return "concluida";
-  } else {
-    return "rascunho";
-  }
 };

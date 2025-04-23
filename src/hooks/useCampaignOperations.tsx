@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -67,11 +66,12 @@ export const useCampaignOperations = () => {
         if (webhookUrl) {
           console.log(`[Campaign] Notificando webhook de disparo: ${webhookUrl}`);
           
-          // Envio com payload corretamente formatado
+          // Envio com payload incluindo a instância selecionada
           await callWebhook(webhookUrl, {
             action: 'disparar',
             campaign_id: campaign.id,
             empresa_id: campaign.empresa_id,
+            instance_id: campaign.selected_instance,
             timestamp: new Date().toISOString()
           });
           
