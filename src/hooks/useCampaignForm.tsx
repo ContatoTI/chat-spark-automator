@@ -9,7 +9,7 @@ export const useCampaignForm = (campaign: Campaign | null, open: boolean) => {
   const [message2, setMessage2] = useState("");
   const [message3, setMessage3] = useState("");
   const [message4, setMessage4] = useState("");
-  const [mediaType, setMediaType] = useState<string | null>(null);
+  const [mediaType, setMediaType] = useState<string | null>("text");
   const [mediaUrl, setMediaUrl] = useState<string>("");
   const [scheduleDate, setScheduleDate] = useState<Date | undefined>(undefined);
   const [scheduleTime, setScheduleTime] = useState<string>("");
@@ -25,7 +25,7 @@ export const useCampaignForm = (campaign: Campaign | null, open: boolean) => {
       setMessage2(campaign.mensagem02 || "");
       setMessage3(campaign.mensagem03 || "");
       setMessage4(campaign.mensagem04 || "");
-      setMediaType(campaign.tipo_midia);
+      setMediaType(campaign.tipo_midia || "text");
       setMediaUrl(campaign.url_midia || "");
       
       if (campaign.data_disparo) {

@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Tag, Plus, X } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
 
 interface ContactTagsDialogProps {
   isOpen: boolean;
@@ -24,21 +25,16 @@ export const ContactTagsDialog = ({ isOpen, onClose, companyId }: ContactTagsDia
       return;
     }
 
-    if (tags.includes(newTag.trim())) {
-      toast.error('Esta tag já existe');
-      return;
-    }
-
     addTag(newTag.trim());
     setNewTag('');
   };
 
-  const handleRemoveTag = (tag: string) => {
-    if (tag === 'Teste') {
+  const handleRemoveTag = (tagName: string) => {
+    if (tagName === 'Teste') {
       toast.error('A tag Teste não pode ser removida');
       return;
     }
-    removeTag(tag);
+    removeTag(tagName);
   };
 
   return (
@@ -64,12 +60,16 @@ export const ContactTagsDialog = ({ isOpen, onClose, companyId }: ContactTagsDia
 
           <div className="flex flex-wrap gap-2">
             {tags.map((tag) => (
-              <Badge key={tag} variant="outline" className="flex items-center gap-1">
+              <Badge 
+                key={tag.name} 
+                variant="outline" 
+                className={cn("flex items-center gap-1", tag.color)}
+              >
                 <Tag className="h-3 w-3" />
-                {tag}
-                {tag !== 'Teste' && (
+                {tag.name}
+                {tag.name !== 'Teste' && (
                   <button
-                    onClick={() => handleRemoveTag(tag)}
+                    onClick={() => handleRemoveTag(tag.name)}
                     className="ml-1 rounded-full hover:bg-destructive/20"
                   >
                     <X className="h-3 w-3" />
@@ -82,4 +82,3 @@ export const ContactTagsDialog = ({ isOpen, onClose, companyId }: ContactTagsDia
       </DialogContent>
     </Dialog>
   );
-};
