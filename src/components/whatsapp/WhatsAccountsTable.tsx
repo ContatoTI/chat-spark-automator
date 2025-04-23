@@ -16,11 +16,11 @@ import { WhatsAccountRow } from "./table/TableRow";
 interface WhatsAccountsTableProps {
   accounts: WhatsAccount[];
   isLoading: boolean;
-  onDelete: (id: number, nomeInstancia: string) => Promise<void>;
-  onConnect: (id: number, nomeInstancia: string, webhookInst: string) => Promise<void>;
-  onDisconnect: (id: number, nomeInstancia: string) => Promise<void>;
+  onDelete: (id: string, nomeInstancia: string) => Promise<void>;
+  onConnect: (id: string, nomeInstancia: string, webhookInst: string) => Promise<void>;
+  onDisconnect: (id: string, nomeInstancia: string) => Promise<void>;
   onUpdateStatus: (nomeInstancia: string) => Promise<void>;
-  isProcessing: { [id: number]: string };
+  isProcessing: { [id: string]: string };
   getStatusInfo: (status: string) => { 
     label: string; 
     color: string; 

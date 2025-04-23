@@ -78,7 +78,7 @@ export const createWhatsAccount = async (
   }
 };
 
-export const deleteWhatsAccount = async (id: number): Promise<void> => {
+export const deleteWhatsAccount = async (id: string): Promise<void> => {
   try {
     console.log(`Deletando conta de WhatsApp com ID ${id}`);
     

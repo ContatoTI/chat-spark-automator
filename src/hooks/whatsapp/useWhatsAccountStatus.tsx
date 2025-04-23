@@ -43,7 +43,7 @@ export const useWhatsAccountStatus = (queryClient: any) => {
 
   // Delete account mutation
   const deleteAccountMutation = useMutation({
-    mutationFn: async (params: { id: number, nomeInstancia: string }) => {
+    mutationFn: async (params: { id: string, nomeInstancia: string }) => {
       await deleteInstance(params.nomeInstancia);
       await deleteWhatsAccount(params.id);
     },
@@ -60,7 +60,7 @@ export const useWhatsAccountStatus = (queryClient: any) => {
 
   // Disconnect account mutation
   const disconnectAccountMutation = useMutation({
-    mutationFn: async (params: { id: number, nomeInstancia: string }) => {
+    mutationFn: async (params: { id: string, nomeInstancia: string }) => {
       await disconnectInstance(params.nomeInstancia);
     },
     onSuccess: () => {
