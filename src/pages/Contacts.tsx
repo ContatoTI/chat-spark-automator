@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Layout } from "@/components/layout/Layout";
 import { useContacts } from "@/hooks/useContacts";
@@ -33,10 +32,10 @@ const Contacts = () => {
       if (success) {
         refetch();
       }
-      return success; // Return the success boolean value
+      return success;
     } catch (error) {
       console.error("Error creating contact list:", error);
-      return false; // Return false in case of error
+      return false;
     }
   };
 
@@ -51,6 +50,7 @@ const Contacts = () => {
           onSync={() => refetch()}
           isSyncing={isLoading}
           totalContacts={totalCount}
+          companyId={companyId}
         />
 
         {error ? (
@@ -82,7 +82,11 @@ const Contacts = () => {
 
         {tableExists === true && (
           <>
-            <ContactsTable contacts={contacts} isLoading={isLoading} />
+            <ContactsTable 
+              contacts={contacts} 
+              isLoading={isLoading} 
+              companyId={companyId}
+            />
             
             <ContactsPagination
               currentPage={page}

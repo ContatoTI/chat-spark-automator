@@ -1,11 +1,11 @@
-
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Plus, RefreshCw, Loader2, Download } from "lucide-react";
+import { Plus, RefreshCw, Loader2, Download, Tag } from "lucide-react";
 import { ContactsSyncDialog } from "./ContactsSyncDialog";
 import { useAuth } from "@/contexts/AuthContext";
 import { callWebhook } from "@/lib/api/webhook-utils";
 import { toast } from "sonner";
+import { ContactTagsDialog } from "./ContactTagsDialog";
 
 interface ContactsHeaderProps {
   onCreate?: () => void;
@@ -16,6 +16,7 @@ interface ContactsHeaderProps {
   onRefresh?: () => Promise<any>;
   tableExists?: boolean;
   isLoading?: boolean;
+  companyId: string | null;
 }
 
 export const ContactsHeader: React.FC<ContactsHeaderProps> = ({
@@ -26,14 +27,14 @@ export const ContactsHeader: React.FC<ContactsHeaderProps> = ({
   onCreateList,
   onRefresh,
   tableExists,
-  isLoading
+  isLoading,
+  companyId
 }) => {
   const [syncDialogOpen, setSyncDialogOpen] = useState(false);
+  const [tagsDialogOpen, setTagsDialogOpen] = useState(false);
   const [isCreatingList, setIsCreatingList] = useState(false);
   const { user, selectedCompany } = useAuth();
   
-  const companyId = selectedCompany || user?.company_id;
-
   const handleCreateList = async () => {
     if (onCreateList) {
       await onCreateList();
@@ -47,7 +48,6 @@ export const ContactsHeader: React.FC<ContactsHeaderProps> = ({
 
     setIsCreatingList(true);
     try {
-      // Obter URL do webhook principal
       const webhookUrl = localStorage.getItem('webhook_disparo');
       
       if (!webhookUrl) {
@@ -98,6 +98,16 @@ export const ContactsHeader: React.FC<ContactsHeaderProps> = ({
           <Button
             variant="outline"
             size="sm"
+            onClick={() => setTagsDialogOpen(true)}
+            className="flex items-center gap-2"
+          >
+            <Tag className="h-4 w-4" />
+            Gerenciar Tags
+          </Button>
+
+          <Button
+            variant="outline"
+            size="sm"
             onClick={handleCreateList}
             disabled={isCreatingList || isLoading}
             className="flex items-center gap-2"
@@ -133,6 +143,13 @@ export const ContactsHeader: React.FC<ContactsHeaderProps> = ({
           )}
         </div>
       </div>
+
+      <ContactTagsDialog
+        isOpen={tagsDialogOpen}
+        onClose={() => setTagsDialogOpen(false)}
+        companyId={companyId}
+      />
+
       <ContactsSyncDialog
         open={syncDialogOpen}
         onOpenChange={setSyncDialogOpen}

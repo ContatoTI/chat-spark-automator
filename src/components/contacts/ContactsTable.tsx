@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useState } from "react";
 import { 
   Table, 
   TableBody, 
@@ -10,16 +10,58 @@ import {
 } from "@/components/ui/table";
 import { Contact } from "@/hooks/useContacts";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Button } from "@/components/ui/button";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { useCompanyTags } from "@/hooks/useCompanyTags";
+import { Tag } from "lucide-react";
+import { supabase } from "@/lib/supabase";
+import { toast } from "sonner";
 
 interface ContactsTableProps {
   contacts: Contact[];
   isLoading: boolean;
+  companyId: string | null;
 }
 
 export const ContactsTable: React.FC<ContactsTableProps> = ({ 
   contacts, 
-  isLoading 
+  isLoading,
+  companyId
 }) => {
+  const [selectedContacts, setSelectedContacts] = useState<number[]>([]);
+  const { tags } = useCompanyTags(companyId);
+
+  const handleSelectAll = (checked: boolean) => {
+    setSelectedContacts(checked ? contacts.map(c => c.id) : []);
+  };
+
+  const handleSelectContact = (contactId: number, checked: boolean) => {
+    setSelectedContacts(prev => 
+      checked ? [...prev, contactId] : prev.filter(id => id !== contactId)
+    );
+  };
+
+  const handleApplyTag = async (tag: string) => {
+    if (!companyId || selectedContacts.length === 0) return;
+
+    try {
+      const { error } = await supabase
+        .from('appw_lista_' + companyId)
+        .update({ tag })
+        .in('id', selectedContacts);
+
+      if (error) throw error;
+
+      toast.success('Tags atualizadas com sucesso');
+      // Limpa seleção após atualizar
+      setSelectedContacts([]);
+    } catch (error) {
+      console.error('Erro ao atualizar tags:', error);
+      toast.error('Erro ao atualizar tags dos contatos');
+    }
+  };
+
   if (contacts.length === 0 && !isLoading) {
     return (
       <div className="text-center py-8">
@@ -48,7 +90,6 @@ export const ContactsTable: React.FC<ContactsTableProps> = ({
       }
     });
     
-    // Add remaining columns
     return [...orderedColumns, ...Array.from(allColumns)];
   };
 
@@ -81,6 +122,7 @@ export const ContactsTable: React.FC<ContactsTableProps> = ({
     if (column === "tag" && value) {
       return (
         <Badge variant="outline" className="bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">
+          <Tag className="h-3 w-3 mr-1" />
           {value}
         </Badge>
       );
@@ -93,9 +135,38 @@ export const ContactsTable: React.FC<ContactsTableProps> = ({
 
   return (
     <div className="rounded-md border">
+      {selectedContacts.length > 0 && (
+        <div className="p-2 border-b bg-muted/50 flex items-center gap-2">
+          <span className="text-sm text-muted-foreground">
+            {selectedContacts.length} contatos selecionados
+          </span>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm">
+                <Tag className="h-4 w-4 mr-2" />
+                Aplicar Tag
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              {tags.map((tag) => (
+                <DropdownMenuItem key={tag} onClick={() => handleApplyTag(tag)}>
+                  {tag}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      )}
+      
       <Table>
         <TableHeader>
           <TableRow>
+            <TableHead className="w-[50px]">
+              <Checkbox 
+                onCheckedChange={handleSelectAll}
+                checked={selectedContacts.length === contacts.length && contacts.length > 0}
+              />
+            </TableHead>
             {columns.map((column) => (
               <TableHead key={column}>
                 {column}
@@ -106,13 +177,19 @@ export const ContactsTable: React.FC<ContactsTableProps> = ({
         <TableBody>
           {isLoading ? (
             <TableRow>
-              <TableCell colSpan={columns.length} className="h-24 text-center">
+              <TableCell colSpan={columns.length + 1} className="h-24 text-center">
                 Carregando...
               </TableCell>
             </TableRow>
           ) : (
             contacts.map((contact) => (
               <TableRow key={contact.id}>
+                <TableCell>
+                  <Checkbox 
+                    checked={selectedContacts.includes(contact.id)}
+                    onCheckedChange={(checked) => handleSelectContact(contact.id, checked as boolean)}
+                  />
+                </TableCell>
                 {columns.map((column) => (
                   <TableCell key={`${contact.id}-${column}`}>
                     {formatCellValue(contact[column], column)}
