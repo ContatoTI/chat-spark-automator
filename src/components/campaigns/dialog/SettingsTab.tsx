@@ -66,7 +66,7 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
             ) : (
               connectedAccounts.map((account) => (
                 <SelectItem key={account.id} value={account.id}>
-                  {account.name || account.phone}
+                  {account.nome_instancia}
                 </SelectItem>
               ))
             )}

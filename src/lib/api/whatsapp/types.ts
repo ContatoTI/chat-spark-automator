@@ -28,11 +28,13 @@ export interface WhatsAPIResponse {
 }
 
 export interface WhatsAccount {
-  id: number;
+  id: string; // Changed from number to string to match how it's used
   empresa_id: string;
   nome_instancia: string;
   webhook_inst?: string;
   status?: string;
+  name?: string; // Adding name property
+  phone?: string; // Adding phone property
 }
 
 export interface MediaFile {

@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { useCampaignForm } from "@/hooks/useCampaignForm";
@@ -48,6 +49,8 @@ export const NewCampaignDialog: React.FC<NewCampaignDialogProps> = ({
     setProducao,
     limiteDisparos,
     setLimiteDisparos,
+    selectedInstance,
+    setSelectedInstance,
     handleNext,
     handleBack,
     handleMediaSelection,
@@ -104,7 +107,8 @@ export const NewCampaignDialog: React.FC<NewCampaignDialogProps> = ({
       producao: producao,
       limite_disparos: limiteDisparos,
       enviados: enviados,
-      empresa_id: empresa_id
+      empresa_id: empresa_id,
+      selected_instance: selectedInstance
     };
     
     createMutation.mutate(newCampaign);
@@ -155,6 +159,8 @@ export const NewCampaignDialog: React.FC<NewCampaignDialogProps> = ({
               enviados={enviados}
               producao={producao}
               setProducao={setProducao}
+              selectedInstance={selectedInstance}
+              setSelectedInstance={setSelectedInstance}
             />
           )}
           
