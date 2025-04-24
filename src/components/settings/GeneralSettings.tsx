@@ -9,9 +9,11 @@ import { SystemActiveToggle } from "./sections/SystemActiveToggle";
 
 interface GeneralSettingsProps {
   form: UseFormReturn<SettingsFormValues>;
+  onSaveField?: (fieldName: string) => Promise<void>;
+  lastUpdatedField?: string | null;
 }
 
-export function GeneralSettings({ form }: GeneralSettingsProps) {
+export function GeneralSettings({ form, onSaveField, lastUpdatedField }: GeneralSettingsProps) {
   return (
     <Card>
       <CardHeader>
@@ -21,9 +23,21 @@ export function GeneralSettings({ form }: GeneralSettingsProps) {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        <InstanceApiSection form={form} />
-        <WebhookSection form={form} />
-        <SystemActiveToggle form={form} />
+        <InstanceApiSection 
+          form={form}
+          onSaveField={onSaveField}
+          lastUpdatedField={lastUpdatedField}
+        />
+        <WebhookSection 
+          form={form}
+          onSaveField={onSaveField}
+          lastUpdatedField={lastUpdatedField}
+        />
+        <SystemActiveToggle 
+          form={form}
+          onSaveField={onSaveField}
+          lastUpdatedField={lastUpdatedField}
+        />
       </CardContent>
     </Card>
   );

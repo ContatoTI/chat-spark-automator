@@ -25,20 +25,40 @@ export const updateCompanySettings = async (options: DisparoOptions): Promise<vo
   try {
     console.log("Atualizando configurações da empresa:", options);
     
-    // Remove undefined values to prevent overriding with null in database
-    const settingsToUpdate = Object.fromEntries(
-      Object.entries(options).filter(([_, value]) => value !== undefined)
+    // Verifica as colunas disponíveis na tabela antes de enviar a atualização
+    const { data: columnInfo, error: columnError } = await supabase
+      .from('AppW_Options')
+      .select()
+      .limit(1);
+    
+    if (columnError) {
+      console.error("Erro ao verificar colunas da tabela:", columnError);
+      throw new Error(`Falha ao verificar colunas da tabela: ${columnError.message}`);
+    }
+    
+    // Se encontrou dados, usa as chaves do primeiro objeto como referência para as colunas disponíveis
+    const availableColumns = columnInfo && columnInfo.length > 0 
+      ? Object.keys(columnInfo[0]) 
+      : [];
+    
+    console.log("Colunas disponíveis na tabela:", availableColumns);
+    
+    // Filtra os campos para manter apenas os que existem na tabela
+    const filteredOptions = Object.fromEntries(
+      Object.entries(options)
+        .filter(([key, value]) => value !== undefined) // Remove campos undefined
+        .filter(([key]) => key === 'empresa_id' || availableColumns.includes(key)) // Mantém apenas campos existentes
     );
     
-    // Ensure empresa_id is included in the query condition
+    // Garante que empresa_id está incluído na condição de busca
     const empresaId = options.empresa_id;
     
-    // Log the final data being sent to the database
-    console.log("Dados a serem enviados:", settingsToUpdate);
+    // Log dos dados filtrados a serem enviados
+    console.log("Dados filtrados a serem enviados:", filteredOptions);
     
     const { error } = await supabase
       .from('AppW_Options')
-      .update(settingsToUpdate)
+      .update(filteredOptions)
       .eq('empresa_id', empresaId);
     
     if (error) {

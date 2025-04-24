@@ -6,13 +6,17 @@ import { UseFormReturn } from "react-hook-form";
 import { SettingsFormValues } from "@/lib/validations/settings";
 import { TestWebhookButton } from "../TestWebhookButton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, Save } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 
 interface WebhookSectionProps {
   form: UseFormReturn<SettingsFormValues>;
+  onSaveField?: (fieldName: string) => Promise<void>;
+  lastUpdatedField?: string | null;
 }
 
-export function WebhookSection({ form }: WebhookSectionProps) {
+export function WebhookSection({ form, onSaveField, lastUpdatedField }: WebhookSectionProps) {
   // Salvar no localStorage quando o webhook for testado com sucesso
   const saveWebhookToLocalStorage = (url: string) => {
     if (url && url.trim() !== '') {
@@ -42,7 +46,10 @@ export function WebhookSection({ form }: WebhookSectionProps) {
           control={form.control}
           name="webhook_disparo"
           render={({ field }) => (
-            <FormItem>
+            <FormItem className={cn(
+              "transition-all duration-300",
+              lastUpdatedField === "webhook_disparo" && "bg-green-50 dark:bg-green-950/20 p-2 rounded-md"
+            )}>
               <FormLabel>Webhook Principal</FormLabel>
               <div className="flex gap-2">
                 <FormControl className="flex-1">
@@ -60,6 +67,16 @@ export function WebhookSection({ form }: WebhookSectionProps) {
                   url={field.value} 
                   onSuccessCallback={saveWebhookToLocalStorage}
                 />
+                {onSaveField && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    onClick={() => onSaveField("webhook_disparo")}
+                  >
+                    <Save className="h-4 w-4" />
+                  </Button>
+                )}
               </div>
               <FormDescription>
                 URL do webhook principal para todas as funcionalidades do sistema
@@ -75,13 +92,26 @@ export function WebhookSection({ form }: WebhookSectionProps) {
           control={form.control}
           name="webhook_get_images"
           render={({ field }) => (
-            <FormItem>
+            <FormItem className={cn(
+              "transition-all duration-300",
+              lastUpdatedField === "webhook_get_images" && "bg-green-50 dark:bg-green-950/20 p-2 rounded-md"
+            )}>
               <FormLabel>Webhook Biblioteca de Mídia</FormLabel>
               <div className="flex gap-2">
                 <FormControl className="flex-1">
                   <Input {...field} />
                 </FormControl>
                 <TestWebhookButton url={field.value} />
+                {onSaveField && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    onClick={() => onSaveField("webhook_get_images")}
+                  >
+                    <Save className="h-4 w-4" />
+                  </Button>
+                )}
               </div>
               <FormDescription>
                 URL do webhook para buscar arquivos da biblioteca de mídia
@@ -95,13 +125,26 @@ export function WebhookSection({ form }: WebhookSectionProps) {
           control={form.control}
           name="webhook_up_docs"
           render={({ field }) => (
-            <FormItem>
+            <FormItem className={cn(
+              "transition-all duration-300",
+              lastUpdatedField === "webhook_up_docs" && "bg-green-50 dark:bg-green-950/20 p-2 rounded-md"
+            )}>
               <FormLabel>Webhook para Upload</FormLabel>
               <div className="flex gap-2">
                 <FormControl className="flex-1">
                   <Input {...field} />
                 </FormControl>
                 <TestWebhookButton url={field.value} />
+                {onSaveField && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    onClick={() => onSaveField("webhook_up_docs")}
+                  >
+                    <Save className="h-4 w-4" />
+                  </Button>
+                )}
               </div>
               <FormDescription>
                 URL do webhook para envio de arquivos da biblioteca de mídia
