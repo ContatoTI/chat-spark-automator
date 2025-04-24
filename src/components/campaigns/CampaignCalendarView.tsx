@@ -193,7 +193,7 @@ export const CampaignCalendarView: React.FC<CampaignCalendarViewProps> = ({
     
     return (
       <div 
-        className="h-full w-full relative"
+        className="h-32 w-full relative border border-border"
         onDragOver={e => {
           e.preventDefault();
           e.currentTarget.classList.add('bg-slate-100', 'dark:bg-slate-800/50');
@@ -210,7 +210,7 @@ export const CampaignCalendarView: React.FC<CampaignCalendarViewProps> = ({
         {dayCampaigns.length > 0 ? (
           <div 
             className={cn(
-              "absolute inset-0 flex flex-col h-full w-full p-1", 
+              "absolute inset-0 flex flex-col h-full w-full p-2", 
               getCampaignBgColor(dayCampaigns[0].status)
             )}
             draggable={true}
@@ -219,20 +219,20 @@ export const CampaignCalendarView: React.FC<CampaignCalendarViewProps> = ({
           >
             <div className="flex justify-end">
               <div className={cn(
-                "w-6 h-6 flex items-center justify-center text-sm font-medium rounded-full", 
+                "w-8 h-8 flex items-center justify-center text-base font-medium rounded-full", 
                 isCurrentDay ? "bg-white/80 text-primary" : "text-inherit"
               )}>
                 {day.getDate()}
               </div>
             </div>
             
-            <div className="flex-1 flex flex-col justify-between mt-1">
-              <div className="font-medium text-sm truncate">
+            <div className="flex-1 flex flex-col justify-between mt-2">
+              <div className="font-medium text-base truncate">
                 {dayCampaigns[0].nome}
               </div>
               
-              <div className="flex justify-between items-center mt-1">
-                <div className="text-xs">
+              <div className="flex justify-between items-center mt-2">
+                <div className="text-sm">
                   {formatLocalTime(dayCampaigns[0].data_disparo)}
                 </div>
                 <button 
@@ -242,20 +242,20 @@ export const CampaignCalendarView: React.FC<CampaignCalendarViewProps> = ({
                   }} 
                   className="text-inherit hover:text-primary transition-colors"
                 >
-                  <Edit className="h-4 w-4" />
+                  <Edit className="h-5 w-5" />
                   <span className="sr-only">Editar</span>
                 </button>
               </div>
               
               {dayCampaigns.length > 1 && (
-                <div className="text-xs mt-1 font-medium">
+                <div className="text-sm mt-2 font-medium">
                   +{dayCampaigns.length - 1} mais
                 </div>
               )}
             </div>
           </div>
         ) : (
-          <div className="absolute top-1 right-1 font-medium text-sm">
+          <div className="absolute top-2 right-2 font-medium text-base">
             {day.getDate()}
           </div>
         )}
@@ -265,20 +265,45 @@ export const CampaignCalendarView: React.FC<CampaignCalendarViewProps> = ({
 
   return (
     <div className="space-y-4">
-      <Card className="overflow-hidden rounded-md">
+      <Card className="overflow-hidden rounded-md p-0">
         <Calendar 
           mode="single" 
           month={currentDate} 
           onMonthChange={setCurrentDate} 
           selected={undefined} 
-          className="w-full" 
+          className="w-full p-0" 
           showOutsideDays={true} 
           fixedWeeks={true} 
           ISOWeek={false}
           locale={ptBR}
+          classNames={{
+            months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
+            month: "space-y-4 w-full",
+            caption: "flex justify-center pt-4 relative items-center px-12 pb-4",
+            caption_label: "text-lg font-medium",
+            nav: "flex items-center",
+            nav_button: cn(
+              buttonVariants({ variant: "outline" }),
+              "h-9 w-9 bg-transparent p-0 opacity-50 hover:opacity-100"
+            ),
+            nav_button_previous: "absolute left-2",
+            nav_button_next: "absolute right-2",
+            table: "w-full border-collapse space-y-1",
+            head_row: "flex w-full",
+            head_cell: "text-muted-foreground rounded-md w-full font-normal text-base py-4",
+            row: "flex w-full mt-2 gap-1",
+            cell: "text-center text-base relative p-0 hover:bg-muted/50 rounded-md focus-within:relative focus-within:z-20 w-full",
+            day: "w-full h-full",
+            day_range_end: "day-range-end",
+            day_selected: "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",
+            day_today: "bg-accent text-accent-foreground",
+            day_outside: "text-muted-foreground opacity-50",
+            day_disabled: "text-muted-foreground opacity-50",
+            day_range_middle: "aria-selected:bg-accent aria-selected:text-accent-foreground",
+            day_hidden: "invisible",
+          }}
           formatters={{
             formatDay: date => {
-              // Render customized days
               return renderDay(date);
             }
           }} 
