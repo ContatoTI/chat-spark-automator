@@ -63,27 +63,36 @@ export const useContacts = () => {
     toast.info("Criando lista de contatos...");
     
     try {
-      // Get the webhook URL from settings
-      const webhookURLData = await supabase
-        .from('AppW_Settings')
-        .select('webhook_disparo')
-        .eq('empresa_id', companyId)
-        .single();
+      // Primeiro, tentamos obter o webhook do localStorage
+      let webhookURL = localStorage.getItem('webhook_disparo');
       
-      if (webhookURLData.error) {
-        throw new Error("Não foi possível obter a URL do webhook");
+      // Se não existir no localStorage, vamos buscar do banco de dados (AppW_Options)
+      if (!webhookURL) {
+        const webhookData = await supabase
+          .from('AppW_Options')
+          .select('text')
+          .eq('option', 'webhook_disparo')
+          .single();
+        
+        if (webhookData.error) {
+          console.error("Erro ao buscar webhook do banco:", webhookData.error);
+        } else if (webhookData.data?.text) {
+          webhookURL = webhookData.data.text;
+          // Salvamos no localStorage para uso futuro
+          localStorage.setItem('webhook_disparo', webhookURL);
+        }
       }
-      
-      const webhookURL = webhookURLData.data?.webhook_disparo;
       
       if (!webhookURL) {
-        throw new Error("URL do webhook não configurada");
+        throw new Error("URL do webhook principal não configurada");
       }
+      
+      console.log(`Usando webhook: ${webhookURL} para criar lista de contatos`);
       
       // Call the webhook to create the contact list
       const result = await callWebhook(webhookURL, {
         action: "criar_lista",
-        id_empresa: companyId,
+        company_id: companyId,
         timestamp: new Date().toISOString()
       });
       

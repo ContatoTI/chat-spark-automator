@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Plus, RefreshCw, Loader2, Download, Tag } from "lucide-react";
@@ -49,23 +50,32 @@ export const ContactsHeader: React.FC<ContactsHeaderProps> = ({
 
     setIsCreatingList(true);
     try {
-      const { data: settingsData, error: settingsError } = await supabase
-        .from('AppW_Settings')
-        .select('webhook_disparo')
-        .eq('empresa_id', companyId)
-        .single();
+      // Primeiro tenta obter o webhook do localStorage para performance
+      let webhookUrl = localStorage.getItem('webhook_disparo');
       
-      if (settingsError) {
-        throw new Error("Não foi possível obter a URL do webhook");
+      // Se não encontrar no localStorage, busca no banco
+      if (!webhookUrl) {
+        // Busca na tabela AppW_Options
+        const { data: webhookData, error: webhookError } = await supabase
+          .from('AppW_Options')
+          .select('text')
+          .eq('option', 'webhook_disparo')
+          .single();
+          
+        if (!webhookError && webhookData?.text) {
+          webhookUrl = webhookData.text;
+          // Salva no localStorage para uso futuro
+          localStorage.setItem('webhook_disparo', webhookUrl);
+        } else {
+          console.error("Erro ao buscar webhook de disparo:", webhookError);
+        }
       }
-      
-      const webhookUrl = settingsData?.webhook_disparo || localStorage.getItem('webhook_disparo');
       
       if (!webhookUrl) {
         throw new Error("Webhook principal não configurado");
       }
       
-      console.log("[CreateList] Iniciando criação de lista...");
+      console.log("[CreateList] Iniciando criação de lista via webhook:", webhookUrl);
       const response = await callWebhook(webhookUrl, {
         action: "criar_lista",
         company_id: companyId,
