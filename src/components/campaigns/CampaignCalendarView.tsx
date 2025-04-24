@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Campaign } from "@/lib/api/campaigns";
 import { Calendar } from "@/components/ui/calendar";
@@ -9,6 +8,7 @@ import { updateCampaign } from "@/lib/api/campaigns";
 import { cn } from "@/lib/utils";
 import { useQueryClient } from "@tanstack/react-query";
 import { ptBR } from "date-fns/locale";
+import { buttonVariants } from "@/components/ui/button";
 
 interface CampaignCalendarViewProps {
   campaigns: Campaign[];
@@ -31,29 +31,23 @@ export const CampaignCalendarView: React.FC<CampaignCalendarViewProps> = ({
   const [draggingCampaign, setDraggingCampaign] = useState<Campaign | null>(null);
   const queryClient = useQueryClient();
 
-  // Parse date string without timezone conversion
   const parseLocalDate = (dateString: string | null): Date | null => {
     if (!dateString) return null;
     
-    // Format: YYYY-MM-DD or YYYY-MM-DD HH:MM:SS
     if (dateString.includes(' ')) {
-      // Has date and time
       const [datePart] = dateString.split(' ');
       const [year, month, day] = datePart.split('-').map(Number);
       return new Date(year, month - 1, day, 0, 0, 0);
     } else if (dateString.includes('T')) {
-      // ISO format
       const [datePart] = dateString.split('T');
       const [year, month, day] = datePart.split('-').map(Number);
       return new Date(year, month - 1, day, 0, 0, 0);
     } else {
-      // Simple date
       const [year, month, day] = dateString.split('-').map(Number);
       return new Date(year, month - 1, day, 0, 0, 0);
     }
   };
 
-  // Agrupa campanhas por data
   const campaignsByDate = campaigns.reduce<Record<string, Campaign[]>>((acc, campaign) => {
     if (campaign.data_disparo) {
       const date = parseLocalDate(campaign.data_disparo);
@@ -68,24 +62,20 @@ export const CampaignCalendarView: React.FC<CampaignCalendarViewProps> = ({
     return acc;
   }, {});
 
-  // Função para lidar com o início do arraste
   const handleDragStart = (e: React.DragEvent, campaign: Campaign) => {
     e.stopPropagation();
     setDraggingCampaign(campaign);
     
-    // Adiciona dados ao evento de drag para identificar a campanha
     if (e.dataTransfer) {
       e.dataTransfer.setData('text/plain', JSON.stringify({ id: campaign.id }));
       e.dataTransfer.effectAllowed = 'move';
     }
   };
 
-  // Função para lidar com o término do arraste
   const handleDragEnd = () => {
     setDraggingCampaign(null);
   };
 
-  // Função para lidar com o soltar em uma data
   const handleDropOnDate = async (e: React.DragEvent, date: Date) => {
     e.preventDefault();
     e.stopPropagation();
@@ -93,16 +83,13 @@ export const CampaignCalendarView: React.FC<CampaignCalendarViewProps> = ({
     if (!draggingCampaign || !draggingCampaign.id) return;
     
     try {
-      // Format the date as YYYY-MM-DD
       const year = date.getFullYear();
       const month = String(date.getMonth() + 1).padStart(2, '0');
       const day = String(date.getDate()).padStart(2, '0');
       
-      // Preserve original time if exists
       let timeString = "12:00:00";
       if (draggingCampaign.data_disparo) {
         if (draggingCampaign.data_disparo.includes(' ')) {
-          // Has time part
           const [_, timePart] = draggingCampaign.data_disparo.split(' ');
           if (timePart) {
             timeString = timePart;
@@ -110,29 +97,23 @@ export const CampaignCalendarView: React.FC<CampaignCalendarViewProps> = ({
         }
       }
       
-      // Format as YYYY-MM-DD HH:MM:SS
       const targetDateString = `${year}-${month}-${day} ${timeString}`;
       
       console.log(`Reagendando para a data: ${targetDateString}`);
       
-      // Atualizar a data da campanha
       const updatedCampaign = {
         ...draggingCampaign,
         data_disparo: targetDateString
       };
 
-      // Chamar API para atualizar a campanha
       await updateCampaign(draggingCampaign.id, {
         data_disparo: targetDateString
       });
 
-      // Invalidar queries para forçar recarregamento dos dados
       queryClient.invalidateQueries({ queryKey: ['campaigns'] });
 
-      // Mostrar notificação de sucesso
       toast.success(`Campanha "${draggingCampaign.nome}" reagendada para ${day}/${month}/${year}`);
 
-      // Limpar o estado de arraste
       setDraggingCampaign(null);
     } catch (error) {
       console.error("Erro ao reagendar campanha:", error);
@@ -140,13 +121,11 @@ export const CampaignCalendarView: React.FC<CampaignCalendarViewProps> = ({
     }
   };
 
-  // Função para verificar se uma data é hoje
   const isToday = (date: Date) => {
     const today = new Date();
     return date.getDate() === today.getDate() && date.getMonth() === today.getMonth() && date.getFullYear() === today.getFullYear();
   };
 
-  // Função para obter cor de fundo baseada no status da campanha
   const getCampaignBgColor = (status: string) => {
     switch (status) {
       case 'rascunho':
@@ -164,7 +143,6 @@ export const CampaignCalendarView: React.FC<CampaignCalendarViewProps> = ({
     }
   };
 
-  // Format time without timezone conversion
   const formatLocalTime = (dateString: string | null): string => {
     if (!dateString) return "";
     
@@ -185,7 +163,6 @@ export const CampaignCalendarView: React.FC<CampaignCalendarViewProps> = ({
     return "12:00";
   };
 
-  // Custom day renderer for Calendar
   const renderDay = (day: Date) => {
     const dateStr = day.toDateString();
     const dayCampaigns = campaignsByDate[dateStr] || [];
@@ -310,7 +287,7 @@ export const CampaignCalendarView: React.FC<CampaignCalendarViewProps> = ({
         />
       </Card>
       <div className="text-center text-sm text-muted-foreground">
-        Arraste e solte as campanhas para reagendá-las
+        Arraste e solte as campanhas para reagend��-las
       </div>
     </div>
   );
