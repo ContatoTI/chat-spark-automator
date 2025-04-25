@@ -1,7 +1,6 @@
-
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Plus, RefreshCw, Loader2, Download, Tag } from "lucide-react";
+import { Plus, RefreshCw, Loader2, Download, Tag, Upload } from "lucide-react";
 import { ContactsSyncDialog } from "./ContactsSyncDialog";
 import { useAuth } from "@/contexts/AuthContext";
 import { callWebhook } from "@/lib/api/webhook-utils";
@@ -35,7 +34,10 @@ export const ContactsHeader: React.FC<ContactsHeaderProps> = ({
   const [syncDialogOpen, setSyncDialogOpen] = useState(false);
   const [tagsDialogOpen, setTagsDialogOpen] = useState(false);
   const [isCreatingList, setIsCreatingList] = useState(false);
+  const [isUploadingCsv, setIsUploadingCsv] = useState(false);
   const { user, selectedCompany } = useAuth();
+  
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
   
   const handleCreateList = async () => {
     if (onCreateList) {
@@ -50,12 +52,9 @@ export const ContactsHeader: React.FC<ContactsHeaderProps> = ({
 
     setIsCreatingList(true);
     try {
-      // Primeiro tenta obter o webhook do localStorage para performance
       let webhookUrl = localStorage.getItem('webhook_disparo');
       
-      // Se não encontrar no localStorage, busca no banco
       if (!webhookUrl) {
-        // Busca na tabela AppW_Options
         const { data: webhookData, error: webhookError } = await supabase
           .from('AppW_Options')
           .select('text')
@@ -64,7 +63,6 @@ export const ContactsHeader: React.FC<ContactsHeaderProps> = ({
           
         if (!webhookError && webhookData?.text) {
           webhookUrl = webhookData.text;
-          // Salva no localStorage para uso futuro
           localStorage.setItem('webhook_disparo', webhookUrl);
         } else {
           console.error("Erro ao buscar webhook de disparo:", webhookError);
@@ -106,6 +104,67 @@ export const ContactsHeader: React.FC<ContactsHeaderProps> = ({
     }
   };
 
+  const handleCsvUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (!file.name.toLowerCase().endsWith('.csv')) {
+      toast.error("Por favor, selecione um arquivo CSV");
+      return;
+    }
+
+    setIsUploadingCsv(true);
+    try {
+      let webhookUrl = localStorage.getItem('webhook_disparo');
+      if (!webhookUrl) {
+        const { data: webhookData, error: webhookError } = await supabase
+          .from('AppW_Options')
+          .select('text')
+          .eq('option', 'webhook_disparo')
+          .single();
+          
+        if (webhookError) throw new Error("Webhook não configurado");
+        if (webhookData?.text) {
+          webhookUrl = webhookData.text;
+          localStorage.setItem('webhook_disparo', webhookUrl);
+        }
+      }
+
+      if (!webhookUrl) {
+        throw new Error("URL do webhook não configurada");
+      }
+
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('action', 'carregar_csv');
+      formData.append('company_id', companyId || '');
+      
+      const response = await fetch(webhookUrl, {
+        method: 'POST',
+        body: formData
+      });
+
+      if (!response.ok) {
+        throw new Error("Erro ao enviar arquivo");
+      }
+
+      toast.success("Arquivo CSV enviado com sucesso");
+      if (onRefresh) {
+        onRefresh();
+      }
+    } catch (error) {
+      console.error("Erro ao fazer upload do CSV:", error);
+      toast.error("Erro ao enviar arquivo CSV", {
+        description: error instanceof Error ? error.message : "Erro desconhecido"
+      });
+    } finally {
+      setIsUploadingCsv(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
+
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between">
@@ -116,6 +175,34 @@ export const ContactsHeader: React.FC<ContactsHeaderProps> = ({
           </p>
         </div>
         <div className="flex gap-2">
+          <input
+            type="file"
+            ref={fileInputRef}
+            accept=".csv"
+            onChange={handleCsvUpload}
+            className="hidden"
+          />
+          
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={isUploadingCsv}
+            className="flex items-center gap-2"
+          >
+            {isUploadingCsv ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Enviando...
+              </>
+            ) : (
+              <>
+                <Upload className="h-4 w-4" />
+                Carregar Contatos (.CSV)
+              </>
+            )}
+          </Button>
+
           <Button
             variant="outline"
             size="sm"
