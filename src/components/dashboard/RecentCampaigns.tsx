@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { 
   Check, 
@@ -180,7 +181,7 @@ export const RecentCampaigns: React.FC = () => {
             <thead>
               <tr className="border-b bg-muted/40">
                 <th className="text-left text-xs font-medium text-muted-foreground px-6 py-3">NOME</th>
-                <th className="text-left text-xs font-medium text-muted-foreground px-6 py-3">TIPO</th>
+                <th className="text-left text-xs font-medium text-muted-foreground px-6 py-3">PRODUÇÃO</th>
                 <th className="text-left text-xs font-medium text-muted-foreground px-6 py-3">DATA</th>
                 <th className="text-left text-xs font-medium text-muted-foreground px-6 py-3">ANDAMENTO</th>
                 <th className="text-left text-xs font-medium text-muted-foreground px-6 py-3">STATUS</th>
@@ -204,8 +205,8 @@ export const RecentCampaigns: React.FC = () => {
                       {campaign.nome}
                     </div>
                   </td>
-                  <td className="px-6 py-4 text-muted-foreground capitalize">
-                    {campaign.tipo_midia || "Texto"}
+                  <td className="px-6 py-4 text-muted-foreground">
+                    {campaign.producao ? 'Sim' : 'Não'}
                   </td>
                   <td className="px-6 py-4 text-muted-foreground flex items-center gap-2">
                     <Calendar className="h-4 w-4" />
