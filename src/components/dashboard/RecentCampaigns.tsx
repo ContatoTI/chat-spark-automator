@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { 
   Check, 
@@ -181,9 +180,8 @@ export const RecentCampaigns: React.FC = () => {
             <thead>
               <tr className="border-b bg-muted/40">
                 <th className="text-left text-xs font-medium text-muted-foreground px-6 py-3">NOME</th>
-                <th className="text-left text-xs font-medium text-muted-foreground px-6 py-3">MENSAGEM</th>
-                <th className="text-left text-xs font-medium text-muted-foreground px-6 py-3">DATA</th>
                 <th className="text-left text-xs font-medium text-muted-foreground px-6 py-3">TIPO</th>
+                <th className="text-left text-xs font-medium text-muted-foreground px-6 py-3">DATA</th>
                 <th className="text-left text-xs font-medium text-muted-foreground px-6 py-3">ANDAMENTO</th>
                 <th className="text-left text-xs font-medium text-muted-foreground px-6 py-3">STATUS</th>
                 <th className="text-left text-xs font-medium text-muted-foreground px-6 py-3">AÇÕES</th>
@@ -206,18 +204,12 @@ export const RecentCampaigns: React.FC = () => {
                       {campaign.nome}
                     </div>
                   </td>
-                  <td className="px-6 py-4 text-muted-foreground">
-                    <div className="flex items-center gap-2">
-                      <MessageSquare className="h-4 w-4" />
-                      {getMessagePreview(campaign.mensagem01)}
-                    </div>
+                  <td className="px-6 py-4 text-muted-foreground capitalize">
+                    {campaign.tipo_midia || "Texto"}
                   </td>
                   <td className="px-6 py-4 text-muted-foreground flex items-center gap-2">
                     <Calendar className="h-4 w-4" />
                     {formatLocalDate(campaign.data_disparo)}
-                  </td>
-                  <td className="px-6 py-4 capitalize">
-                    {campaign.tipo_midia || "Texto"}
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex flex-col gap-1">

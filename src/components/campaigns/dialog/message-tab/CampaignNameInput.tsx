@@ -23,6 +23,23 @@ export const CampaignNameInput: React.FC<CampaignNameInputProps> = ({
 }) => {
   const campaignNameRef = useRef<HTMLInputElement>(null);
   
+  const handleVariableInsertion = () => {
+    if (campaignNameRef.current) {
+      const input = campaignNameRef.current;
+      const startPos = input.selectionStart || 0;
+      const endPos = input.selectionEnd || 0;
+      const newValue = campaignName.substring(0, startPos) + "<nome>" + campaignName.substring(endPos);
+      setCampaignName(newValue);
+      
+      // Set cursor position after the inserted variable
+      setTimeout(() => {
+        input.focus();
+        const newCursorPos = startPos + "<nome>".length;
+        input.setSelectionRange(newCursorPos, newCursorPos);
+      }, 0);
+    }
+  };
+  
   return (
     <div className="space-y-2">
       <Label htmlFor="campaign-name">Nome da Campanha</Label>
@@ -43,7 +60,7 @@ export const CampaignNameInput: React.FC<CampaignNameInputProps> = ({
               variant="outline" 
               size="sm"
               className="flex items-center gap-1" 
-              onClick={() => insertVariable("<nome>")}
+              onClick={handleVariableInsertion}
             >
               <div className="flex items-center gap-1">
                 <span className="font-medium">Variáveis:</span>
