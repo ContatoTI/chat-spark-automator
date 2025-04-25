@@ -1,5 +1,4 @@
-
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { 
   Table, 
   TableBody, 
@@ -14,16 +13,22 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useCompanyTags } from "@/hooks/useCompanyTags";
-import { Tag, X } from "lucide-react";
+import { Tag, X, ArrowUp, ArrowDown } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
+import { Input } from "@/components/ui/input";
 
 interface ContactsTableProps {
   contacts: Contact[];
   isLoading: boolean;
   companyId: string | null;
 }
+
+type SortConfig = {
+  column: string | null;
+  direction: 'asc' | 'desc';
+};
 
 export const ContactsTable: React.FC<ContactsTableProps> = ({ 
   contacts, 
@@ -33,6 +38,8 @@ export const ContactsTable: React.FC<ContactsTableProps> = ({
   const [selectedContacts, setSelectedContacts] = useState<number[]>([]);
   const { tags } = useCompanyTags(companyId);
   const queryClient = useQueryClient();
+  const [searchTerm, setSearchTerm] = useState("");
+  const [sortConfig, setSortConfig] = useState<SortConfig>({ column: null, direction: 'asc' });
 
   const handleSelectAll = (checked: boolean) => {
     setSelectedContacts(checked ? contacts.map(c => c.id) : []);
@@ -118,13 +125,38 @@ export const ContactsTable: React.FC<ContactsTableProps> = ({
     }
   };
 
-  if (contacts.length === 0 && !isLoading) {
-    return (
-      <div className="text-center py-8">
-        <p className="text-muted-foreground">Nenhum contato encontrado.</p>
-      </div>
-    );
-  }
+  const handleSort = (column: string) => {
+    setSortConfig(current => ({
+      column,
+      direction: current.column === column && current.direction === 'asc' ? 'desc' : 'asc'
+    }));
+  };
+
+  const filteredAndSortedContacts = useMemo(() => {
+    let filtered = contacts;
+    
+    if (searchTerm) {
+      filtered = contacts.filter(contact => {
+        return Object.values(contact).some(value => 
+          String(value).toLowerCase().includes(searchTerm.toLowerCase())
+        );
+      });
+    }
+
+    if (sortConfig.column) {
+      filtered = [...filtered].sort((a, b) => {
+        const aValue = String(a[sortConfig.column!] || '');
+        const bValue = String(b[sortConfig.column!] || '');
+        
+        if (sortConfig.direction === 'asc') {
+          return aValue.localeCompare(bValue);
+        }
+        return bValue.localeCompare(aValue);
+      });
+    }
+
+    return filtered;
+  }, [contacts, searchTerm, sortConfig]);
 
   const getColumns = () => {
     const allColumns = new Set<string>();
@@ -229,6 +261,15 @@ export const ContactsTable: React.FC<ContactsTableProps> = ({
         </div>
       )}
       
+      <div className="p-2 border-b bg-muted/20">
+        <Input
+          placeholder="Buscar contatos..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="max-w-sm"
+        />
+      </div>
+      
       <Table>
         <TableHeader>
           <TableRow>
@@ -239,8 +280,19 @@ export const ContactsTable: React.FC<ContactsTableProps> = ({
               />
             </TableHead>
             {columns.map((column) => (
-              <TableHead key={column}>
-                {column}
+              <TableHead 
+                key={column}
+                className="cursor-pointer hover:bg-muted/50"
+                onClick={() => handleSort(column)}
+              >
+                <div className="flex items-center gap-2">
+                  {column}
+                  {sortConfig.column === column && (
+                    sortConfig.direction === 'asc' ? 
+                      <ArrowUp className="h-4 w-4" /> : 
+                      <ArrowDown className="h-4 w-4" />
+                  )}
+                </div>
               </TableHead>
             ))}
           </TableRow>
@@ -252,8 +304,14 @@ export const ContactsTable: React.FC<ContactsTableProps> = ({
                 Carregando...
               </TableCell>
             </TableRow>
+          ) : filteredAndSortedContacts.length === 0 ? (
+            <TableRow>
+              <TableCell colSpan={columns.length + 1} className="h-24 text-center">
+                Nenhum contato encontrado.
+              </TableCell>
+            </TableRow>
           ) : (
-            contacts.map((contact) => (
+            filteredAndSortedContacts.map((contact) => (
               <TableRow key={contact.id}>
                 <TableCell>
                   <Checkbox 
