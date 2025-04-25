@@ -1,7 +1,7 @@
 
 import React from "react";
 import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";  // Add this import
+import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
   Popover,
@@ -9,7 +9,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { CalendarIcon } from "lucide-react";
+import { CalendarIcon, X } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
@@ -47,29 +47,43 @@ export const ScheduleTab = ({
         <div className="grid grid-cols-2 gap-4">
           <div>
             <Label>Data</Label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className={cn(
-                    "w-full justify-start text-left font-normal",
-                    !scheduleDate && "text-muted-foreground"
-                  )}
+            <div className="relative">
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "w-full justify-start text-left font-normal",
+                      !scheduleDate && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {scheduleDate ? format(scheduleDate, "PPP", { locale: ptBR }) : "Selecione uma data"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0">
+                  <Calendar
+                    mode="single"
+                    selected={scheduleDate}
+                    onSelect={setScheduleDate}
+                    initialFocus
+                    disabled={(date) => date < new Date()}
+                  />
+                </PopoverContent>
+              </Popover>
+              
+              {scheduleDate && (
+                <Button 
+                  size="icon" 
+                  variant="ghost" 
+                  className="absolute right-0 top-0 h-full rounded-l-none"
+                  onClick={() => setScheduleDate(undefined)}
                 >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {scheduleDate ? format(scheduleDate, "PPP", { locale: ptBR }) : "Selecione uma data"}
+                  <X className="h-4 w-4" />
+                  <span className="sr-only">Limpar data</span>
                 </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0">
-                <Calendar
-                  mode="single"
-                  selected={scheduleDate}
-                  onSelect={setScheduleDate}
-                  initialFocus
-                  disabled={(date) => date < new Date()}
-                />
-              </PopoverContent>
-            </Popover>
+              )}
+            </div>
           </div>
           
           <div>
@@ -77,6 +91,7 @@ export const ScheduleTab = ({
             <Select
               value={scheduleTime}
               onValueChange={setScheduleTime}
+              disabled={!scheduleDate}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Selecione um horário" />
@@ -99,7 +114,7 @@ export const ScheduleTab = ({
           <p><strong>Nome:</strong> {campaignName}</p>
           <p><strong>Tipo de mídia:</strong> {mediaType || 'Texto'}</p>
           <p><strong>Data Agendada:</strong> {scheduleDate ? format(scheduleDate, "PPP", { locale: ptBR }) : 'Não agendada'}</p>
-          <p><strong>Horário Agendado:</strong> {scheduleTime || 'Não agendado'}</p>
+          <p><strong>Horário Agendado:</strong> {scheduleTime && scheduleDate ? scheduleTime : 'Não agendado'}</p>
           <p><strong>Enviados:</strong> {enviados}</p>
           <p><strong>Limite de Disparos:</strong> {limiteDisparos}</p>
           <p><strong>Produção:</strong> {producao ? 'Sim' : 'Não'}</p>

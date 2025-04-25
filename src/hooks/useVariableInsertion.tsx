@@ -1,3 +1,4 @@
+
 import { useRef, useState } from "react";
 
 interface UseVariableInsertionParams {
@@ -34,8 +35,11 @@ export const useVariableInsertion = ({
       setMessage4: (value: string) => void;
     }
   ) => {
-    // If the campaign name field is active, insert the variable there
-    if (document.activeElement === campaignNameRef.current) {
+    // Verificar qual é o elemento ativo no momento
+    const activeElement = document.activeElement;
+    
+    // Verifique se o campo de nome da campanha está ativo
+    if (activeElement === campaignNameRef.current) {
       const input = campaignNameRef.current;
       if (input) {
         const startPos = input.selectionStart || 0;
@@ -53,8 +57,7 @@ export const useVariableInsertion = ({
       }
     }
     
-    // Otherwise insert into the active textarea
-    let textArea: HTMLTextAreaElement | null = null;
+    // Inserir variável no textarea ativo
     let setValue: (value: string) => void = () => {};
     let currentValue = "";
     
@@ -76,21 +79,55 @@ export const useVariableInsertion = ({
         currentValue = message4;
         break;
       default:
+        // Se nenhum textarea estiver ativo, tente encontrar um textarea focado
+        if (activeElement && activeElement.tagName === "TEXTAREA") {
+          const textarea = activeElement as HTMLTextAreaElement;
+          const startPos = textarea.selectionStart ?? 0;
+          const endPos = textarea.selectionEnd ?? 0;
+          
+          // Determinar qual textarea está ativo com base no elemento focado
+          if (textarea.id === "message-text-1") {
+            currentValue = message1;
+            setValue = setMessage1;
+          } else if (textarea.id === "message-text-2") {
+            currentValue = message2;
+            setValue = setMessage2;
+          } else if (textarea.id === "message-text-3") {
+            currentValue = message3;
+            setValue = setMessage3;
+          } else if (textarea.id === "message-text-4") {
+            currentValue = message4;
+            setValue = setMessage4;
+          } else {
+            return;
+          }
+          
+          const newValue = currentValue.substring(0, startPos) + variable + currentValue.substring(endPos);
+          setValue(newValue);
+
+          // Set cursor position after the inserted variable
+          setTimeout(() => {
+            textarea.focus();
+            textarea.setSelectionRange(startPos + variable.length, startPos + variable.length);
+          }, 0);
+          return;
+        }
         return;
     }
 
-    const activeElement = document.activeElement as HTMLTextAreaElement;
-    if (activeElement && activeElement.tagName === "TEXTAREA") {
-      const startPos = activeElement.selectionStart ?? 0;
-      const endPos = activeElement.selectionEnd ?? 0;
+    // Se chegamos aqui, temos um textarea ativo conforme o estado, mas precisamos verificar se está focado
+    const activeTextareaElement = document.activeElement as HTMLTextAreaElement;
+    if (activeTextareaElement && activeTextareaElement.tagName === "TEXTAREA") {
+      const startPos = activeTextareaElement.selectionStart ?? 0;
+      const endPos = activeTextareaElement.selectionEnd ?? 0;
       
       const newValue = currentValue.substring(0, startPos) + variable + currentValue.substring(endPos);
       setValue(newValue);
 
       // Set cursor position after the inserted variable
       setTimeout(() => {
-        activeElement.focus();
-        activeElement.setSelectionRange(startPos + variable.length, startPos + variable.length);
+        activeTextareaElement.focus();
+        activeTextareaElement.setSelectionRange(startPos + variable.length, startPos + variable.length);
       }, 0);
     }
   };

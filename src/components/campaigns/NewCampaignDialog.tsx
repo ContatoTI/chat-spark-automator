@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { useCampaignForm } from "@/hooks/useCampaignForm";
@@ -58,6 +59,13 @@ export const NewCampaignDialog: React.FC<NewCampaignDialogProps> = ({
   } = useCampaignForm(null, open);
   
   const [enviados, setEnviados] = React.useState(0);
+
+  // Definir texto como padrão ao abrir o diálogo
+  React.useEffect(() => {
+    if (open && !mediaType) {
+      setMediaType('text');
+    }
+  }, [open, mediaType, setMediaType]);
 
   const createMutation = useMutation({
     mutationFn: (newCampaign: Campaign) => createCampaign(newCampaign),

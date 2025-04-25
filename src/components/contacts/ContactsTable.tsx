@@ -18,6 +18,7 @@ import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
 
 interface ContactsTableProps {
   contacts: Contact[];
@@ -28,6 +29,17 @@ interface ContactsTableProps {
 type SortConfig = {
   column: string | null;
   direction: 'asc' | 'desc';
+};
+
+const tagColors: Record<string, string> = {
+  "Teste": "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300",
+  "Cliente": "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300",
+  "Prospect": "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300",
+  "Lead": "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300",
+  "Importante": "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300",
+  "Fornecedor": "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300",
+  "Parceiro": "bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-300",
+  "VIP": "bg-pink-100 text-pink-800 dark:bg-pink-900/30 dark:text-pink-300"
 };
 
 export const ContactsTable: React.FC<ContactsTableProps> = ({ 
@@ -179,6 +191,15 @@ export const ContactsTable: React.FC<ContactsTableProps> = ({
     return [...orderedColumns, ...Array.from(allColumns)];
   };
 
+  const getTagColor = (tagName: string) => {
+    const companyTag = tags.find(tag => tag.name === tagName);
+    if (companyTag && companyTag.color) {
+      return companyTag.color;
+    }
+    
+    return tagColors[tagName] || "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300";
+  };
+
   const formatCellValue = (value: any, column: string, contactId: number) => {
     if (value === null || value === undefined) {
       return <span className="text-muted-foreground">-</span>;
@@ -212,7 +233,7 @@ export const ContactsTable: React.FC<ContactsTableProps> = ({
             <Badge 
               key={`${tag}-${index}`}
               variant="outline" 
-              className="bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300 flex items-center gap-1"
+              className={cn("flex items-center gap-1", getTagColor(tag))}
             >
               <Tag className="h-3 w-3" />
               {tag}
