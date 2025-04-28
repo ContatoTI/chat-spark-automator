@@ -7,6 +7,7 @@ import { callWebhook } from "@/lib/api/webhook-utils";
 import { toast } from "sonner";
 import { ContactTagsDialog } from "./ContactTagsDialog";
 import { supabase } from "@/lib/supabase";
+import { ContactsConfirmSyncDialog } from "./ContactsConfirmSyncDialog";
 
 interface ContactsHeaderProps {
   onCreate?: () => void;
@@ -32,6 +33,7 @@ export const ContactsHeader: React.FC<ContactsHeaderProps> = ({
   companyId
 }) => {
   const [syncDialogOpen, setSyncDialogOpen] = useState(false);
+  const [confirmSyncDialogOpen, setConfirmSyncDialogOpen] = useState(false);
   const [tagsDialogOpen, setTagsDialogOpen] = useState(false);
   const [isCreatingList, setIsCreatingList] = useState(false);
   const [isUploadingCsv, setIsUploadingCsv] = useState(false);
@@ -165,6 +167,49 @@ export const ContactsHeader: React.FC<ContactsHeaderProps> = ({
     }
   };
 
+  const handleConfirmSync = async () => {
+    try {
+      let webhookUrl = localStorage.getItem('webhook_disparo');
+      
+      if (!webhookUrl) {
+        const { data: webhookData, error: webhookError } = await supabase
+          .from('AppW_Options')
+          .select('text')
+          .eq('option', 'webhook_disparo')
+          .single();
+          
+        if (webhookError) throw new Error("Webhook não configurado");
+        if (webhookData?.text) {
+          webhookUrl = webhookData.text;
+          localStorage.setItem('webhook_disparo', webhookUrl);
+        }
+      }
+      
+      if (!webhookUrl) {
+        throw new Error("URL do webhook não configurada");
+      }
+
+      const response = await callWebhook(webhookUrl, {
+        action: "sincronizar",
+        timestamp: new Date().toISOString()
+      });
+      
+      if (response.success) {
+        toast.success("Contatos sincronizados com sucesso");
+        handleRefresh();
+      } else {
+        throw new Error(response.message || "Erro na sincronização");
+      }
+    } catch (error) {
+      console.error("Erro na sincronização:", error);
+      toast.error("Erro ao sincronizar contatos", {
+        description: error instanceof Error ? error.message : "Erro desconhecido"
+      });
+    } finally {
+      setConfirmSyncDialogOpen(false);
+    }
+  };
+
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between">
@@ -238,7 +283,7 @@ export const ContactsHeader: React.FC<ContactsHeaderProps> = ({
           <Button
             variant="outline"
             size="sm"
-            onClick={() => setSyncDialogOpen(true)}
+            onClick={() => setConfirmSyncDialogOpen(true)}
             className="flex items-center gap-2"
           >
             <RefreshCw className="h-4 w-4" />
@@ -264,6 +309,13 @@ export const ContactsHeader: React.FC<ContactsHeaderProps> = ({
         open={syncDialogOpen}
         onOpenChange={setSyncDialogOpen}
         onSync={handleRefresh}
+        isSyncing={isSyncing}
+      />
+      
+      <ContactsConfirmSyncDialog
+        isOpen={confirmSyncDialogOpen}
+        onOpenChange={setConfirmSyncDialogOpen}
+        onConfirm={handleConfirmSync}
         isSyncing={isSyncing}
       />
     </div>
