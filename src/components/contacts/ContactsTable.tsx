@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo } from "react";
 import { 
   Table, 
@@ -13,17 +14,20 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useCompanyTags } from "@/hooks/useCompanyTags";
-import { Tag, X, ArrowUp, ArrowDown } from "lucide-react";
+import { Tag, X, ArrowUp, ArrowDown, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
+import { ContactFormDialog } from "./ContactFormDialog";
+import { DeleteContactDialog } from "./DeleteContactDialog";
 
 interface ContactsTableProps {
   contacts: Contact[];
   isLoading: boolean;
   companyId: string | null;
+  onRefresh: () => void;
 }
 
 type SortConfig = {
@@ -45,13 +49,18 @@ const tagColors: Record<string, string> = {
 export const ContactsTable: React.FC<ContactsTableProps> = ({ 
   contacts, 
   isLoading,
-  companyId
+  companyId,
+  onRefresh
 }) => {
   const [selectedContacts, setSelectedContacts] = useState<number[]>([]);
   const { tags } = useCompanyTags(companyId);
   const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState("");
   const [sortConfig, setSortConfig] = useState<SortConfig>({ column: null, direction: 'asc' });
+  const [editingContact, setEditingContact] = useState<Contact | null>(null);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [contactToDelete, setContactToDelete] = useState<Contact | null>(null);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
   const handleSelectAll = (checked: boolean) => {
     setSelectedContacts(checked ? contacts.map(c => c.id) : []);
@@ -61,6 +70,16 @@ export const ContactsTable: React.FC<ContactsTableProps> = ({
     setSelectedContacts(prev => 
       checked ? [...prev, contactId] : prev.filter(id => id !== contactId)
     );
+  };
+
+  const handleEditContact = (contact: Contact) => {
+    setEditingContact(contact);
+    setIsEditDialogOpen(true);
+  };
+
+  const handleDeleteContact = (contact: Contact) => {
+    setContactToDelete(contact);
+    setIsDeleteDialogOpen(true);
   };
 
   const handleApplyTag = async (tagName: string) => {
@@ -316,18 +335,19 @@ export const ContactsTable: React.FC<ContactsTableProps> = ({
                 </div>
               </TableHead>
             ))}
+            <TableHead className="w-[80px]">Ações</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {isLoading ? (
             <TableRow>
-              <TableCell colSpan={columns.length + 1} className="h-24 text-center">
+              <TableCell colSpan={columns.length + 2} className="h-24 text-center">
                 Carregando...
               </TableCell>
             </TableRow>
           ) : filteredAndSortedContacts.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={columns.length + 1} className="h-24 text-center">
+              <TableCell colSpan={columns.length + 2} className="h-24 text-center">
                 Nenhum contato encontrado.
               </TableCell>
             </TableRow>
@@ -345,11 +365,45 @@ export const ContactsTable: React.FC<ContactsTableProps> = ({
                     {formatCellValue(contact[column], column, contact.id)}
                   </TableCell>
                 ))}
+                <TableCell>
+                  <div className="flex items-center gap-1">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleEditContact(contact)}
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleDeleteContact(contact)}
+                    >
+                      <Trash2 className="h-4 w-4 text-destructive" />
+                    </Button>
+                  </div>
+                </TableCell>
               </TableRow>
             ))
           )}
         </TableBody>
       </Table>
+
+      <ContactFormDialog 
+        open={isEditDialogOpen}
+        onOpenChange={setIsEditDialogOpen}
+        contact={editingContact}
+        companyId={companyId}
+        onSuccess={onRefresh}
+      />
+
+      <DeleteContactDialog 
+        open={isDeleteDialogOpen}
+        onOpenChange={setIsDeleteDialogOpen}
+        contact={contactToDelete}
+        companyId={companyId}
+        onSuccess={onRefresh}
+      />
     </div>
   );
 };

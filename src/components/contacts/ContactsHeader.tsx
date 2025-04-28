@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Plus, RefreshCw, Loader2, Download, Tag, Upload } from "lucide-react";
@@ -7,9 +8,9 @@ import { callWebhook } from "@/lib/api/webhook-utils";
 import { toast } from "sonner";
 import { ContactTagsDialog } from "./ContactTagsDialog";
 import { supabase } from "@/lib/supabase";
+import { ContactFormDialog } from "./ContactFormDialog";
 
 interface ContactsHeaderProps {
-  onCreate?: () => void;
   onSync: () => void;
   isSyncing: boolean;
   totalContacts: number;
@@ -21,7 +22,6 @@ interface ContactsHeaderProps {
 }
 
 export const ContactsHeader: React.FC<ContactsHeaderProps> = ({
-  onCreate,
   onSync,
   isSyncing,
   totalContacts = 0,
@@ -35,6 +35,7 @@ export const ContactsHeader: React.FC<ContactsHeaderProps> = ({
   const [tagsDialogOpen, setTagsDialogOpen] = useState(false);
   const [isCreatingList, setIsCreatingList] = useState(false);
   const [isUploadingCsv, setIsUploadingCsv] = useState(false);
+  const [newContactDialogOpen, setNewContactDialogOpen] = useState(false);
   const { user, selectedCompany } = useAuth();
   
   const fileInputRef = React.useRef<HTMLInputElement>(null);
@@ -245,8 +246,12 @@ export const ContactsHeader: React.FC<ContactsHeaderProps> = ({
             Sincronizar
           </Button>
           
-          {onCreate && (
-            <Button onClick={onCreate} size="sm" className="flex items-center gap-2">
+          {tableExists && (
+            <Button 
+              onClick={() => setNewContactDialogOpen(true)} 
+              size="sm" 
+              className="flex items-center gap-2"
+            >
               <Plus className="h-4 w-4" />
               Novo Contato
             </Button>
@@ -264,6 +269,13 @@ export const ContactsHeader: React.FC<ContactsHeaderProps> = ({
         open={syncDialogOpen}
         onOpenChange={setSyncDialogOpen}
         onSync={handleRefresh}
+      />
+
+      <ContactFormDialog
+        open={newContactDialogOpen}
+        onOpenChange={setNewContactDialogOpen}
+        companyId={companyId}
+        onSuccess={handleRefresh}
       />
     </div>
   );

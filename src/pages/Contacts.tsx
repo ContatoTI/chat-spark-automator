@@ -87,6 +87,7 @@ const Contacts = () => {
               contacts={contacts} 
               isLoading={isLoading} 
               companyId={companyId}
+              onRefresh={refetch}
             />
             
             <ContactsPagination
