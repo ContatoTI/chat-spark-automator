@@ -11,6 +11,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Loader2 } from "lucide-react";
+import { ContactsSyncDialog } from "./ContactsSyncDialog";
 
 interface ContactsConfirmSyncDialogProps {
   isOpen: boolean;
@@ -25,37 +26,52 @@ export const ContactsConfirmSyncDialog: React.FC<ContactsConfirmSyncDialogProps>
   onConfirm,
   isSyncing
 }) => {
+  const [syncDialogOpen, setSyncDialogOpen] = React.useState(false);
+
+  const handleConfirm = () => {
+    onOpenChange(false); // Close this dialog
+    setSyncDialogOpen(true); // Open the sync dialog
+  };
+
   return (
-    <AlertDialog open={isOpen} onOpenChange={onOpenChange}>
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>Sincronizar Contatos</AlertDialogTitle>
-          <AlertDialogDescription>
-            Você tem certeza que deseja sincronizar todos os contatos? 
-            Este processo pode levar alguns minutos.
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel disabled={isSyncing}>Cancelar</AlertDialogCancel>
-          <AlertDialogAction 
-            onClick={(e) => {
-              e.preventDefault();
-              onConfirm();
-            }}
-            disabled={isSyncing}
-            className="gap-2"
-          >
-            {isSyncing ? (
-              <>
-                <Loader2 className="h-4 w-4 animate-spin" />
-                Sincronizando...
-              </>
-            ) : (
-              "Sim, sincronizar"
-            )}
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+    <>
+      <AlertDialog open={isOpen} onOpenChange={onOpenChange}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Sincronizar Contatos</AlertDialogTitle>
+            <AlertDialogDescription>
+              Você tem certeza que deseja sincronizar todos os contatos? 
+              Este processo pode levar alguns minutos.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isSyncing}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={(e) => {
+                e.preventDefault();
+                handleConfirm();
+              }}
+              disabled={isSyncing}
+              className="gap-2"
+            >
+              {isSyncing ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Sincronizando...
+                </>
+              ) : (
+                "Sim, sincronizar"
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+      
+      <ContactsSyncDialog 
+        open={syncDialogOpen}
+        onOpenChange={setSyncDialogOpen}
+        onSync={onConfirm}
+      />
+    </>
   );
 };

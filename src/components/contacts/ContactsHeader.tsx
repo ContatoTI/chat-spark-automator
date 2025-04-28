@@ -168,46 +168,8 @@ export const ContactsHeader: React.FC<ContactsHeaderProps> = ({
   };
 
   const handleConfirmSync = async () => {
-    try {
-      let webhookUrl = localStorage.getItem('webhook_disparo');
-      
-      if (!webhookUrl) {
-        const { data: webhookData, error: webhookError } = await supabase
-          .from('AppW_Options')
-          .select('text')
-          .eq('option', 'webhook_disparo')
-          .single();
-          
-        if (webhookError) throw new Error("Webhook não configurado");
-        if (webhookData?.text) {
-          webhookUrl = webhookData.text;
-          localStorage.setItem('webhook_disparo', webhookUrl);
-        }
-      }
-      
-      if (!webhookUrl) {
-        throw new Error("URL do webhook não configurada");
-      }
-
-      const response = await callWebhook(webhookUrl, {
-        action: "sincronizar",
-        timestamp: new Date().toISOString()
-      });
-      
-      if (response.success) {
-        toast.success("Contatos sincronizados com sucesso");
-        handleRefresh();
-      } else {
-        throw new Error(response.message || "Erro na sincronização");
-      }
-    } catch (error) {
-      console.error("Erro na sincronização:", error);
-      toast.error("Erro ao sincronizar contatos", {
-        description: error instanceof Error ? error.message : "Erro desconhecido"
-      });
-    } finally {
-      setConfirmSyncDialogOpen(false);
-    }
+    handleRefresh();
+    setConfirmSyncDialogOpen(false);
   };
 
   return (
