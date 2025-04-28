@@ -7,7 +7,6 @@ import { callWebhook } from "@/lib/api/webhook-utils";
 import { toast } from "sonner";
 import { ContactTagsDialog } from "./ContactTagsDialog";
 import { supabase } from "@/lib/supabase";
-import { ContactsConfirmSyncDialog } from "./ContactsConfirmSyncDialog";
 
 interface ContactsHeaderProps {
   onCreate?: () => void;
@@ -33,7 +32,6 @@ export const ContactsHeader: React.FC<ContactsHeaderProps> = ({
   companyId
 }) => {
   const [syncDialogOpen, setSyncDialogOpen] = useState(false);
-  const [confirmSyncDialogOpen, setConfirmSyncDialogOpen] = useState(false);
   const [tagsDialogOpen, setTagsDialogOpen] = useState(false);
   const [isCreatingList, setIsCreatingList] = useState(false);
   const [isUploadingCsv, setIsUploadingCsv] = useState(false);
@@ -167,11 +165,6 @@ export const ContactsHeader: React.FC<ContactsHeaderProps> = ({
     }
   };
 
-  const handleConfirmSync = async () => {
-    handleRefresh();
-    setConfirmSyncDialogOpen(false);
-  };
-
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between">
@@ -245,7 +238,7 @@ export const ContactsHeader: React.FC<ContactsHeaderProps> = ({
           <Button
             variant="outline"
             size="sm"
-            onClick={() => setConfirmSyncDialogOpen(true)}
+            onClick={() => setSyncDialogOpen(true)}
             className="flex items-center gap-2"
           >
             <RefreshCw className="h-4 w-4" />
@@ -271,14 +264,6 @@ export const ContactsHeader: React.FC<ContactsHeaderProps> = ({
         open={syncDialogOpen}
         onOpenChange={setSyncDialogOpen}
         onSync={handleRefresh}
-        isSyncing={isSyncing}
-      />
-      
-      <ContactsConfirmSyncDialog
-        isOpen={confirmSyncDialogOpen}
-        onOpenChange={setConfirmSyncDialogOpen}
-        onConfirm={handleConfirmSync}
-        isSyncing={isSyncing}
       />
     </div>
   );

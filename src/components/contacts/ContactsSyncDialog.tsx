@@ -10,7 +10,7 @@ import { SyncInProgressState } from "./sync/SyncInProgressState";
 import { SyncSuccessState } from "./sync/SyncSuccessState";
 import { SyncErrorState } from "./sync/SyncErrorState";
 import { SyncDialogFooter } from "./sync/SyncDialogFooter";
-import { useSyncContacts } from "./sync/useSyncContacts";
+import { useSyncContacts } from "@/hooks/useSyncContacts";
 
 interface ContactsSyncDialogProps {
   open: boolean;
