@@ -104,3 +104,30 @@ export const callWebhook = async (
     };
   }
 };
+
+/**
+ * Helper function to check if a column exists in a table
+ * @param supabaseClient The Supabase client
+ * @param tableName The table name
+ * @param columnName The column name to check
+ * @returns A promise that resolves to true if the column exists, false otherwise
+ */
+export const checkColumnExists = async (
+  supabaseClient: any,
+  tableName: string,
+  columnName: string
+): Promise<boolean> => {
+  try {
+    // Attempt to select just this column to see if it exists
+    const { error } = await supabaseClient
+      .from(tableName)
+      .select(columnName)
+      .limit(1);
+      
+    // If there's no error, the column exists
+    return !error;
+  } catch (error) {
+    console.error(`Error checking if column ${columnName} exists in ${tableName}:`, error);
+    return false;
+  }
+};
